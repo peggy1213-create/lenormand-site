@@ -1,30 +1,49 @@
-import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
-import LanguageSwitcher from "./LanguageSwitcher";
+"use client";
 
-export default async function Header() {
-  const t = await getTranslations("nav");
-  const site = await getTranslations("site");
+import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/navigation";
+import styles from "./Header.module.css";
+
+export default function Header() {
+  const t = useTranslations("nav");
+  const pathname = usePathname();
+
+  const navItems = [
+    { href: "/draw", label: t("home") },
+    { href: "/history", label: t("history") },
+    { href: "/about", label: t("about") },
+  ];
 
   return (
-    <header className="border-b border-muted/30 bg-cream">
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="text-lg font-semibold text-ink">
-          {site("title")}
-        </Link>
-        <nav className="flex items-center gap-4 text-sm">
-          <Link href="/" className="hover:text-rust">
-            {t("home")}
-          </Link>
-          <Link href="/history" className="hover:text-rust">
-            {t("history")}
-          </Link>
-          <Link href="/about" className="hover:text-rust">
-            {t("about")}
-          </Link>
-          <LanguageSwitcher />
-        </nav>
-      </div>
+    <header
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 32,
+        padding: "22px 48px",
+        borderBottom: "1px solid var(--border-hair)",
+      }}
+    >
+      <Link href="/" style={{ display: "flex", alignItems: "baseline", gap: 14, textDecoration: "none" }}>
+        <span className={styles.wordmark}>Lenormand</span>
+        <span className={styles.script}>oracle</span>
+      </Link>
+
+      <nav className={styles.nav}>
+        {navItems.map((item) => {
+          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          return active ? (
+            <span key={item.href} className={styles.navActive}>
+              {item.label}
+            </span>
+          ) : (
+            <Link key={item.href} href={item.href} className={styles.navLink}>
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
     </header>
   );
 }

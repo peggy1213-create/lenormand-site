@@ -1,9 +1,6 @@
-import type { SpreadId, Line3Frame } from "@/data/spreads";
+import type { SpreadId } from "@/data/spreads";
 import type { Locale } from "@/i18n/routing";
 
-// See PRD §3.5. `frame` is not in the PRD's Reading shape but is required
-// by docs/spreads.md so a line-3 reading replays with the same frame it was
-// drawn with; it's additive, not a conflict with the PRD.
 export type Reading = {
   id: string;
   createdAt: string; // ISO
@@ -12,7 +9,6 @@ export type Reading = {
   cards: { cardId: number; position: number }[];
   notes?: string;
   lang: Locale;
-  frame?: Line3Frame;
 };
 
 const STORAGE_KEY = "lenormand.history";
@@ -89,8 +85,4 @@ export function deleteReading(id: string): void {
 
 export function clearHistory(): void {
   writeHistory([]);
-}
-
-export function exportHistoryJson(): string {
-  return JSON.stringify(getHistory(), null, 2);
 }

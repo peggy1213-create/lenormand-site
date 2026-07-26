@@ -1,10 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Button from "./ds/Button";
 
-// Per docs/ai-prompts.md: copies `text` to the clipboard with a brief
-// "copied" confirmation; falls back to a select-all modal if the Clipboard
-// API is unavailable (old iOS Safari in some contexts).
+// Copies `text` to the clipboard with a brief "copied" confirmation; falls
+// back to a select-all modal if the Clipboard API is unavailable (old iOS
+// Safari in some contexts).
 export default function CopyToClipboardButton({
   text,
   label,
@@ -29,7 +30,7 @@ export default function CopyToClipboardButton({
       if (!navigator.clipboard) throw new Error("Clipboard API unavailable");
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 3000);
     } catch {
       setShowFallback(true);
     }
@@ -37,16 +38,34 @@ export default function CopyToClipboardButton({
 
   return (
     <>
-      <span className="inline-flex items-center gap-2">
-        <button
-          type="button"
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+        <Button
+          variant="plain"
           onClick={handleClick}
-          className="rounded-full bg-rust px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          style={{ color: "var(--gold-200)", borderColor: "rgba(231,199,137,.45)" }}
         >
           {label}
-        </button>
+        </Button>
         {copied && (
-          <span role="status" className="text-sm text-sage">
+          <span
+            role="status"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "8px 16px",
+              borderRadius: 8,
+              background: "var(--surface-card)",
+              border: "1px solid var(--gold-400)",
+              boxShadow: "var(--shadow-md)",
+              color: "var(--ink-900)",
+              fontFamily: "var(--font-smallcaps)",
+              textTransform: "uppercase",
+              letterSpacing: "var(--tracking-wide)",
+              fontSize: 11,
+            }}
+          >
+            <span style={{ color: "var(--gold-300)" }}>✦</span>
             {copiedLabel}
           </span>
         )}
@@ -56,33 +75,63 @@ export default function CopyToClipboardButton({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 60,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "var(--surface-overlay)",
+            padding: 16,
+          }}
         >
-          <div className="w-full max-w-md rounded-lg bg-cream p-4 shadow-lg">
-            <h2 className="font-medium text-ink">{fallbackTitle}</h2>
-            <p className="mt-1 text-sm text-muted">{fallbackHint}</p>
+          <div
+            style={{
+              width: "min(560px, 100%)",
+              background: "var(--surface-card)",
+              border: "1px solid var(--gold-400)",
+              borderRadius: 8,
+              boxShadow: "var(--shadow-lg)",
+              padding: 24,
+            }}
+          >
+            <h2
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 18,
+                letterSpacing: "var(--tracking-wide)",
+                color: "var(--ink-900)",
+                margin: 0,
+              }}
+            >
+              {fallbackTitle}
+            </h2>
+            <p style={{ marginTop: 8, fontSize: 14, color: "var(--text-muted)" }}>{fallbackHint}</p>
             <textarea
               ref={textareaRef}
               readOnly
               value={text}
-              className="mt-3 h-48 w-full rounded border border-muted/40 p-2 text-sm"
+              style={{
+                marginTop: 12,
+                height: 200,
+                width: "100%",
+                boxSizing: "border-box",
+                borderRadius: 8,
+                border: "1px solid var(--border-hair)",
+                padding: 10,
+                fontSize: 13,
+                fontFamily: "var(--font-mono)",
+              }}
               onFocus={(e) => e.currentTarget.select()}
             />
-            <div className="mt-3 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => textareaRef.current?.select()}
-                className="rounded border border-muted/40 px-3 py-1.5 text-sm text-ink"
-              >
+            <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <Button variant="ghost" onClick={() => textareaRef.current?.select()}>
                 {selectAllLabel}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowFallback(false)}
-                className="rounded bg-rust px-3 py-1.5 text-sm text-white"
-              >
+              </Button>
+              <Button variant="gilt" onClick={() => setShowFallback(false)}>
                 {"✕"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

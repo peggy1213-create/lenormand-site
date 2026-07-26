@@ -1,0 +1,561 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import type { Locale } from "@/i18n/routing";
+import { SPREADS } from "@/data/spreads";
+import { CARDS, CARD_BACK_IMAGE, type Card } from "@/data/cards";
+import { shuffle } from "@/lib/shuffle";
+import { addReading } from "@/lib/storage";
+import { buildAIPrompt } from "@/lib/prompt";
+import CopyToClipboardButton from "./CopyToClipboardButton";
+import styles from "./DrawFlow.module.css";
+
+type ScatterCard = { id: number; x: number; y: number; rot: number };
+type Phase = "question" | "shuffle" | "choose";
+
+const FIELD_W = 820;
+const FIELD_H = 260;
+
+function scatter(): ScatterCard[] {
+  const n = 16;
+  const cx = (FIELD_W - 96) / 2;
+  const cy = (FIELD_H - 152) / 2;
+  const out: ScatterCard[] = [];
+  for (let i = 0; i < n; i++) {
+    out.push({ id: i, x: cx + i * 1.2, y: cy - i * 0.8, rot: -1.5 + (i % 4) * 1 });
+  }
+  return out;
+}
+
+function clamp(v: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, v));
+}
+
+function cardBackStyle(extra?: CSSProperties): CSSProperties {
+  return {
+    width: 96,
+    height: 152,
+    borderRadius: 8,
+    backgroundImage: `url('${CARD_BACK_IMAGE}')`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+    border: "1px solid var(--gold-400)",
+    boxShadow: "var(--shadow-md)",
+    ...extra,
+  };
+}
+
+function pillButtonStyle(on: boolean, tone: "gilt" | "ghost"): CSSProperties {
+  return {
+    cursor: on ? "pointer" : "not-allowed",
+    padding: "12px 26px",
+    borderRadius: 8,
+    border: `1px solid ${tone === "gilt" ? "var(--gold-400)" : "rgba(231,199,137,.45)"}`,
+    background: tone === "gilt" ? (on ? "var(--gilt)" : "rgba(193,138,69,.25)") : "transparent",
+    color: tone === "gilt" ? (on ? "var(--ink-900)" : "rgba(251,246,234,.55)") : "var(--gold-200)",
+    fontFamily: "var(--font-smallcaps)",
+    textTransform: "uppercase",
+    letterSpacing: "var(--tracking-caps)",
+    fontSize: 12,
+    whiteSpace: "nowrap",
+    transition: "background var(--dur-med) var(--ease-out-soft)",
+  };
+}
+
+export default function DrawFlow() {
+  const locale = useLocale() as Locale;
+  const t = useTranslations("draw");
+  const s = useTranslations("spread");
+  const cardsT = useTranslations("cards");
+
+  const [sel, setSel] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [phase, setPhase] = useState<Phase>("question");
+  const [question, setQuestion] = useState("");
+  const [cards, setCards] = useState<ScatterCard[]>(() => scatter());
+  const [churn, setChurn] = useState(0);
+  const [deckOrder, setDeckOrder] = useState<Card[]>([]);
+  const [chosen, setChosen] = useState<number[]>([]);
+  const [revealed, setRevealed] = useState<number[]>([]);
+
+  const pressedRef = useRef(false);
+  const phaseRef = useRef<Phase>("question");
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
+
+  // The scrim covers the viewport, but without this the page behind it is
+  // still scrollable — lock it while the overlay is open. The scrolling
+  // element is <html>, not <body>, so both need to be locked.
+  useEffect(() => {
+    if (!open) return;
+    const html = document.documentElement;
+    const previousHtmlOverflow = html.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    html.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+    };
+  }, [open]);
+
+  const spread = SPREADS[sel];
+  const need = spread.cardCount;
+  const asking = phase === "question";
+  const choosing = phase === "choose";
+  const done = choosing && chosen.length >= need;
+  const allShown = done && chosen.every((di) => revealed.includes(di));
+  const ready = churn >= 60;
+
+  function openSpread(i: number) {
+    const spreadAt = SPREADS[i];
+    const skip = spreadAt.id === "daily";
+    setSel(i);
+    setOpen(true);
+    setPhase(skip ? "shuffle" : "question");
+    if (skip) setQuestion("");
+    setCards(scatter());
+    setChurn(0);
+    setDeckOrder([]);
+    setChosen([]);
+    setRevealed([]);
+  }
+
+  function toShuffle() {
+    setPhase("shuffle");
+    setCards(scatter());
+    setChurn(0);
+    setDeckOrder([]);
+    setChosen([]);
+    setRevealed([]);
+  }
+
+  function handlePress() {
+    if (phaseRef.current !== "shuffle") return;
+    pressedRef.current = true;
+    const jitter = (span: number) => (Math.random() * 2 - 1) * span;
+    setCards((prev) =>
+      prev.map((c) => ({
+        ...c,
+        x: clamp(c.x + jitter(110), -20, FIELD_W - 76),
+        y: clamp(c.y + jitter(75), -16, FIELD_H - 116),
+        rot: c.rot + jitter(13),
+      })),
+    );
+    setChurn((c) => Math.min(100, c + 22));
+  }
+
+  function handleRelease() {
+    pressedRef.current = false;
+  }
+
+  function handleMove(e: ReactPointerEvent<HTMLDivElement>) {
+    if (phaseRef.current !== "shuffle" || !pressedRef.current) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    let touched = 0;
+    setCards((prev) =>
+      prev.map((c) => {
+        const dx = c.x + 48 - mx;
+        const dy = c.y + 76 - my;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 120) return c;
+        touched++;
+        const push = (120 - dist) / 6;
+        const nx = clamp(c.x + (dx / (dist || 1)) * push, -30, FIELD_W - 66);
+        const ny = clamp(c.y + (dy / (dist || 1)) * push, -24, FIELD_H - 110);
+        return { ...c, x: nx, y: ny, rot: c.rot + (dx > 0 ? 2.5 : -2.5) };
+      }),
+    );
+    if (touched) setChurn((c) => Math.min(100, c + touched * 2));
+  }
+
+  function lay() {
+    setDeckOrder(shuffle(CARDS));
+    setChosen([]);
+    setRevealed([]);
+    setPhase("choose");
+  }
+
+  function choose(i: number, order: Card[]) {
+    if (chosen.length >= need || chosen.includes(i)) return;
+    const next = [...chosen, i];
+    setChosen(next);
+    if (next.length >= need) {
+      addReading({
+        spread: spread.id,
+        question: question.trim() || undefined,
+        cards: next.map((di, idx) => ({ cardId: order[di].id, position: idx })),
+        lang: locale,
+      });
+    }
+  }
+
+  function reveal(i: number) {
+    setRevealed((prev) => (prev.includes(i) ? prev : [...prev, i]));
+  }
+
+  function back() {
+    setOpen(false);
+    setPhase("question");
+    setCards(scatter());
+    setChurn(0);
+    setDeckOrder([]);
+    setChosen([]);
+    setRevealed([]);
+    setQuestion("");
+  }
+
+  const promptText = allShown
+    ? buildAIPrompt({
+        spread: spread.id,
+        cards: chosen.map((di) => ({ cardId: deckOrder[di].id })),
+        question: question.trim() || undefined,
+        locale,
+      })
+    : "";
+
+  const questionMissing = asking && question.trim().length === 0;
+
+  function layAction() {
+    if (asking) {
+      if (questionMissing) return;
+      toShuffle();
+      return;
+    }
+    if (allShown) {
+      openSpread(sel);
+      return;
+    }
+    if (done) {
+      setRevealed(chosen.slice());
+      return;
+    }
+    if (choosing) return;
+    if (ready) lay();
+  }
+
+  const layLabel = asking
+    ? t("drawCardsButton")
+    : allShown
+      ? t("drawAgainButton")
+      : done
+        ? t("revealAllCardsButton")
+        : t("layTheCardsButton");
+
+  const stageTitle = asking
+    ? t("stageTitle.question")
+    : done
+      ? t("stageTitle.laid")
+      : choosing
+        ? t("stageTitle.choose")
+        : t("stageTitle.shuffle");
+
+  const stageHint = asking
+    ? ""
+    : allShown
+      ? t("hint.sitWithIt")
+      : done
+        ? t("hint.turnCards")
+        : choosing
+          ? t("hint.choosing", { need, chosen: chosen.length })
+          : ready
+            ? t("hint.ready")
+            : churn > 0
+              ? t("hint.keepGoing")
+              : t("hint.pressAndDrag");
+
+  const charCount = question.length;
+
+  return (
+    <>
+      <div className={styles.spreadGrid}>
+        {SPREADS.map((sp, i) => (
+          <div key={sp.id} className={styles.spreadCard} onClick={() => openSpread(i)}>
+            <div
+              style={{
+                position: "absolute",
+                inset: -1,
+                borderRadius: 8,
+                border: "1px solid var(--gold-400)",
+                boxShadow: sel === i ? "var(--shadow-gilt-glow)" : "none",
+                opacity: sel === i ? 1 : 0,
+                transition: "opacity var(--dur-med) var(--ease-out-soft)",
+                pointerEvents: "none",
+              }}
+            />
+            <h2
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 600,
+                fontSize: 22,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: "var(--ink-900)",
+                margin: "0 0 10px",
+              }}
+            >
+              {s(`${sp.id}.name`)}
+            </h2>
+            <p
+              style={{
+                fontSize: 17,
+                lineHeight: 1.5,
+                color: "var(--text-muted)",
+                margin: "0 0 20px",
+                flex: 1,
+              }}
+            >
+              {s(`${sp.id}.description`)}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {open && (
+        <div className={styles.scrim}>
+          <div style={{ textAlign: "center", width: "100%", maxWidth: 880 }}>
+            <div
+              style={{
+                fontFamily: "var(--font-smallcaps)",
+                textTransform: "uppercase",
+                letterSpacing: "var(--tracking-caps)",
+                fontSize: 12,
+                color: "var(--gold-200)",
+              }}
+            >
+              {s(`${spread.id}.name`)}
+            </div>
+            <div
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: 30,
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                color: "var(--parchment-50)",
+                marginTop: 12,
+              }}
+            >
+              {stageTitle}
+            </div>
+
+            {asking && (
+              <div style={{ marginTop: 28, textAlign: "left" }}>
+                <textarea
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value.slice(0, 250))}
+                  rows={5}
+                  placeholder={t("questionPlaceholder")}
+                  className={styles.questionTextarea}
+                />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                    marginTop: 10,
+                    fontFamily: "var(--font-smallcaps)",
+                    textTransform: "uppercase",
+                    letterSpacing: "var(--tracking-wide)",
+                    fontSize: 11,
+                    color: "var(--gold-200)",
+                  }}
+                >
+                  <span>{t("askOneAtATime")}</span>
+                  <span style={{ color: charCount >= 250 ? "var(--gold-300)" : "var(--gold-200)" }}>
+                    {t("charCount", { count: charCount })}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {!choosing && !asking && (
+              <div
+                onPointerDown={handlePress}
+                onPointerMove={handleMove}
+                onPointerUp={handleRelease}
+                onPointerLeave={handleRelease}
+                className={styles.shuffleField}
+                style={{ maxWidth: FIELD_W, height: FIELD_H }}
+              >
+                {cards.map((c) => (
+                  <div
+                    key={c.id}
+                    style={cardBackStyle({
+                      position: "absolute",
+                      left: c.x,
+                      top: c.y,
+                      transform: `rotate(${c.rot}deg)`,
+                      transition:
+                        "left 320ms var(--ease-serpentine), top 320ms var(--ease-serpentine), transform 320ms var(--ease-serpentine)",
+                    })}
+                  />
+                ))}
+              </div>
+            )}
+
+            {choosing && spread.id !== "daily" && question.trim() && (
+              <div
+                style={{
+                  maxWidth: 620,
+                  margin: "24px auto 0",
+                  textAlign: "center",
+                  paddingTop: 18,
+                  borderTop: "1px solid rgba(231,199,137,.28)",
+                }}
+              >
+                <span
+                  style={{
+                    display: "block",
+                    fontFamily: "var(--font-smallcaps)",
+                    textTransform: "uppercase",
+                    letterSpacing: "var(--tracking-caps)",
+                    fontSize: 11,
+                    color: "var(--gold-300)",
+                    marginBottom: 8,
+                  }}
+                >
+                  {t("yourQuestionLabel")}
+                </span>
+                <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 20, lineHeight: 1.45, color: "var(--gold-200)" }}>
+                  {question.trim()}
+                </span>
+              </div>
+            )}
+
+            {choosing && (
+              <div
+                style={{
+                  display: "flex",
+                  gap: 18,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginTop: 22,
+                  minHeight: chosen.length ? 0 : 12,
+                }}
+              >
+                {chosen.map((di) => {
+                  const shown = revealed.includes(di);
+                  const card = deckOrder[di];
+                  return (
+                    <div
+                      key={di}
+                      onClick={() => reveal(di)}
+                      className={styles.chosenCard}
+                      style={{ cursor: shown ? "default" : "pointer" }}
+                    >
+                      <div
+                        style={cardBackStyle({
+                          width: 148,
+                          height: 232,
+                          backgroundImage: `url('${shown ? card.image : CARD_BACK_IMAGE}')`,
+                        })}
+                      />
+                      <div
+                        style={{
+                          marginTop: 10,
+                          minHeight: 18,
+                          fontFamily: "var(--font-smallcaps)",
+                          textTransform: "uppercase",
+                          letterSpacing: "var(--tracking-wide)",
+                          fontSize: 11,
+                          color: "var(--gold-200)",
+                        }}
+                      >
+                        {shown ? cardsT(`${card.slug}.name`) : ""}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {choosing && !done && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginTop: 10,
+                  maxWidth: "100%",
+                  overflow: "hidden",
+                  paddingTop: 26,
+                }}
+              >
+                {deckOrder.map((card, i) => {
+                  const taken = chosen.includes(i);
+                  return (
+                    <div
+                      key={card.id}
+                      onClick={() => choose(i, deckOrder)}
+                      style={cardBackStyle({
+                        flex: "0 0 auto",
+                        marginLeft: i ? -76 : 0,
+                        cursor: done || taken ? "default" : "pointer",
+                        opacity: taken ? 0 : 1,
+                        transform: taken ? "translateY(-24px)" : "none",
+                        transition:
+                          "transform var(--dur-med) var(--ease-out-soft), opacity var(--dur-med) var(--ease-out-soft)",
+                      })}
+                    />
+                  );
+                })}
+              </div>
+            )}
+
+            <div
+              style={{
+                fontFamily: "var(--font-serif)",
+                fontStyle: "italic",
+                fontSize: 17,
+                color: "var(--moss-100)",
+                marginTop: 26,
+                minHeight: 26,
+              }}
+            >
+              {stageHint}
+            </div>
+
+            <div style={{ display: "flex", gap: 18, justifyContent: "center", marginTop: 22, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={layAction}
+                disabled={(choosing && !done) || questionMissing}
+                style={{
+                  ...pillButtonStyle(
+                    !questionMissing && (asking || done || allShown || (ready && !choosing)),
+                    "gilt",
+                  ),
+                  display: choosing && !done ? "none" : "inline-block",
+                }}
+              >
+                {layLabel}
+              </button>
+
+              {done && (
+                <div style={{ opacity: allShown ? 1 : 0.45, pointerEvents: allShown ? "auto" : "none" }}>
+                  <CopyToClipboardButton
+                    text={promptText}
+                    label={t("copyPromptButton")}
+                    copiedLabel={t("copiedToast")}
+                    fallbackTitle={t("copyFallbackTitle")}
+                    fallbackHint={t("copyFallbackHint")}
+                    selectAllLabel={t("selectAllButton")}
+                  />
+                </div>
+              )}
+
+              <button type="button" onClick={back} style={pillButtonStyle(true, "ghost")}>
+                {t("backToSpreadsButton")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

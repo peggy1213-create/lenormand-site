@@ -2,12 +2,41 @@ import { getTranslations } from "next-intl/server";
 
 export default async function Footer() {
   const t = await getTranslations("footer");
+  const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-muted/30 bg-cream">
-      <div className="mx-auto max-w-3xl px-4 py-4 text-center text-xs text-muted">
+    <footer
+      style={{
+        borderTop: "1px solid var(--border-hair)",
+        padding: "26px 48px 34px",
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "baseline",
+        justifyContent: "space-between",
+        gap: "12px 32px",
+        maxWidth: 1080,
+        margin: "0 auto",
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "var(--font-smallcaps)",
+          textTransform: "uppercase",
+          letterSpacing: "var(--tracking-caps)",
+          fontSize: 11,
+          color: "var(--gold-500)",
+        }}
+      >{`© ${year} Little Think  Lenormand`}</span>
+      <span
+        style={{
+          fontFamily: "var(--font-serif)",
+          fontStyle: "italic",
+          fontSize: 14,
+          color: "var(--text-subtle)",
+        }}
+      >
         {t("disclaimer")}
-      </div>
+      </span>
     </footer>
   );
 }

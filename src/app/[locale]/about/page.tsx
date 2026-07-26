@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import OrnamentRule from "@/components/ds/OrnamentRule";
 
 export default async function AboutPage({
   params,
@@ -8,20 +9,45 @@ export default async function AboutPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("about");
-  const footer = await getTranslations("footer");
   const body = t.raw("body") as string[];
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="text-2xl font-semibold text-ink">{t("title")}</h1>
-      <div className="mt-4 space-y-4 text-ink">
+    <main style={{ maxWidth: 720, margin: "0 auto", padding: "64px 48px 80px" }}>
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <h1
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 600,
+            fontSize: 40,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "var(--ink-900)",
+            margin: 0,
+          }}
+        >
+          {t("title")}
+        </h1>
+        <OrnamentRule style={{ margin: "20px 0 0" }} />
+      </div>
+
+      <div
+        style={{
+          background: "var(--surface-card)",
+          border: "1px solid var(--border-hair)",
+          borderRadius: 8,
+          boxShadow: "var(--shadow-sm)",
+          padding: "32px 40px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+        }}
+      >
         {body.map((paragraph, i) => (
-          <p key={i}>{paragraph}</p>
+          <p key={i} style={{ fontSize: 18, lineHeight: 1.6, color: "var(--text-body)", margin: 0 }}>
+            {paragraph}
+          </p>
         ))}
       </div>
-      <p className="mt-8 border-t border-muted/30 pt-4 text-sm text-muted">
-        {footer("disclaimer")}
-      </p>
-    </div>
+    </main>
   );
 }

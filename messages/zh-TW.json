@@ -1,112 +1,112 @@
 {
   "site": {
     "title": "雷諾曼",
-    "tagline": "抽取雷諾曼卡牌，並保留個人占卜紀錄 — 無需註冊。"
+    "tagline": "抽取雷諾曼卡牌，並保留個人抽牌紀錄 — 無需註冊。"
   },
   "nav": {
-    "home": "占卜",
+    "home": "牌陣",
     "history": "紀錄",
     "about": "關於",
     "language": "語言"
   },
   "home": {
-    "heading": "選擇一種牌陣",
-    "subheading": "選擇牌陣、抽牌，讀出屬於你的故事。",
-    "chooseSpreadCta": "開始占卜"
+    "heading": "The Cards Are Waiting",
+    "chooseSpreadCta": "選擇牌陣",
+    "deckCta": "點擊牌堆開始"
   },
   "spread": {
     "daily": {
-      "name": "每日雙牌",
-      "description": "快速的每日指引。兩張牌成對閱讀：第一張是主題，第二張是修飾。",
+      "name": "每日抽牌",
+      "description": "感受今天的能量走向與提醒",
       "pos1": "主題",
       "pos2": "修飾",
-      "pairNote": "把這兩張牌合起來讀成一句話 —— 這正是雷諾曼的閱讀方式。"
+      "pos3": "結果"
     },
-    "line3": {
-      "name": "三牌陣",
-      "description": "過去、現在、未來，或情況、行動、結果 —— 請先在下方選擇框架。",
-      "frameLabel": "框架",
-      "frames": {
-        "pastPresentFuture": "過去／現在／未來",
-        "situationActionOutcome": "情況／行動／結果"
-      },
-      "pastPresentFuture": {
-        "pos1": "過去",
-        "pos2": "現在",
-        "pos3": "未來"
-      },
-      "situationActionOutcome": {
-        "pos1": "情況",
-        "pos2": "行動",
-        "pos3": "結果"
-      }
+    "three": {
+      "name": "三張牌",
+      "description": "針對你在意的事情給予快速指引",
+      "pos1": "第一張",
+      "pos2": "第二張",
+      "pos3": "第三張"
     },
-    "line5": {
-      "name": "五牌陣",
-      "description": "圍繞核心問題的更深入敘事，以中間那張牌為錨點。",
-      "pos1": "遠因",
-      "pos2": "近因",
-      "pos3": "核心／當下",
-      "pos4": "近未來",
-      "pos5": "結果"
+    "five": {
+      "name": "五張牌",
+      "description": "圍繞核心問題展開的更深層敘事",
+      "pos1": "第一張",
+      "pos2": "第二張",
+      "pos3": "第三張",
+      "pos4": "第四張",
+      "pos5": "第五張"
     }
   },
   "draw": {
-    "questionLabel": "你的問題（選填）",
-    "questionPlaceholder": "例如：今天我該專注在什麼事情上？",
-    "shuffleButton": "洗牌",
-    "shufflePrompt": "點擊或拖曳牌堆以洗牌。",
-    "shuffleCountHint": "已洗牌 {count} 次 —— 可再洗一次，或直接抽牌。",
-    "drawButton": "抽牌",
-    "revealAllButton": "全部翻開",
-    "tapToReveal": "點擊卡牌以翻開",
+    "pageEyebrow": "全新的一次抽牌",
+    "pageHeading": "選擇牌陣",
+    "pageLead": "選擇一種牌陣、抽出卡牌，讀出屬於你的故事。一次只問一個問題。",
+    "questionPlaceholder": "這一週我該留意什麼？",
+    "askOneAtATime": "一次只問一個問題",
+    "charCount": "{count} / 250",
+    "yourQuestionLabel": "你的問題",
+    "stageTitle": {
+      "question": "說出你的問題",
+      "shuffle": "洗牌",
+      "choose": "選擇你的卡牌",
+      "laid": "牌已擺好"
+    },
+    "hint": {
+      "pressAndDrag": "按住牌堆並拖曳 — 卡牌會在你手中散開",
+      "keepGoing": "繼續 — 按住並拖曳以攪動牌堆",
+      "ready": "準備好時就可以擺牌",
+      "choosing": "從這排牌中選出 {need} 張 — 已選 {chosen} / {need} 張",
+      "turnCards": "點擊卡牌以翻開 — 或一次全部翻開",
+      "sitWithIt": "靜心體會眼前的牌"
+    },
+    "drawCardsButton": "抽牌",
+    "layTheCardsButton": "擺牌",
+    "revealAllCardsButton": "全部翻開",
     "drawAgainButton": "重新抽牌",
-    "noteLabel": "筆記",
-    "notePlaceholder": "為這次占卜新增個人筆記。",
-    "saveNoteButton": "儲存筆記",
-    "noteSavedToast": "已儲存",
-    "deleteButton": "刪除這次占卜",
-    "confirmDelete": "刪除這次占卜紀錄？此動作無法復原。",
+    "backToSpreadsButton": "返回牌陣選擇",
     "copyPromptButton": "複製 AI 解讀提示",
-    "copiedToast": "已複製",
+    "copiedToast": "已複製 — 貼到你慣用的 AI 中即可",
     "copyFallbackTitle": "手動複製",
     "copyFallbackHint": "無法使用剪貼簿功能，請手動全選以下文字並複製。",
-    "selectAllButton": "全選"
+    "selectAllButton": "全選",
+    "noteLabel": "筆記",
+    "notePlaceholder": "為這次抽牌新增個人筆記。",
+    "saveNoteButton": "儲存筆記",
+    "noteSavedToast": "已儲存",
+    "deleteButton": "刪除這次抽牌",
+    "confirmDelete": "刪除這次抽牌紀錄？此動作無法復原！"
   },
   "history": {
-    "title": "紀錄",
-    "empty": "尚無占卜紀錄。抽一次牌陣即可開始累積紀錄。",
+    "title": "你的抽牌紀錄",
+    "eyebrow": "卡牌曾經說過的話",
+    "lead": "每一次抽牌都保存在這裡，日期、問題，以及抽出的牌",
+    "savedNotice": "所有抽牌紀錄都會自動儲存在你的瀏覽器中",
+    "beginReading": "開始一次抽牌",
+    "empty": "尚無抽牌紀錄。抽一次牌陣即可開始累積紀錄。",
     "questionPreviewNone": "（無問題）",
     "replayButton": "查看",
+    "hideDrawButton": "收合",
     "deleteButton": "刪除",
+    "confirmDeleteYes": "確定刪除",
+    "confirmDeleteCancel": "取消",
     "clearAllButton": "全部清除",
-    "confirmClearAll": "刪除所有已儲存的占卜紀錄？此動作無法復原。",
-    "exportJsonButton": "匯出 JSON",
-    "firstVisitNotice": "占卜紀錄僅儲存於此裝置與瀏覽器。",
+    "confirmClearAll": "刪除所有已儲存的抽牌紀錄？此動作無法復原。",
+    "exportTxtButton": "匯出 txt",
+    "firstVisitNotice": "抽牌紀錄僅儲存於此裝置與瀏覽器。",
     "incognitoWarning": "你的瀏覽器似乎處於無痕模式，本次瀏覽結束後紀錄將不會被保留。"
   },
   "about": {
     "title": "關於",
     "body": [
-      "這個網站是一個簡單的空間，讓你抽取雷諾曼卡牌、閱讀牌義，並記錄自己的占卜歷程。",
-      "雷諾曼的閱讀方式與塔羅不同：牌與牌之間互相組合，串成一段簡短的敘事，而不是各自獨立解讀。這裡提供的三種牌陣 —— 每日雙牌、三牌陣與五牌陣 —— 都是為了保留這種閱讀方式而設計。",
+      "這個網站是一個簡單的空間，讓你抽取雷諾曼卡牌、閱讀牌義，並記錄自己的抽牌歷程。",
+      "雷諾曼的閱讀方式與塔羅不同：牌與牌之間互相組合，串成一段簡短的敘事，而不是各自獨立解讀。這裡提供的三種牌陣 —— 每日抽牌、三張牌與五張牌 —— 都是為了保留這種閱讀方式而設計。",
       "你抽到的每一筆紀錄都只保存在自己的裝置上，不會傳送到任何地方。請把它當作反思與娛樂之用，而非專業建議的替代品。"
     ]
   },
   "footer": {
     "disclaimer": "僅供娛樂用途，不能取代專業、法律、財務或醫療建議。"
-  },
-  "prompt": {
-    "questionLine": "我的問題：「{question}」",
-    "daily": {
-      "template": "我抽了一組 Lenormand 每日雙牌。請以 Lenormand（非塔羅）方式解讀 —— Lenormand 牌是成對閱讀的，第一張是主題，第二張是修飾。\n\n{questionLine}\n\n主題：{card1Name} — 關鍵字：{card1Keywords}\n修飾：{card2Name} — 關鍵字：{card2Keywords}\n\n請給我一段簡短的每日解讀（2–4 句），先把兩張牌讀成一個短語，再說明今天要留意什麼。"
-    },
-    "line3": {
-      "template": "我抽了一組 Lenormand 三牌陣。請以 Lenormand（非塔羅）方式解讀 —— 從左到右把三張牌讀成一句話，並將相鄰的兩張牌（1+2、2+3）串連成敘事。\n\n{questionLine}\n\n框架：{frameLabel}\n位置 1（{pos1Label}）：{card1Name} — 關鍵字：{card1Keywords}\n位置 2（{pos2Label}）：{card2Name} — 關鍵字：{card2Keywords}\n位置 3（{pos3Label}）：{card3Name} — 關鍵字：{card3Keywords}\n\n請給我一段敘事式解讀（4–6 句），從位置 1 流暢串到位置 3。"
-    },
-    "line5": {
-      "template": "我抽了一組 Lenormand 五牌陣。請以 Lenormand（非塔羅）方式解讀。第 3 張是中心錨點 —— 由此向外閱讀。鏡像對（1↔5、2↔4）可能會強化或抵銷彼此。\n\n{questionLine}\n\n位置 1（{pos1Label}）：{card1Name} — 關鍵字：{card1Keywords}\n位置 2（{pos2Label}）：{card2Name} — 關鍵字：{card2Keywords}\n位置 3（{pos3Label}）：{card3Name} — 關鍵字：{card3Keywords}\n位置 4（{pos4Label}）：{card4Name} — 關鍵字：{card4Keywords}\n位置 5（{pos5Label}）：{card5Name} — 關鍵字：{card5Keywords}\n\n請給我一段敘事式解讀（6–10 句）：從錨點開始，向外經過鏡像對，最後收束於結果。"
-    }
   },
   "cards": {
     "rider": {
@@ -182,7 +182,7 @@
       "keywords": ["友誼", "忠誠", "盟友"]
     },
     "tower": {
-      "name": "塔",
+      "name": "高塔",
       "keywords": ["體制", "孤立", "權威"]
     },
     "garden": {

@@ -1,0 +1,91 @@
+@keyframes drift {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.spreadGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+  align-items: stretch;
+}
+
+@media (max-width: 760px) {
+  .spreadGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.spreadCard {
+  position: relative;
+  cursor: pointer;
+  background: var(--surface-card);
+  border: 1px solid var(--border-hair);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  padding: 38px 34px 36px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  transition:
+    box-shadow var(--dur-med) var(--ease-out-soft),
+    transform var(--dur-med) var(--ease-out-soft);
+}
+.spreadCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(49, 75, 41, 0.92);
+  display: grid;
+  place-items: start center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 40px 40px 48px;
+  z-index: 40;
+  animation: drift var(--dur-slow) var(--ease-out-soft) both;
+}
+
+.chosenCard {
+  animation: drift var(--dur-med) var(--ease-out-soft) both;
+  text-align: center;
+}
+
+.questionTextarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(251, 246, 234, 0.06);
+  border: 1px solid rgba(231, 199, 137, 0.45);
+  border-radius: 8px;
+  color: var(--parchment-50);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 21px;
+  line-height: 1.5;
+  padding: 18px 20px;
+  outline: none;
+  resize: none;
+}
+.questionTextarea:focus {
+  border-color: var(--gold-300);
+}
+
+.shuffleField {
+  position: relative;
+  width: 100%;
+  margin: 26px auto 0;
+  cursor: grab;
+  border: 1px solid rgba(231, 199, 137, 0.28);
+  border-radius: 8px;
+  touch-action: none;
+}
