@@ -51,7 +51,8 @@
       "question": "說出你的問題",
       "shuffle": "洗牌",
       "choose": "選擇你的卡牌",
-      "laid": "牌已擺好"
+      "laid": "牌已擺好",
+      "locked": "今日已抽過牌"
     },
     "hint": {
       "pressAndDrag": "按住牌堆並拖曳 — 卡牌會在你手中散開",
@@ -59,8 +60,10 @@
       "ready": "準備好時就可以擺牌",
       "choosing": "從這排牌中選出 {need} 張 — 已選 {chosen} / {need} 張",
       "turnCards": "點擊卡牌以翻開 — 或一次全部翻開",
-      "sitWithIt": "靜心體會眼前的牌"
+      "sitWithIt": "靜心體會眼前的牌",
+      "dailyLocked": "每日僅能抽一次。請於你所在時區的午夜後再回來。"
     },
+    "dailyLockedBadge": "今日已抽 — 明天再來",
     "drawCardsButton": "抽牌",
     "layTheCardsButton": "擺牌",
     "revealAllCardsButton": "全部翻開",

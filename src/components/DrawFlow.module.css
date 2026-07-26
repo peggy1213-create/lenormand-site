@@ -48,12 +48,19 @@
   inset: 0;
   background: rgba(49, 75, 41, 0.92);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   place-items: start center;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 40px 40px 48px;
   z-index: 40;
   animation: drift var(--dur-slow) var(--ease-out-soft) both;
+}
+
+@media (max-width: 640px) {
+  .scrim {
+    padding: 24px 16px 32px;
+  }
 }
 
 .chosenCard {
@@ -88,4 +95,24 @@
   border: 1px solid rgba(231, 199, 137, 0.28);
   border-radius: 8px;
   touch-action: none;
+  overflow: hidden;
+}
+
+.deckRow {
+  display: flex;
+  justify-content: center;
+  overflow-x: hidden;
+  max-width: 100%;
+  margin-top: 10px;
+  padding-top: 26px;
+}
+
+@media (max-width: 640px) {
+  .deckRow {
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
 }

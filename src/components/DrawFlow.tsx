@@ -7,13 +7,13 @@ import type { Locale } from "@/i18n/routing";
 import { SPREADS } from "@/data/spreads";
 import { CARDS, CARD_BACK_IMAGE, type Card } from "@/data/cards";
 import { shuffle } from "@/lib/shuffle";
-import { addReading } from "@/lib/storage";
+import { addReading, hasDrawnDailyToday } from "@/lib/storage";
 import { buildAIPrompt } from "@/lib/prompt";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import styles from "./DrawFlow.module.css";
 
 type ScatterCard = { id: number; x: number; y: number; rot: number };
-type Phase = "question" | "shuffle" | "choose";
+type Phase = "question" | "shuffle" | "choose" | "locked";
 
 const FIELD_W = 820;
 const FIELD_H = 260;
@@ -80,11 +80,34 @@ export default function DrawFlow() {
   const [deckOrder, setDeckOrder] = useState<Card[]>([]);
   const [chosen, setChosen] = useState<number[]>([]);
   const [revealed, setRevealed] = useState<number[]>([]);
+  const [dailyLocked, setDailyLocked] = useState(false);
+  const [fieldScale, setFieldScale] = useState(1);
 
+  // Read on mount only (not during SSR): the lock depends on localStorage
+  // and the viewer's local clock, so it can only be known client-side.
+  useEffect(() => {
+    setDailyLocked(hasDrawnDailyToday());
+  }, []);
+
+  const fieldRef = useRef<HTMLDivElement | null>(null);
   const pressedRef = useRef(false);
   const phaseRef = useRef<Phase>("question");
   useEffect(() => {
     phaseRef.current = phase;
+  }, [phase]);
+
+  // The scatter field's card coordinates are authored for a fixed
+  // FIELD_W x FIELD_H stage; scale that stage down to fit narrower
+  // viewports instead of letting cards land outside the visible area.
+  useEffect(() => {
+    const el = fieldRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width ?? FIELD_W;
+      setFieldScale(Math.min(1, width / FIELD_W));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [phase]);
 
   // The scrim covers the viewport, but without this the page behind it is
@@ -114,9 +137,10 @@ export default function DrawFlow() {
   function openSpread(i: number) {
     const spreadAt = SPREADS[i];
     const skip = spreadAt.id === "daily";
+    const locked = skip && dailyLocked;
     setSel(i);
     setOpen(true);
-    setPhase(skip ? "shuffle" : "question");
+    setPhase(locked ? "locked" : skip ? "shuffle" : "question");
     if (skip) setQuestion("");
     setCards(scatter());
     setChurn(0);
@@ -156,8 +180,9 @@ export default function DrawFlow() {
   function handleMove(e: ReactPointerEvent<HTMLDivElement>) {
     if (phaseRef.current !== "shuffle" || !pressedRef.current) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
+    const scale = fieldScale || 1;
+    const mx = (e.clientX - rect.left) / scale;
+    const my = (e.clientY - rect.top) / scale;
     let touched = 0;
     setCards((prev) =>
       prev.map((c) => {
@@ -193,6 +218,7 @@ export default function DrawFlow() {
         cards: next.map((di, idx) => ({ cardId: order[di].id, position: idx })),
         lang: locale,
       });
+      if (spread.id === "daily") setDailyLocked(true);
     }
   }
 
@@ -223,6 +249,7 @@ export default function DrawFlow() {
   const questionMissing = asking && question.trim().length === 0;
 
   function layAction() {
+    if (phase === "locked") return;
     if (asking) {
       if (questionMissing) return;
       toShuffle();
@@ -248,15 +275,20 @@ export default function DrawFlow() {
         ? t("revealAllCardsButton")
         : t("layTheCardsButton");
 
-  const stageTitle = asking
-    ? t("stageTitle.question")
-    : done
-      ? t("stageTitle.laid")
-      : choosing
-        ? t("stageTitle.choose")
-        : t("stageTitle.shuffle");
+  const stageTitle =
+    phase === "locked"
+      ? t("stageTitle.locked")
+      : asking
+        ? t("stageTitle.question")
+        : done
+          ? t("stageTitle.laid")
+          : choosing
+            ? t("stageTitle.choose")
+            : t("stageTitle.shuffle");
 
-  const stageHint = asking
+  const stageHint = phase === "locked"
+    ? t("hint.dailyLocked")
+    : asking
     ? ""
     : allShown
       ? t("hint.sitWithIt")
@@ -275,46 +307,67 @@ export default function DrawFlow() {
   return (
     <>
       <div className={styles.spreadGrid}>
-        {SPREADS.map((sp, i) => (
-          <div key={sp.id} className={styles.spreadCard} onClick={() => openSpread(i)}>
+        {SPREADS.map((sp, i) => {
+          const lockedCard = sp.id === "daily" && dailyLocked;
+          return (
             <div
-              style={{
-                position: "absolute",
-                inset: -1,
-                borderRadius: 8,
-                border: "1px solid var(--gold-400)",
-                boxShadow: sel === i ? "var(--shadow-gilt-glow)" : "none",
-                opacity: sel === i ? 1 : 0,
-                transition: "opacity var(--dur-med) var(--ease-out-soft)",
-                pointerEvents: "none",
-              }}
-            />
-            <h2
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 600,
-                fontSize: 22,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: "var(--ink-900)",
-                margin: "0 0 10px",
-              }}
+              key={sp.id}
+              className={styles.spreadCard}
+              onClick={() => openSpread(i)}
+              style={{ opacity: lockedCard ? 0.6 : 1 }}
             >
-              {s(`${sp.id}.name`)}
-            </h2>
-            <p
-              style={{
-                fontSize: 17,
-                lineHeight: 1.5,
-                color: "var(--text-muted)",
-                margin: "0 0 20px",
-                flex: 1,
-              }}
-            >
-              {s(`${sp.id}.description`)}
-            </p>
-          </div>
-        ))}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: -1,
+                  borderRadius: 8,
+                  border: "1px solid var(--gold-400)",
+                  boxShadow: sel === i ? "var(--shadow-gilt-glow)" : "none",
+                  opacity: sel === i ? 1 : 0,
+                  transition: "opacity var(--dur-med) var(--ease-out-soft)",
+                  pointerEvents: "none",
+                }}
+              />
+              <h2
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 600,
+                  fontSize: 22,
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  color: "var(--ink-900)",
+                  margin: "0 0 10px",
+                }}
+              >
+                {s(`${sp.id}.name`)}
+              </h2>
+              <p
+                style={{
+                  fontSize: 17,
+                  lineHeight: 1.5,
+                  color: "var(--text-muted)",
+                  margin: "0 0 20px",
+                  flex: 1,
+                }}
+              >
+                {s(`${sp.id}.description`)}
+              </p>
+              {lockedCard && (
+                <div
+                  style={{
+                    fontFamily: "var(--font-smallcaps)",
+                    textTransform: "uppercase",
+                    letterSpacing: "var(--tracking-wide)",
+                    fontSize: 11,
+                    color: "var(--gold-300)",
+                  }}
+                >
+                  {t("dailyLockedBadge")}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {open && (
@@ -374,28 +427,31 @@ export default function DrawFlow() {
               </div>
             )}
 
-            {!choosing && !asking && (
+            {!choosing && !asking && phase !== "locked" && (
               <div
+                ref={fieldRef}
                 onPointerDown={handlePress}
                 onPointerMove={handleMove}
                 onPointerUp={handleRelease}
                 onPointerLeave={handleRelease}
                 className={styles.shuffleField}
-                style={{ maxWidth: FIELD_W, height: FIELD_H }}
+                style={{ maxWidth: FIELD_W, height: FIELD_H * fieldScale }}
               >
-                {cards.map((c) => (
-                  <div
-                    key={c.id}
-                    style={cardBackStyle({
-                      position: "absolute",
-                      left: c.x,
-                      top: c.y,
-                      transform: `rotate(${c.rot}deg)`,
-                      transition:
-                        "left 320ms var(--ease-serpentine), top 320ms var(--ease-serpentine), transform 320ms var(--ease-serpentine)",
-                    })}
-                  />
-                ))}
+                <div style={{ width: FIELD_W, height: FIELD_H, transform: `scale(${fieldScale})`, transformOrigin: "top left" }}>
+                  {cards.map((c) => (
+                    <div
+                      key={c.id}
+                      style={cardBackStyle({
+                        position: "absolute",
+                        left: c.x,
+                        top: c.y,
+                        transform: `rotate(${c.rot}deg)`,
+                        transition:
+                          "left 320ms var(--ease-serpentine), top 320ms var(--ease-serpentine), transform 320ms var(--ease-serpentine)",
+                      })}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
@@ -432,6 +488,7 @@ export default function DrawFlow() {
               <div
                 style={{
                   display: "flex",
+                  flexWrap: "wrap",
                   gap: 18,
                   justifyContent: "center",
                   alignItems: "center",
@@ -451,8 +508,8 @@ export default function DrawFlow() {
                     >
                       <div
                         style={cardBackStyle({
-                          width: 148,
-                          height: 232,
+                          width: "clamp(84px, 24vw, 148px)",
+                          height: "clamp(132px, 37.7vw, 232px)",
                           backgroundImage: `url('${shown ? card.image : CARD_BACK_IMAGE}')`,
                         })}
                       />
@@ -476,16 +533,7 @@ export default function DrawFlow() {
             )}
 
             {choosing && !done && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: 10,
-                  maxWidth: "100%",
-                  overflow: "hidden",
-                  paddingTop: 26,
-                }}
-              >
+              <div className={styles.deckRow}>
                 {deckOrder.map((card, i) => {
                   const taken = chosen.includes(i);
                   return (
@@ -493,8 +541,10 @@ export default function DrawFlow() {
                       key={card.id}
                       onClick={() => choose(i, deckOrder)}
                       style={cardBackStyle({
+                        width: "clamp(56px, 14vw, 96px)",
+                        height: "clamp(88px, 22vw, 152px)",
                         flex: "0 0 auto",
-                        marginLeft: i ? -76 : 0,
+                        marginLeft: i ? "calc(-1 * clamp(56px, 14vw, 96px) * 0.79)" : 0,
                         cursor: done || taken ? "default" : "pointer",
                         opacity: taken ? 0 : 1,
                         transform: taken ? "translateY(-24px)" : "none",
@@ -524,13 +574,13 @@ export default function DrawFlow() {
               <button
                 type="button"
                 onClick={layAction}
-                disabled={(choosing && !done) || questionMissing}
+                disabled={(choosing && !done) || questionMissing || phase === "locked"}
                 style={{
                   ...pillButtonStyle(
                     !questionMissing && (asking || done || allShown || (ready && !choosing)),
                     "gilt",
                   ),
-                  display: choosing && !done ? "none" : "inline-block",
+                  display: (choosing && !done) || phase === "locked" ? "none" : "inline-block",
                 }}
               >
                 {layLabel}

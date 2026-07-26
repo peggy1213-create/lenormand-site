@@ -51,7 +51,8 @@
       "question": "Name your question",
       "shuffle": "Shuffle the deck",
       "choose": "Choose your cards",
-      "laid": "The cards are laid"
+      "laid": "The cards are laid",
+      "locked": "Today's card is already drawn"
     },
     "hint": {
       "pressAndDrag": "Press the deck and drag — the cards scatter under your hand.",
@@ -59,8 +60,10 @@
       "ready": "Enough. Lay the cards when you are ready.",
       "choosing": "Pick {need} cards from the line — {chosen} of {need} chosen.",
       "turnCards": "Turn a card by clicking it — or reveal them all at once.",
-      "sitWithIt": "Sit with what arrives."
+      "sitWithIt": "Sit with what arrives.",
+      "dailyLocked": "One daily draw per day. Come back after midnight in your time zone."
     },
+    "dailyLockedBadge": "Drawn today — come back tomorrow",
     "drawCardsButton": "Draw cards",
     "layTheCardsButton": "Lay the cards",
     "revealAllCardsButton": "Reveal all cards",

@@ -83,6 +83,23 @@ export function deleteReading(id: string): void {
   writeHistory(getHistory().filter((r) => r.id !== id));
 }
 
+function isSameLocalDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+// "Today" is evaluated in the browser's local timezone (Date's getters are
+// local by default), so the daily draw resets at midnight wherever the user is.
+export function hasDrawnDailyToday(): boolean {
+  const now = new Date();
+  return getHistory().some(
+    (r) => r.spread === "daily" && isSameLocalDay(new Date(r.createdAt), now),
+  );
+}
+
 export function clearHistory(): void {
   writeHistory([]);
 }
