@@ -1,0 +1,257 @@
+{
+  "site": {
+    "title": "雷諾曼",
+    "tagline": "抽取雷諾曼卡牌，並保留個人占卜紀錄 — 無需註冊。"
+  },
+  "nav": {
+    "home": "占卜",
+    "history": "紀錄",
+    "about": "關於",
+    "language": "語言"
+  },
+  "home": {
+    "heading": "選擇一種牌陣",
+    "subheading": "選擇牌陣、抽牌，讀出屬於你的故事。",
+    "chooseSpreadCta": "開始占卜"
+  },
+  "spread": {
+    "daily": {
+      "name": "每日雙牌",
+      "description": "快速的每日指引。兩張牌成對閱讀：第一張是主題，第二張是修飾。",
+      "pos1": "主題",
+      "pos2": "修飾",
+      "pairNote": "把這兩張牌合起來讀成一句話 —— 這正是雷諾曼的閱讀方式。"
+    },
+    "line3": {
+      "name": "三牌陣",
+      "description": "過去、現在、未來，或情況、行動、結果 —— 請先在下方選擇框架。",
+      "frameLabel": "框架",
+      "frames": {
+        "pastPresentFuture": "過去／現在／未來",
+        "situationActionOutcome": "情況／行動／結果"
+      },
+      "pastPresentFuture": {
+        "pos1": "過去",
+        "pos2": "現在",
+        "pos3": "未來"
+      },
+      "situationActionOutcome": {
+        "pos1": "情況",
+        "pos2": "行動",
+        "pos3": "結果"
+      }
+    },
+    "line5": {
+      "name": "五牌陣",
+      "description": "圍繞核心問題的更深入敘事，以中間那張牌為錨點。",
+      "pos1": "遠因",
+      "pos2": "近因",
+      "pos3": "核心／當下",
+      "pos4": "近未來",
+      "pos5": "結果"
+    }
+  },
+  "draw": {
+    "questionLabel": "你的問題（選填）",
+    "questionPlaceholder": "例如：今天我該專注在什麼事情上？",
+    "shuffleButton": "洗牌",
+    "shufflePrompt": "點擊或拖曳牌堆以洗牌。",
+    "shuffleCountHint": "已洗牌 {count} 次 —— 可再洗一次，或直接抽牌。",
+    "drawButton": "抽牌",
+    "revealAllButton": "全部翻開",
+    "tapToReveal": "點擊卡牌以翻開",
+    "drawAgainButton": "重新抽牌",
+    "noteLabel": "筆記",
+    "notePlaceholder": "為這次占卜新增個人筆記。",
+    "saveNoteButton": "儲存筆記",
+    "noteSavedToast": "已儲存",
+    "deleteButton": "刪除這次占卜",
+    "confirmDelete": "刪除這次占卜紀錄？此動作無法復原。",
+    "copyPromptButton": "複製 AI 解讀提示",
+    "copiedToast": "已複製",
+    "copyFallbackTitle": "手動複製",
+    "copyFallbackHint": "無法使用剪貼簿功能，請手動全選以下文字並複製。",
+    "selectAllButton": "全選"
+  },
+  "history": {
+    "title": "紀錄",
+    "empty": "尚無占卜紀錄。抽一次牌陣即可開始累積紀錄。",
+    "questionPreviewNone": "（無問題）",
+    "replayButton": "查看",
+    "deleteButton": "刪除",
+    "clearAllButton": "全部清除",
+    "confirmClearAll": "刪除所有已儲存的占卜紀錄？此動作無法復原。",
+    "exportJsonButton": "匯出 JSON",
+    "firstVisitNotice": "占卜紀錄僅儲存於此裝置與瀏覽器。",
+    "incognitoWarning": "你的瀏覽器似乎處於無痕模式，本次瀏覽結束後紀錄將不會被保留。"
+  },
+  "about": {
+    "title": "關於",
+    "body": [
+      "這個網站是一個簡單的空間，讓你抽取雷諾曼卡牌、閱讀牌義，並記錄自己的占卜歷程。",
+      "雷諾曼的閱讀方式與塔羅不同：牌與牌之間互相組合，串成一段簡短的敘事，而不是各自獨立解讀。這裡提供的三種牌陣 —— 每日雙牌、三牌陣與五牌陣 —— 都是為了保留這種閱讀方式而設計。",
+      "你抽到的每一筆紀錄都只保存在自己的裝置上，不會傳送到任何地方。請把它當作反思與娛樂之用，而非專業建議的替代品。"
+    ]
+  },
+  "footer": {
+    "disclaimer": "僅供娛樂用途，不能取代專業、法律、財務或醫療建議。"
+  },
+  "prompt": {
+    "questionLine": "我的問題：「{question}」",
+    "daily": {
+      "template": "我抽了一組 Lenormand 每日雙牌。請以 Lenormand（非塔羅）方式解讀 —— Lenormand 牌是成對閱讀的，第一張是主題，第二張是修飾。\n\n{questionLine}\n\n主題：{card1Name} — 關鍵字：{card1Keywords}\n修飾：{card2Name} — 關鍵字：{card2Keywords}\n\n請給我一段簡短的每日解讀（2–4 句），先把兩張牌讀成一個短語，再說明今天要留意什麼。"
+    },
+    "line3": {
+      "template": "我抽了一組 Lenormand 三牌陣。請以 Lenormand（非塔羅）方式解讀 —— 從左到右把三張牌讀成一句話，並將相鄰的兩張牌（1+2、2+3）串連成敘事。\n\n{questionLine}\n\n框架：{frameLabel}\n位置 1（{pos1Label}）：{card1Name} — 關鍵字：{card1Keywords}\n位置 2（{pos2Label}）：{card2Name} — 關鍵字：{card2Keywords}\n位置 3（{pos3Label}）：{card3Name} — 關鍵字：{card3Keywords}\n\n請給我一段敘事式解讀（4–6 句），從位置 1 流暢串到位置 3。"
+    },
+    "line5": {
+      "template": "我抽了一組 Lenormand 五牌陣。請以 Lenormand（非塔羅）方式解讀。第 3 張是中心錨點 —— 由此向外閱讀。鏡像對（1↔5、2↔4）可能會強化或抵銷彼此。\n\n{questionLine}\n\n位置 1（{pos1Label}）：{card1Name} — 關鍵字：{card1Keywords}\n位置 2（{pos2Label}）：{card2Name} — 關鍵字：{card2Keywords}\n位置 3（{pos3Label}）：{card3Name} — 關鍵字：{card3Keywords}\n位置 4（{pos4Label}）：{card4Name} — 關鍵字：{card4Keywords}\n位置 5（{pos5Label}）：{card5Name} — 關鍵字：{card5Keywords}\n\n請給我一段敘事式解讀（6–10 句）：從錨點開始，向外經過鏡像對，最後收束於結果。"
+    }
+  },
+  "cards": {
+    "rider": {
+      "name": "騎士",
+      "keywords": ["消息", "訊息", "到來", "移動"]
+    },
+    "clover": {
+      "name": "幸運草",
+      "keywords": ["幸運", "小確幸", "機會"]
+    },
+    "ship": {
+      "name": "船",
+      "keywords": ["旅行", "旅程", "渴望"]
+    },
+    "house": {
+      "name": "房屋",
+      "keywords": ["家", "家庭", "穩定"]
+    },
+    "tree": {
+      "name": "樹",
+      "keywords": ["健康", "根基", "緩慢成長"]
+    },
+    "clouds": {
+      "name": "雲",
+      "keywords": ["困惑", "懷疑", "不確定"]
+    },
+    "snake": {
+      "name": "蛇",
+      "keywords": ["背叛", "複雜", "情敵／對手"]
+    },
+    "coffin": {
+      "name": "棺材",
+      "keywords": ["結束", "疾病", "轉變"]
+    },
+    "bouquet": {
+      "name": "花束",
+      "keywords": ["禮物", "善意", "邀請"]
+    },
+    "scythe": {
+      "name": "鐮刀",
+      "keywords": ["突然的切斷", "決定", "危險"]
+    },
+    "whip": {
+      "name": "鞭子",
+      "keywords": ["衝突", "重複", "爭執"]
+    },
+    "birds": {
+      "name": "鳥",
+      "keywords": ["八卦", "閒聊", "焦慮"]
+    },
+    "child": {
+      "name": "小孩",
+      "keywords": ["新的開始", "純真", "微小"]
+    },
+    "fox": {
+      "name": "狐狸",
+      "keywords": ["狡詐", "欺騙", "自利"]
+    },
+    "bear": {
+      "name": "熊",
+      "keywords": ["力量", "權威", "財富"]
+    },
+    "stars": {
+      "name": "星星",
+      "keywords": ["希望", "指引", "清晰"]
+    },
+    "stork": {
+      "name": "送子鳥",
+      "keywords": ["改變", "過渡", "搬遷"]
+    },
+    "dog": {
+      "name": "狗",
+      "keywords": ["友誼", "忠誠", "盟友"]
+    },
+    "tower": {
+      "name": "塔",
+      "keywords": ["體制", "孤立", "權威"]
+    },
+    "garden": {
+      "name": "花園",
+      "keywords": ["公眾", "社交聚會", "人脈"]
+    },
+    "mountain": {
+      "name": "高山",
+      "keywords": ["阻礙", "延遲", "卡關"]
+    },
+    "crossroads": {
+      "name": "岔路",
+      "keywords": ["選擇", "決定", "選項"]
+    },
+    "mice": {
+      "name": "老鼠",
+      "keywords": ["損失", "擔憂", "耗損"]
+    },
+    "heart": {
+      "name": "心",
+      "keywords": ["愛", "情感", "浪漫"]
+    },
+    "ring": {
+      "name": "戒指",
+      "keywords": ["承諾", "合約", "循環"]
+    },
+    "book": {
+      "name": "書",
+      "keywords": ["秘密", "知識", "隱藏"]
+    },
+    "letter": {
+      "name": "信",
+      "keywords": ["書面訊息", "文件"]
+    },
+    "man": {
+      "name": "男士",
+      "keywords": ["男性問卜者或伴侶"]
+    },
+    "woman": {
+      "name": "女士",
+      "keywords": ["女性問卜者或伴侶"]
+    },
+    "lily": {
+      "name": "百合",
+      "keywords": ["平靜", "成熟", "家族長輩"]
+    },
+    "sun": {
+      "name": "太陽",
+      "keywords": ["成功", "喜悅", "活力"]
+    },
+    "moon": {
+      "name": "月亮",
+      "keywords": ["情感", "認可", "名聲"]
+    },
+    "key": {
+      "name": "鑰匙",
+      "keywords": ["突破", "確定", "開啟"]
+    },
+    "fish": {
+      "name": "魚",
+      "keywords": ["財富", "事業", "豐盛"]
+    },
+    "anchor": {
+      "name": "錨",
+      "keywords": ["穩定", "長期", "工作"]
+    },
+    "cross": {
+      "name": "十字架",
+      "keywords": ["負擔", "命運", "無法避免"]
+    }
+  }
+}

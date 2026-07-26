@@ -1,0 +1,257 @@
+{
+  "site": {
+    "title": "Lenormand",
+    "tagline": "Draw Lenormand cards and keep a personal reading history — no account needed."
+  },
+  "nav": {
+    "home": "Draw",
+    "history": "History",
+    "about": "About",
+    "language": "Language"
+  },
+  "home": {
+    "heading": "Choose a spread",
+    "subheading": "Pick a spread, draw your cards, and read the story they tell.",
+    "chooseSpreadCta": "Draw"
+  },
+  "spread": {
+    "daily": {
+      "name": "Daily Draw",
+      "description": "Quick daily guidance. Two cards read as a pair: the first names the subject, the second modifies it.",
+      "pos1": "Subject",
+      "pos2": "Modifier",
+      "pairNote": "Read these two cards together as one phrase — that's how Lenormand works."
+    },
+    "line3": {
+      "name": "Line of 3",
+      "description": "Past, present, and future — or situation, action, and outcome. Choose your frame below.",
+      "frameLabel": "Frame",
+      "frames": {
+        "pastPresentFuture": "Past / Present / Future",
+        "situationActionOutcome": "Situation / Action / Outcome"
+      },
+      "pastPresentFuture": {
+        "pos1": "Past",
+        "pos2": "Present",
+        "pos3": "Future"
+      },
+      "situationActionOutcome": {
+        "pos1": "Situation",
+        "pos2": "Action",
+        "pos3": "Outcome"
+      }
+    },
+    "line5": {
+      "name": "Line of 5",
+      "description": "A deeper narrative around a core issue, anchored on the centre card.",
+      "pos1": "Distant past",
+      "pos2": "Recent past",
+      "pos3": "Core / Present",
+      "pos4": "Near future",
+      "pos5": "Outcome"
+    }
+  },
+  "draw": {
+    "questionLabel": "Your question (optional)",
+    "questionPlaceholder": "e.g. What should I focus on today?",
+    "shuffleButton": "Shuffle",
+    "shufflePrompt": "Click or drag the deck to shuffle.",
+    "shuffleCountHint": "Shuffled {count} times — click again or draw when ready.",
+    "drawButton": "Draw",
+    "revealAllButton": "Reveal all",
+    "tapToReveal": "Tap a card to reveal it",
+    "drawAgainButton": "Draw again",
+    "noteLabel": "Note",
+    "notePlaceholder": "Add a personal note about this reading.",
+    "saveNoteButton": "Save note",
+    "noteSavedToast": "Saved",
+    "deleteButton": "Delete reading",
+    "confirmDelete": "Delete this reading? This cannot be undone.",
+    "copyPromptButton": "Copy prompt for AI",
+    "copiedToast": "Copied",
+    "copyFallbackTitle": "Copy manually",
+    "copyFallbackHint": "Clipboard access isn't available. Select all the text below and copy it manually.",
+    "selectAllButton": "Select all"
+  },
+  "history": {
+    "title": "History",
+    "empty": "No readings yet. Draw your first spread to start your history.",
+    "questionPreviewNone": "(no question)",
+    "replayButton": "View",
+    "deleteButton": "Delete",
+    "clearAllButton": "Clear all",
+    "confirmClearAll": "Delete all saved readings? This cannot be undone.",
+    "exportJsonButton": "Export JSON",
+    "firstVisitNotice": "Readings are saved only on this device and browser.",
+    "incognitoWarning": "Your browser appears to be in private/incognito mode. History will not be saved after this session ends."
+  },
+  "about": {
+    "title": "About",
+    "body": [
+      "This site is a simple space to draw Lenormand cards, read their meaning, and keep track of your own readings over time.",
+      "Lenormand is read differently from Tarot: cards are combined and read together, building a short narrative rather than standing alone. The spreads here — a daily two-card draw, a line of three, and a line of five — are meant to keep that in view.",
+      "Everything you draw stays on your own device; nothing is sent anywhere. Use it for reflection and fun rather than as a substitute for professional advice."
+    ]
+  },
+  "footer": {
+    "disclaimer": "For entertainment purposes only. Not a substitute for professional, legal, financial, or medical advice."
+  },
+  "prompt": {
+    "questionLine": "My question: \"{question}\"",
+    "daily": {
+      "template": "I drew a 2-card Lenormand daily spread. Please read this as Lenormand, not Tarot — Lenormand cards are read as a pair, where the first card is the subject and the second card modifies it.\n\n{questionLine}\n\nSubject: {card1Name} — keywords: {card1Keywords}\nModifier: {card2Name} — keywords: {card2Keywords}\n\nGive me a short daily reading (2–4 sentences) that reads the pair as one phrase, then briefly explains what to watch for today."
+    },
+    "line3": {
+      "template": "I drew a 3-card Lenormand line. Please read this as Lenormand, not Tarot — read the cards left to right as a sentence, and connect the pairs (1+2, 2+3) into a narrative.\n\n{questionLine}\n\nFrame: {frameLabel}\nPosition 1 ({pos1Label}): {card1Name} — keywords: {card1Keywords}\nPosition 2 ({pos2Label}): {card2Name} — keywords: {card2Keywords}\nPosition 3 ({pos3Label}): {card3Name} — keywords: {card3Keywords}\n\nGive me a narrative reading (4–6 sentences) that flows from position 1 through to position 3."
+    },
+    "line5": {
+      "template": "I drew a 5-card Lenormand line. Please read this as Lenormand, not Tarot. Card 3 is the anchor — read outward from it. Mirror pairs (1↔5 and 2↔4) may amplify or contradict.\n\n{questionLine}\n\nPosition 1 ({pos1Label}): {card1Name} — keywords: {card1Keywords}\nPosition 2 ({pos2Label}): {card2Name} — keywords: {card2Keywords}\nPosition 3 ({pos3Label}): {card3Name} — keywords: {card3Keywords}\nPosition 4 ({pos4Label}): {card4Name} — keywords: {card4Keywords}\nPosition 5 ({pos5Label}): {card5Name} — keywords: {card5Keywords}\n\nGive me a narrative reading (6–10 sentences): open with the anchor, work outward through the mirror pairs, and close with the outcome."
+    }
+  },
+  "cards": {
+    "rider": {
+      "name": "Rider",
+      "keywords": ["news", "message", "arrival", "movement"]
+    },
+    "clover": {
+      "name": "Clover",
+      "keywords": ["luck", "small joy", "opportunity"]
+    },
+    "ship": {
+      "name": "Ship",
+      "keywords": ["travel", "journey", "longing"]
+    },
+    "house": {
+      "name": "House",
+      "keywords": ["home", "family", "stability"]
+    },
+    "tree": {
+      "name": "Tree",
+      "keywords": ["health", "roots", "slow growth"]
+    },
+    "clouds": {
+      "name": "Clouds",
+      "keywords": ["confusion", "doubt", "uncertainty"]
+    },
+    "snake": {
+      "name": "Snake",
+      "keywords": ["betrayal", "complication", "rival"]
+    },
+    "coffin": {
+      "name": "Coffin",
+      "keywords": ["ending", "illness", "transformation"]
+    },
+    "bouquet": {
+      "name": "Bouquet",
+      "keywords": ["gift", "kindness", "invitation"]
+    },
+    "scythe": {
+      "name": "Scythe",
+      "keywords": ["sudden cut", "decision", "danger"]
+    },
+    "whip": {
+      "name": "Whip",
+      "keywords": ["conflict", "repetition", "arguments"]
+    },
+    "birds": {
+      "name": "Birds",
+      "keywords": ["gossip", "chatter", "anxiety"]
+    },
+    "child": {
+      "name": "Child",
+      "keywords": ["new beginning", "innocence", "small"]
+    },
+    "fox": {
+      "name": "Fox",
+      "keywords": ["cunning", "deception", "self-interest"]
+    },
+    "bear": {
+      "name": "Bear",
+      "keywords": ["strength", "authority", "wealth"]
+    },
+    "stars": {
+      "name": "Stars",
+      "keywords": ["hope", "guidance", "clarity"]
+    },
+    "stork": {
+      "name": "Stork",
+      "keywords": ["change", "transition", "moving"]
+    },
+    "dog": {
+      "name": "Dog",
+      "keywords": ["friendship", "loyalty", "ally"]
+    },
+    "tower": {
+      "name": "Tower",
+      "keywords": ["institutions", "isolation", "authority"]
+    },
+    "garden": {
+      "name": "Garden",
+      "keywords": ["public", "social gathering", "network"]
+    },
+    "mountain": {
+      "name": "Mountain",
+      "keywords": ["obstacle", "delay", "block"]
+    },
+    "crossroads": {
+      "name": "Crossroads",
+      "keywords": ["choice", "decision", "options"]
+    },
+    "mice": {
+      "name": "Mice",
+      "keywords": ["loss", "worry", "erosion"]
+    },
+    "heart": {
+      "name": "Heart",
+      "keywords": ["love", "affection", "romance"]
+    },
+    "ring": {
+      "name": "Ring",
+      "keywords": ["commitment", "contract", "cycle"]
+    },
+    "book": {
+      "name": "Book",
+      "keywords": ["secret", "knowledge", "hidden"]
+    },
+    "letter": {
+      "name": "Letter",
+      "keywords": ["written message", "document"]
+    },
+    "man": {
+      "name": "Man",
+      "keywords": ["male querent or partner"]
+    },
+    "woman": {
+      "name": "Woman",
+      "keywords": ["female querent or partner"]
+    },
+    "lily": {
+      "name": "Lily",
+      "keywords": ["peace", "maturity", "family elder"]
+    },
+    "sun": {
+      "name": "Sun",
+      "keywords": ["success", "joy", "energy"]
+    },
+    "moon": {
+      "name": "Moon",
+      "keywords": ["emotions", "recognition", "fame"]
+    },
+    "key": {
+      "name": "Key",
+      "keywords": ["breakthrough", "certainty", "opening"]
+    },
+    "fish": {
+      "name": "Fish",
+      "keywords": ["wealth", "business", "abundance"]
+    },
+    "anchor": {
+      "name": "Anchor",
+      "keywords": ["stability", "long-term", "work"]
+    },
+    "cross": {
+      "name": "Cross",
+      "keywords": ["burden", "fate", "unavoidable"]
+    }
+  }
+}
