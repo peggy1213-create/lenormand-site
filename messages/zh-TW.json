@@ -101,6 +101,10 @@
     "clearAllButton": "全部清除",
     "confirmClearAll": "刪除所有已儲存的抽牌紀錄？此動作無法復原。",
     "exportMdButton": "匯出 MD",
+    "selectAllButton": "全選",
+    "deselectAllButton": "取消全選",
+    "selectedCount": "已選 {count} 筆",
+    "selectReadingLabel": "選取此紀錄以匯出",
     "firstVisitNotice": "抽牌紀錄僅儲存於此裝置與瀏覽器。",
     "incognitoWarning": "你的瀏覽器似乎處於無痕模式，本次瀏覽結束後紀錄將不會被保留。"
   },
@@ -181,7 +185,7 @@
       "keywords": ["希望", "指引", "清晰"]
     },
     "stork": {
-      "name": "送子鳥",
+      "name": "鸛鳥",
       "keywords": ["改變", "過渡", "搬遷"]
     },
     "dog": {

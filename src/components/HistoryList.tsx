@@ -120,6 +120,21 @@ function pillStyle(tone: "gilt" | "ghost" | "danger"): CSSProperties {
   };
 }
 
+// zh-TW's default Intl date/time style ("2026年7月27日 晚上9:42") is replaced
+// with a numeric date ("2026/07/27") and an English-style AM/PM time
+// ("9:42 PM", matching the English UI) rather than the localized "晚上9:42".
+const zhTWDatePart = new Intl.DateTimeFormat("zh-TW", { year: "numeric", month: "2-digit", day: "2-digit" });
+const zhTWTimePart = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+
+type ReadingDateFormatter = { format: (date: Date) => string };
+
+function makeReadingDateFormatter(locale: string): ReadingDateFormatter {
+  if (locale === "zh-TW") {
+    return { format: (date: Date) => `${zhTWDatePart.format(date)} ${zhTWTimePart.format(date)}` };
+  }
+  return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" });
+}
+
 export default function HistoryList() {
   const locale = useLocale();
   const h = useTranslations("history");
@@ -130,12 +145,45 @@ export default function HistoryList() {
   const [readings, setReadings] = useState<Reading[] | null>(null);
   const [showNotice, setShowNotice] = useState(false);
   const [persistable, setPersistable] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   function refresh() {
     const list = [...getHistory()].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
+    const isFirstLoad = readings === null;
     setReadings(list);
+    setSelectedIds((prev) => {
+      if (isFirstLoad) {
+        return new Set(list.map((r) => r.id));
+      }
+      const ids = new Set(list.map((r) => r.id));
+      const next = new Set<string>();
+      prev.forEach((id) => {
+        if (ids.has(id)) next.add(id);
+      });
+      return next;
+    });
+  }
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function selectAll() {
+    setSelectedIds(new Set((readings ?? []).map((r) => r.id)));
+  }
+
+  function selectNone() {
+    setSelectedIds(new Set());
   }
 
   useEffect(() => {
@@ -152,10 +200,11 @@ export default function HistoryList() {
     }
   }, []);
 
-  const dateFormatter = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" });
+  const dateFormatter = makeReadingDateFormatter(locale);
 
   function handleExport() {
-    const blocks = getHistory().map((reading) => {
+    const selected = (readings ?? []).filter((reading) => selectedIds.has(reading.id));
+    const blocks = selected.map((reading) => {
       let spreadName: string;
       let positionLabels: string[];
       try {
@@ -234,8 +283,27 @@ export default function HistoryList() {
       )}
 
       {readings && readings.length > 0 && (
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
-          <button type="button" onClick={handleExport} style={pillStyle("ghost")}>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 14, marginBottom: 32, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={selectedIds.size === readings.length ? selectNone : selectAll}
+            style={pillStyle("ghost")}
+          >
+            {selectedIds.size === readings.length ? h("deselectAllButton") : h("selectAllButton")}
+          </button>
+          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+            {h("selectedCount", { count: selectedIds.size })}
+          </span>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={selectedIds.size === 0}
+            style={{
+              ...pillStyle("ghost"),
+              opacity: selectedIds.size === 0 ? 0.5 : 1,
+              cursor: selectedIds.size === 0 ? "not-allowed" : "pointer",
+            }}
+          >
             {h("exportMdButton")}
           </button>
         </div>
@@ -263,7 +331,14 @@ export default function HistoryList() {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         {readings?.map((reading) => (
-          <Row key={reading.id} reading={reading} dateFormatter={dateFormatter} onChanged={refresh} />
+          <Row
+            key={reading.id}
+            reading={reading}
+            dateFormatter={dateFormatter}
+            onChanged={refresh}
+            selected={selectedIds.has(reading.id)}
+            onToggleSelected={() => toggleSelected(reading.id)}
+          />
         ))}
       </div>
     </div>
@@ -274,10 +349,14 @@ function Row({
   reading,
   dateFormatter,
   onChanged,
+  selected,
+  onToggleSelected,
 }: {
   reading: Reading;
-  dateFormatter: Intl.DateTimeFormat;
+  dateFormatter: ReadingDateFormatter;
   onChanged: () => void;
+  selected: boolean;
+  onToggleSelected: () => void;
 }) {
   const h = useTranslations("history");
   const t = useTranslations("draw");
@@ -357,7 +436,15 @@ function Row({
       }}
     >
       <div className={styles.rowHeader}>
-        <div className={styles.content}>
+        <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flex: "1 1 auto", minWidth: 0 }}>
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={onToggleSelected}
+            aria-label={h("selectReadingLabel")}
+            style={{ marginTop: 4, width: 16, height: 16, cursor: "pointer", flexShrink: 0 }}
+          />
+          <div className={styles.content}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <h2
               style={{
@@ -399,6 +486,7 @@ function Row({
           <div style={{ fontSize: 17, lineHeight: 1.5, color: "var(--text-body)", marginTop: 10 }}>{cardNames}</div>
           <div style={{ fontStyle: "italic", fontSize: 18, color: "var(--text-muted)", marginTop: 6, overflowWrap: "break-word" }}>
             {reading.question ? `“${reading.question}”` : h("questionPreviewNone")}
+          </div>
           </div>
         </div>
 
@@ -476,7 +564,7 @@ function Row({
 
       {open && (
         <div className={styles.cardsRow}>
-          {reading.cards.map((c, i) => {
+          {reading.cards.map((c) => {
             const card = getCardById(c.cardId);
             const name = cardsT(`${card.slug}.name`);
             return (
@@ -498,7 +586,7 @@ function Row({
                     color: "var(--text-muted)",
                   }}
                 >
-                  {`${positionLabels[i]} — ${name}`}
+                  {name}
                 </div>
               </div>
             );
