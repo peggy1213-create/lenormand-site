@@ -1,3 +1,20 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 22px 48px;
+  border-bottom: 1px solid var(--border-hair);
+}
+
+.logo {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  text-decoration: none;
+  min-width: 0;
+}
+
 .wordmark {
   font-family: var(--font-display);
   font-weight: 600;
@@ -6,12 +23,14 @@
   text-transform: uppercase;
   color: var(--gold-500);
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .script {
   font-family: var(--font-script);
   font-size: 17px;
   color: var(--gold-400);
+  white-space: nowrap;
 }
 
 .nav {
@@ -43,4 +62,75 @@
   color: var(--ink-900);
   padding-bottom: 3px;
   border-bottom: 1px solid var(--gold-400);
+}
+
+.menuToggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  flex-shrink: 0;
+  border: 1px solid var(--border-hair);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-900);
+  cursor: pointer;
+}
+
+.mobilePanel {
+  display: none;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border-hair);
+  background: var(--surface-card);
+}
+
+.mobileLink {
+  display: block;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-hair);
+  font-family: var(--font-smallcaps);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+  background: none;
+  cursor: pointer;
+}
+.mobileLink:last-child {
+  border-bottom: none;
+}
+
+.mobileLinkActive {
+  color: var(--ink-900);
+}
+
+@media (max-width: 720px) {
+  .bar {
+    padding: 16px 20px;
+    gap: 16px;
+  }
+
+  .wordmark {
+    font-size: 16px;
+    letter-spacing: 0.2em;
+  }
+
+  .script {
+    font-size: 14px;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .menuToggle {
+    display: inline-flex;
+  }
+
+  .mobilePanel {
+    display: flex;
+  }
 }
