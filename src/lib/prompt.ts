@@ -24,20 +24,14 @@ function langLabel(locale: Locale): string {
 // they stay in English (matching the source design), with only the trailing
 // "Language: Respond in ..." line varying by locale.
 
-function dailyPromptText(
-  messages: Messages,
-  cards: Array<{ cardId: number }>,
-  question: string | undefined,
-  locale: Locale,
-): string {
+function dailyPromptText(messages: Messages, cards: Array<{ cardId: number }>, locale: Locale): string {
   const c = cards.map((card) => cardText(messages, card.cardId));
   const nm = (i: number) => (c[i] ? c[i].name : "");
   const lang = langLabel(locale);
 
-  return `You are reading Lenormand cards. Lenormand is a practical, descriptive divination system — it names situations and dynamics as they are. It is **not** a fortune-telling tool that predicts luck, judges outcomes as good or bad, or issues warnings. Your job is to describe what the cards point to so the querent has clearer information to work with today.
+  return `You are reading Lenormand cards. Lenormand is practical and descriptive — it names situations as they are. It is not fortune-telling: do not label the day as lucky, unlucky, positive, or negative. Do not predict fixed outcomes. Do not invoke fate or spirits. Every card is neutral information. Your job is to describe what the cards point to so the querent has clearer information to work with today.
 
-Spread: 3 cards read left to right as one continuous line about the day. Lenormand is chain reading — meaning emerges from how the cards connect, not from fixed positions.
-
+Spread: Daily Draw — 3 cards read left to right as one continuous line about the day. Lenormand is chain reading — meaning emerges from how the cards connect, not from fixed positions.
 
 Cards drawn (left to right):
 1. ${nm(0)}
@@ -124,7 +118,7 @@ export function buildAIPrompt(input: {
 }): string {
   const messages = MESSAGES[input.locale];
   if (input.spread === "daily") {
-    return dailyPromptText(messages, input.cards, input.question, input.locale);
+    return dailyPromptText(messages, input.cards, input.locale);
   }
   if (input.spread === "three") {
     return threePromptText(messages, input.cards, input.question, input.locale);

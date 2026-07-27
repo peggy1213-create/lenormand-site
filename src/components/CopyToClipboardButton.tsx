@@ -1,7 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import Button from "./ds/Button";
+
+const DEFAULT_BUTTON_STYLE: CSSProperties = {
+  color: "var(--gold-200)",
+  borderColor: "rgba(231,199,137,.45)",
+};
 
 // Copies `text` to the clipboard with a brief "copied" confirmation; falls
 // back to a select-all modal if the Clipboard API is unavailable (old iOS
@@ -13,6 +19,7 @@ export default function CopyToClipboardButton({
   fallbackTitle,
   fallbackHint,
   selectAllLabel,
+  buttonStyle = DEFAULT_BUTTON_STYLE,
 }: {
   text: string;
   label: string;
@@ -20,6 +27,7 @@ export default function CopyToClipboardButton({
   fallbackTitle: string;
   fallbackHint: string;
   selectAllLabel: string;
+  buttonStyle?: CSSProperties;
 }) {
   const [copied, setCopied] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
@@ -38,18 +46,19 @@ export default function CopyToClipboardButton({
 
   return (
     <>
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-        <Button
-          variant="plain"
-          onClick={handleClick}
-          style={{ color: "var(--gold-200)", borderColor: "rgba(231,199,137,.45)" }}
-        >
+      <span style={{ position: "relative", display: "inline-block" }}>
+        <Button variant="plain" onClick={handleClick} style={buttonStyle}>
           {label}
         </Button>
         {copied && (
           <span
             role="status"
             style={{
+              position: "absolute",
+              bottom: "100%",
+              left: "50%",
+              transform: "translateX(-50%)",
+              marginBottom: 8,
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
@@ -63,6 +72,8 @@ export default function CopyToClipboardButton({
               textTransform: "uppercase",
               letterSpacing: "var(--tracking-wide)",
               fontSize: 11,
+              whiteSpace: "nowrap",
+              zIndex: 10,
             }}
           >
             <span style={{ color: "var(--gold-300)" }}>✦</span>
