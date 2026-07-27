@@ -14,17 +14,6 @@ export default async function HistoryPage({
   return (
     <main style={{ maxWidth: 980, margin: "0 auto", padding: "64px 48px 80px" }}>
       <div style={{ textAlign: "center", maxWidth: 620, margin: "0 auto 48px" }}>
-        <div
-          style={{
-            fontFamily: "var(--font-smallcaps)",
-            textTransform: "uppercase",
-            letterSpacing: "var(--tracking-caps)",
-            fontSize: 12,
-            color: "var(--gold-500)",
-          }}
-        >
-          {t("eyebrow")}
-        </div>
         <h1
           style={{
             fontFamily: "var(--font-display)",

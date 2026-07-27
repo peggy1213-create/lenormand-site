@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -13,9 +13,93 @@ import {
 } from "@/lib/storage";
 import { getCardById } from "@/data/cards";
 import { getSpread } from "@/data/spreads";
+import { buildAIPrompt } from "@/lib/prompt";
 import CardKeywordsPanel from "./CardKeywordsPanel";
+import CopyToClipboardButton from "./CopyToClipboardButton";
 
 const NOTICE_SEEN_KEY = "lenormand.historyNoticeSeen";
+
+function TrashIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
+  );
+}
+
+function PencilIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </svg>
+  );
+}
+
+function NotebookPenIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4" />
+      <path d="M2 6h4" />
+      <path d="M2 10h4" />
+      <path d="M2 14h4" />
+      <path d="M2 18h4" />
+      <path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" />
+    </svg>
+  );
+}
+
+function ChevronIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
 
 function pillStyle(tone: "gilt" | "ghost" | "danger"): CSSProperties {
   const borderColor =
@@ -38,6 +122,7 @@ function pillStyle(tone: "gilt" | "ghost" | "danger"): CSSProperties {
 export default function HistoryList() {
   const locale = useLocale();
   const h = useTranslations("history");
+  const t = useTranslations("draw");
   const s = useTranslations("spread");
   const cardsT = useTranslations("cards");
 
@@ -82,25 +167,28 @@ export default function HistoryList() {
       }
 
       const cardLines = reading.cards
-        .map((c, i) => `  ${positionLabels[i]} — ${cardsT(`${getCardById(c.cardId).slug}.name`)}`)
+        .map((c, i) => `- ${positionLabels[i]} — ${cardsT(`${getCardById(c.cardId).slug}.name`)}`)
         .join("\n");
 
       const lines = [
-        dateFormatter.format(new Date(reading.createdAt)),
-        spreadName,
-        reading.question ? `"${reading.question}"` : h("questionPreviewNone"),
+        `### ${spreadName} — ${dateFormatter.format(new Date(reading.createdAt))}`,
+        "",
+        reading.question ? `#### *"${reading.question}"*` : `#### *${h("questionPreviewNone")}*`,
+        "",
         cardLines,
       ];
-      if (reading.notes) lines.push(reading.notes);
+      if (reading.notes) {
+        lines.push("", `### ${t("noteLabel")}: `, reading.notes);
+      }
       return lines.join("\n");
     });
 
-    const text = blocks.join("\n\n---\n\n");
-    const blob = new Blob([text], { type: "text/plain" });
+    const text = `## ${h("title")}\n\n${blocks.join("\n\n---\n\n")}\n`;
+    const blob = new Blob([text], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "lenormand-history.txt";
+    a.download = "lenormand-history.md";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -147,7 +235,7 @@ export default function HistoryList() {
       {readings && readings.length > 0 && (
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
           <button type="button" onClick={handleExport} style={pillStyle("ghost")}>
-            {h("exportTxtButton")}
+            {h("exportMdButton")}
           </button>
         </div>
       )}
@@ -200,6 +288,21 @@ function Row({
   const [note, setNote] = useState(reading.notes ?? "");
   const [noteSaved, setNoteSaved] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [pendingNoteFocus, setPendingNoteFocus] = useState(false);
+  const noteRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (open && pendingNoteFocus && noteRef.current) {
+      noteRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      noteRef.current.focus();
+      setPendingNoteFocus(false);
+    }
+  }, [open, pendingNoteFocus]);
+
+  function handleEditNoteClick() {
+    setOpen(true);
+    setPendingNoteFocus(true);
+  }
 
   // reading.spread/cardCount is historical data — a reading drawn under a
   // previous version of the spread model may not match any current SPREADS
@@ -218,6 +321,14 @@ function Row({
   const cardNames = reading.cards
     .map((c) => cardsT(`${getCardById(c.cardId).slug}.name`))
     .join(" · ");
+
+  const orderedCards = [...reading.cards].sort((a, b) => a.position - b.position);
+  const promptText = buildAIPrompt({
+    spread: reading.spread,
+    cards: orderedCards.map((c) => ({ cardId: c.cardId })),
+    question: reading.question,
+    locale: reading.lang,
+  });
 
   function handleSaveNote() {
     updateReadingNote(reading.id, note);
@@ -246,24 +357,46 @@ function Row({
     >
       <div style={{ display: "flex", gap: 24, alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap" }}>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.04em", color: "var(--gold-500)" }}>
-            {dateFormatter.format(new Date(reading.createdAt))}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <h2
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 12,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                color: "var(--gold-500)",
+                margin: 0,
+              }}
+            >
+              {spreadName}
+            </h2>
+            <span style={{ fontSize: 12, color: "var(--gold-500)" }}>·</span>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, letterSpacing: "0.04em", color: "var(--gold-500)" }}>
+              {dateFormatter.format(new Date(reading.createdAt))}
+            </div>
+            <button
+              type="button"
+              aria-label={note.trim() ? h("readNoteTooltip") : h("addNoteTooltip")}
+              title={note.trim() ? h("readNoteTooltip") : h("addNoteTooltip")}
+              onClick={handleEditNoteClick}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 22,
+                height: 22,
+                padding: 0,
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                color: note.trim() ? "var(--gold-500)" : "var(--text-subtle)",
+              }}
+            >
+              {note.trim() ? <NotebookPenIcon /> : <PencilIcon />}
+            </button>
           </div>
-          <h2
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 600,
-              fontSize: 19,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "var(--ink-900)",
-              margin: "8px 0 0",
-            }}
-          >
-            {spreadName}
-          </h2>
-          <div style={{ fontSize: 17, lineHeight: 1.5, color: "var(--text-body)", marginTop: 6 }}>{cardNames}</div>
-          <div style={{ fontStyle: "italic", fontSize: 16, color: "var(--text-muted)", marginTop: 6 }}>
+          <div style={{ fontSize: 17, lineHeight: 1.5, color: "var(--text-body)", marginTop: 10 }}>{cardNames}</div>
+          <div style={{ fontStyle: "italic", fontSize: 18, color: "var(--text-muted)", marginTop: 6 }}>
             {reading.question ? `“${reading.question}”` : h("questionPreviewNone")}
           </div>
         </div>
@@ -283,11 +416,57 @@ function Row({
             </>
           ) : (
             <>
-              <button type="button" style={pillStyle("gilt")} onClick={() => setOpen((v) => !v)}>
-                {open ? h("hideDrawButton") : h("replayButton")}
+              <button
+                type="button"
+                aria-label={open ? h("hideDrawButton") : h("replayButton")}
+                title={open ? h("hideDrawButton") : h("replayButton")}
+                aria-expanded={open}
+                onClick={() => setOpen((v) => !v)}
+                style={{
+                  ...pillStyle("gilt"),
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 35,
+                  height: 35,
+                  padding: 0,
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    transform: open ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.2s ease",
+                  }}
+                >
+                  <ChevronIcon />
+                </span>
               </button>
-              <button type="button" style={pillStyle("ghost")} onClick={() => setConfirmingDelete(true)}>
-                {h("deleteButton")}
+              <CopyToClipboardButton
+                text={promptText}
+                label={h("copyPromptButton")}
+                copiedLabel={t("copiedToast")}
+                fallbackTitle={t("copyFallbackTitle")}
+                fallbackHint={t("copyFallbackHint")}
+                selectAllLabel={t("selectAllButton")}
+                buttonStyle={pillStyle("ghost")}
+              />
+              <button
+                type="button"
+                aria-label={h("deleteButton")}
+                title={h("deleteButton")}
+                onClick={() => setConfirmingDelete(true)}
+                style={{
+                  ...pillStyle("ghost"),
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 35,
+                  height: 35,
+                  padding: 0,
+                }}
+              >
+                <TrashIcon />
               </button>
             </>
           )}
@@ -380,6 +559,7 @@ function Row({
           </label>
           <textarea
             id={`note-${reading.id}`}
+            ref={noteRef}
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder={t("notePlaceholder")}
