@@ -99,6 +99,10 @@
     "clearAllButton": "Clear all",
     "confirmClearAll": "Delete all saved readings? This cannot be undone.",
     "exportMdButton": "Export MD",
+    "selectAllButton": "Select all",
+    "deselectAllButton": "Deselect all",
+    "selectedCount": "{count} selected",
+    "selectReadingLabel": "Select this reading for export",
     "firstVisitNotice": "Readings are saved only on this device and browser.",
     "incognitoWarning": "Your browser appears to be in private/incognito mode. History will not be saved after this session ends."
   },
