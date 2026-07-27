@@ -572,7 +572,7 @@ function Row({
             borderTop: "1px solid var(--border-hair)",
           }}
         >
-          {reading.cards.map((c, i) => {
+          {reading.cards.map((c) => {
             const card = getCardById(c.cardId);
             const name = cardsT(`${card.slug}.name`);
             return (
