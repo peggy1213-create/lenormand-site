@@ -7,7 +7,9 @@
     "home": "Spreads",
     "history": "History",
     "about": "About",
-    "language": "Language"
+    "language": "Language",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "home": {
     "heading": "The Cards Are Waiting",

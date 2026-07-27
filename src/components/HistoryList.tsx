@@ -16,6 +16,7 @@ import { getSpread } from "@/data/spreads";
 import { buildAIPrompt } from "@/lib/prompt";
 import CardKeywordsPanel from "./CardKeywordsPanel";
 import CopyToClipboardButton from "./CopyToClipboardButton";
+import styles from "./HistoryList.module.css";
 
 const NOTICE_SEEN_KEY = "lenormand.historyNoticeSeen";
 
@@ -434,8 +435,8 @@ function Row({
         padding: "22px 26px",
       }}
     >
-      <div style={{ display: "flex", gap: 24, alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap" }}>
-        <div style={{ display: "flex", gap: 14, alignItems: "flex-start", minWidth: 0 }}>
+      <div className={styles.rowHeader}>
+        <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flex: "1 1 auto", minWidth: 0 }}>
           <input
             type="checkbox"
             checked={selected}
@@ -443,7 +444,7 @@ function Row({
             aria-label={h("selectReadingLabel")}
             style={{ marginTop: 4, width: 16, height: 16, cursor: "pointer", flexShrink: 0 }}
           />
-          <div style={{ minWidth: 0 }}>
+          <div className={styles.content}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <h2
               style={{
@@ -483,13 +484,13 @@ function Row({
             </button>
           </div>
           <div style={{ fontSize: 17, lineHeight: 1.5, color: "var(--text-body)", marginTop: 10 }}>{cardNames}</div>
-          <div style={{ fontStyle: "italic", fontSize: 18, color: "var(--text-muted)", marginTop: 6 }}>
+          <div style={{ fontStyle: "italic", fontSize: 18, color: "var(--text-muted)", marginTop: 6, overflowWrap: "break-word" }}>
             {reading.question ? `“${reading.question}”` : h("questionPreviewNone")}
           </div>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <div className={styles.actions}>
           {confirmingDelete ? (
             <>
               <span style={{ fontSize: 13, fontStyle: "italic", color: "var(--status-danger)" }}>
@@ -562,16 +563,7 @@ function Row({
       </div>
 
       {open && (
-        <div
-          style={{
-            display: "flex",
-            gap: 16,
-            flexWrap: "wrap",
-            marginTop: 22,
-            paddingTop: 22,
-            borderTop: "1px solid var(--border-hair)",
-          }}
-        >
+        <div className={styles.cardsRow}>
           {reading.cards.map((c) => {
             const card = getCardById(c.cardId);
             const name = cardsT(`${card.slug}.name`);
@@ -580,18 +572,8 @@ function Row({
                 <button
                   type="button"
                   onClick={() => setExpandedPosition((prev) => (prev === c.position ? null : c.position))}
-                  style={{
-                    display: "block",
-                    width: 124,
-                    height: 194,
-                    borderRadius: 8,
-                    backgroundImage: `url('${card.image}')`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    border: "1px solid var(--gold-400)",
-                    boxShadow: "var(--shadow-md)",
-                    cursor: "pointer",
-                  }}
+                  className={styles.cardImage}
+                  style={{ backgroundImage: `url('${card.image}')` }}
                   aria-label={name}
                 />
                 <div

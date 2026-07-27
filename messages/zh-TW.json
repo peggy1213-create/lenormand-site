@@ -7,7 +7,9 @@
     "home": "牌陣",
     "history": "紀錄",
     "about": "關於",
-    "language": "語言"
+    "language": "語言",
+    "openMenu": "開啟選單",
+    "closeMenu": "關閉選單"
   },
   "home": {
     "heading": "The Cards Are Waiting",
