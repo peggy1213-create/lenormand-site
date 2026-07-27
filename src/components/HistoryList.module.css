@@ -1,0 +1,57 @@
+.rowHeader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.content {
+  flex: 1 1 200px;
+  min-width: 200px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.cardsRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border-hair);
+}
+
+.cardImage {
+  display: block;
+  width: 124px;
+  height: 194px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid var(--gold-400);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .cardsRow {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .cardImage {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 124 / 194;
+  }
+}
