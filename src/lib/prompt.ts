@@ -32,7 +32,6 @@ function dailyPromptText(
 ): string {
   const c = cards.map((card) => cardText(messages, card.cardId));
   const nm = (i: number) => (c[i] ? c[i].name : "");
-  const q = (question ?? "").trim();
   const lang = langLabel(locale);
 
   return `You are reading Lenormand cards. Lenormand is a practical, descriptive divination system — it names situations and dynamics as they are. It is **not** a fortune-telling tool that predicts luck, judges outcomes as good or bad, or issues warnings. Your job is to describe what the cards point to so the querent has clearer information to work with today.
