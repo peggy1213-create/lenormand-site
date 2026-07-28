@@ -151,12 +151,8 @@ export default function HistoryList() {
     const list = [...getHistory()].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
-    const isFirstLoad = readings === null;
     setReadings(list);
     setSelectedIds((prev) => {
-      if (isFirstLoad) {
-        return new Set(list.map((r) => r.id));
-      }
       const ids = new Set(list.map((r) => r.id));
       const next = new Set<string>();
       prev.forEach((id) => {
@@ -233,12 +229,14 @@ export default function HistoryList() {
       return lines.join("\n");
     });
 
-    const text = `## ${h("title")}\n\n${blocks.join("\n\n---\n\n")}\n`;
+    const text = `## ${h("exportTitle")}\n\n${blocks.join("\n\n---\n\n")}\n`;
     const blob = new Blob([text], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
+    const now = new Date();
+    const datestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
     a.href = url;
-    a.download = "lenormand-history.md";
+    a.download = `lenormand-history-${datestamp}.md`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -436,7 +434,7 @@ function Row({
       }}
     >
       <div className={styles.rowHeader}>
-        <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flex: "1 1 auto", minWidth: 0 }}>
+        <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flex: "1 1 0%", minWidth: 0 }}>
           <input
             type="checkbox"
             checked={selected}
@@ -510,7 +508,10 @@ function Row({
                 aria-label={open ? h("hideDrawButton") : h("replayButton")}
                 title={open ? h("hideDrawButton") : h("replayButton")}
                 aria-expanded={open}
-                onClick={() => setOpen((v) => !v)}
+                onClick={() => {
+                  setOpen((v) => !v);
+                  setExpandedPosition(null);
+                }}
                 style={{
                   ...pillStyle("gilt"),
                   display: "inline-flex",

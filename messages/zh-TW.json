@@ -85,6 +85,7 @@
   },
   "history": {
     "title": "你的抽牌紀錄",
+    "exportTitle": "你的牌陣",
     "lead": "你可以在每一個抽牌記錄寫感想、記錄後續發展！",
     "savedNotice": "所有抽牌紀錄都會自動儲存在你的瀏覽器中",
     "beginReading": "開始一次抽牌",

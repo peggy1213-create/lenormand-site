@@ -85,6 +85,7 @@
   },
   "history": {
     "title": "Your Readings",
+    "exportTitle": "Your Spreads",
     "lead": "You can add reflections, record how things unfolded in each spread.",
     "savedNotice": "All draws are saved automatically in your browser",
     "beginReading": "Begin a reading",
