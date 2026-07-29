@@ -23,7 +23,7 @@ export default async function Footer() {
           fontFamily: "var(--font-smallcaps)",
           textTransform: "uppercase",
           letterSpacing: "var(--tracking-caps)",
-          fontSize: 11,
+          fontSize: "var(--footer-caps-size)",
           color: "var(--gold-500)",
         }}
       >{`© ${year} Little Think  Lenormand`}</span>
@@ -31,7 +31,7 @@ export default async function Footer() {
         style={{
           fontFamily: "var(--font-serif)",
           fontStyle: "italic",
-          fontSize: 14,
+          fontSize: "var(--footer-disclaimer-size)",
           color: "var(--text-subtle)",
         }}
       >
