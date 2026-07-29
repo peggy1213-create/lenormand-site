@@ -41,6 +41,24 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale}>
+      {locale === "zh-TW" && (
+        <head>
+          <link
+            rel="preload"
+            href="/fonts/SweiSpringCJKtc-Regular.woff2"
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
+          <link
+            rel="preload"
+            href="/fonts/SweiSpringCJKtc-Bold.woff2"
+            as="font"
+            type="font/woff2"
+            crossOrigin="anonymous"
+          />
+        </head>
+      )}
       <body style={{ margin: 0 }}>
         <NextIntlClientProvider messages={messages}>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
