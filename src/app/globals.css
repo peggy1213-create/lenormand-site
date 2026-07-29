@@ -1,5 +1,20 @@
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+SC:wght@400;500;600&family=Pinyon+Script&family=Alegreya+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
+@font-face {
+  font-family: "Swei Spring CJK TC";
+  src: url("/fonts/SweiSpringCJKtc-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Swei Spring CJK TC";
+  src: url("/fonts/SweiSpringCJKtc-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -94,6 +109,10 @@
   --font-script: "Pinyon Script", "Cormorant Garamond", cursive;
   --font-sans: "Alegreya Sans", "Helvetica Neue", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-zh: "Swei Spring CJK TC", "Cormorant Garamond", "Cinzel", sans-serif;
+
+  --footer-caps-size: 11px;
+  --footer-disclaimer-size: 14px;
 
   --fs-xxs: 11px;
   --fs-xs: 12px;
@@ -153,6 +172,24 @@
   --container-narrow: 640px;
   --container-md: 880px;
   --container-wide: 1180px;
+}
+
+/* Use the Mandarin display font as the default whenever the site is in zh-TW */
+html:lang(zh-TW) {
+  --font-display: var(--font-zh);
+  --font-serif: var(--font-zh);
+  --font-smallcaps: var(--font-zh);
+  --font-sans: var(--font-zh);
+
+  /* Swei Spring is a visually heavier/fuller face than the Latin fonts it replaces,
+     so scale a couple of small UI sizes down slightly for optical parity */
+  --footer-caps-size: 10px;
+  --footer-disclaimer-size: 11px;
+}
+
+/* Swei Spring has no italic glyphs; synthetic (skewed) italic renders CJK badly, so disable it in zh-TW */
+html:lang(zh-TW) * {
+  font-style: normal !important;
 }
 
 /* Lenormand design system — base element defaults */

@@ -31,7 +31,7 @@ export default async function HomePage({
         <div>
           <h1
             style={{
-              fontFamily: "var(--font-display)",
+              fontFamily: "\"Cinzel\", \"Cormorant Garamond\", Georgia, serif",
               fontWeight: 600,
               fontSize: "clamp(38px, 4.6vw, 62px)",
               lineHeight: 1.12,
