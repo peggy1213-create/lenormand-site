@@ -105,7 +105,10 @@
     "selectAllButton": "Select all",
     "deselectAllButton": "Deselect all",
     "selectedCount": "{count} selected",
-    "selectReadingLabel": "Select this reading for export",
+    "selectReadingLabel": "Select this reading",
+    "closeSelectionLabel": "Clear selection",
+    "deleteSelectedButton": "Delete selected readings",
+    "confirmDeleteSelected": "Delete {count} readings? This cannot be undone.",
     "firstVisitNotice": "Readings are saved only on this device and browser.",
     "incognitoWarning": "Your browser appears to be in private/incognito mode. History will not be saved after this session ends."
   },

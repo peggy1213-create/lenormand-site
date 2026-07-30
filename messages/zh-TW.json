@@ -105,7 +105,10 @@
     "selectAllButton": "全選",
     "deselectAllButton": "取消全選",
     "selectedCount": "已選 {count} 筆",
-    "selectReadingLabel": "選取此紀錄以匯出",
+    "selectReadingLabel": "選取此紀錄",
+    "closeSelectionLabel": "清除選取",
+    "deleteSelectedButton": "刪除已選取的紀錄",
+    "confirmDeleteSelected": "刪除已選取的 {count} 筆紀錄？此動作無法復原。",
     "firstVisitNotice": "抽牌紀錄僅儲存於此裝置與瀏覽器。",
     "incognitoWarning": "你的瀏覽器似乎處於無痕模式，本次瀏覽結束後紀錄將不會被保留。"
   },

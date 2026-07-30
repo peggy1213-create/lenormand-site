@@ -83,6 +83,11 @@ export function deleteReading(id: string): void {
   writeHistory(getHistory().filter((r) => r.id !== id));
 }
 
+export function deleteReadings(ids: string[]): void {
+  const idSet = new Set(ids);
+  writeHistory(getHistory().filter((r) => !idSet.has(r.id)));
+}
+
 function isSameLocalDay(a: Date, b: Date): boolean {
   return (
     a.getFullYear() === b.getFullYear() &&
