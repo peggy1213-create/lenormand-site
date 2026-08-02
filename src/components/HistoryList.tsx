@@ -9,6 +9,7 @@ import {
   isStoragePersistable,
   updateReadingNote,
   deleteReading,
+  deleteReadings,
   type Reading,
 } from "@/lib/storage";
 import { getCardById } from "@/data/cards";
@@ -19,6 +20,7 @@ import CopyToClipboardButton from "./CopyToClipboardButton";
 import styles from "./HistoryList.module.css";
 
 const NOTICE_SEEN_KEY = "lenormand.historyNoticeSeen";
+const PAGE_SIZE = 10;
 
 function TrashIcon() {
   return (
@@ -84,6 +86,63 @@ function NotebookPenIcon() {
   );
 }
 
+function CloseIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  );
+}
+
 function ChevronIcon() {
   return (
     <svg
@@ -102,7 +161,7 @@ function ChevronIcon() {
   );
 }
 
-function pillStyle(tone: "gilt" | "ghost" | "danger"): CSSProperties {
+export function pillStyle(tone: "gilt" | "ghost" | "danger"): CSSProperties {
   const borderColor =
     tone === "gilt" ? "var(--gold-400)" : tone === "danger" ? "var(--status-danger)" : "var(--border-hair)";
   return {
@@ -120,15 +179,39 @@ function pillStyle(tone: "gilt" | "ghost" | "danger"): CSSProperties {
   };
 }
 
+function toolbarSegmentStyle(): CSSProperties {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "0 14px",
+    height: 34,
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    color: "var(--text-muted)",
+    fontFamily: "var(--font-smallcaps)",
+    textTransform: "uppercase",
+    letterSpacing: "var(--tracking-caps)",
+    fontSize: 11,
+    whiteSpace: "nowrap",
+    flexShrink: 0,
+  };
+}
+
+function ToolbarDivider() {
+  return <span aria-hidden="true" style={{ width: 1, alignSelf: "stretch", background: "var(--border-hair)", flexShrink: 0 }} />;
+}
+
 // zh-TW's default Intl date/time style ("2026年7月27日 晚上9:42") is replaced
 // with a numeric date ("2026/07/27") and an English-style AM/PM time
 // ("9:42 PM", matching the English UI) rather than the localized "晚上9:42".
 const zhTWDatePart = new Intl.DateTimeFormat("zh-TW", { year: "numeric", month: "2-digit", day: "2-digit" });
 const zhTWTimePart = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 
-type ReadingDateFormatter = { format: (date: Date) => string };
+export type ReadingDateFormatter = { format: (date: Date) => string };
 
-function makeReadingDateFormatter(locale: string): ReadingDateFormatter {
+export function makeReadingDateFormatter(locale: string): ReadingDateFormatter {
   if (locale === "zh-TW") {
     return { format: (date: Date) => `${zhTWDatePart.format(date)} ${zhTWTimePart.format(date)}` };
   }
@@ -146,6 +229,8 @@ export default function HistoryList() {
   const [showNotice, setShowNotice] = useState(false);
   const [persistable, setPersistable] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [confirmingBulkDelete, setConfirmingBulkDelete] = useState(false);
+  const [page, setPage] = useState(1);
 
   function refresh() {
     const list = [...getHistory()].sort(
@@ -180,6 +265,13 @@ export default function HistoryList() {
 
   function selectNone() {
     setSelectedIds(new Set());
+    setConfirmingBulkDelete(false);
+  }
+
+  function handleBulkDelete() {
+    deleteReadings(Array.from(selectedIds));
+    selectNone();
+    refresh();
   }
 
   useEffect(() => {
@@ -197,6 +289,10 @@ export default function HistoryList() {
   }, []);
 
   const dateFormatter = makeReadingDateFormatter(locale);
+
+  const totalPages = Math.max(1, Math.ceil((readings?.length ?? 0) / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedReadings = (readings ?? []).slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   function handleExport() {
     const selected = (readings ?? []).filter((reading) => selectedIds.has(reading.id));
@@ -280,30 +376,100 @@ export default function HistoryList() {
         </p>
       )}
 
-      {readings && readings.length > 0 && (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 14, marginBottom: 32, flexWrap: "wrap" }}>
-          <button
-            type="button"
-            onClick={selectedIds.size === readings.length ? selectNone : selectAll}
-            style={pillStyle("ghost")}
-          >
-            {selectedIds.size === readings.length ? h("deselectAllButton") : h("selectAllButton")}
-          </button>
-          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-            {h("selectedCount", { count: selectedIds.size })}
-          </span>
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={selectedIds.size === 0}
-            style={{
-              ...pillStyle("ghost"),
-              opacity: selectedIds.size === 0 ? 0.5 : 1,
-              cursor: selectedIds.size === 0 ? "not-allowed" : "pointer",
-            }}
-          >
-            {h("exportMdButton")}
-          </button>
+      {selectedIds.size > 0 && (
+        <div
+          style={{
+            position: "sticky",
+            top: 8,
+            zIndex: 5,
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: 32,
+          }}
+        >
+          <div style={{ position: "relative", maxWidth: "100%" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "stretch",
+                background: "var(--surface-card)",
+                border: "1px solid var(--border-hair)",
+                borderRadius: 999,
+                boxShadow: "var(--shadow-sm)",
+                overflowX: "auto",
+              }}
+            >
+              <button
+                type="button"
+                aria-label={h("closeSelectionLabel")}
+                title={h("closeSelectionLabel")}
+                onClick={selectNone}
+                style={toolbarSegmentStyle()}
+              >
+                <CloseIcon />
+              </button>
+              <ToolbarDivider />
+              <span style={{ ...toolbarSegmentStyle(), color: "var(--gold-500)", fontWeight: 600, cursor: "default" }}>
+                {h("selectedCount", { count: selectedIds.size })}
+              </span>
+              <ToolbarDivider />
+              <button
+                type="button"
+                onClick={selectedIds.size === readings?.length ? selectNone : selectAll}
+                style={toolbarSegmentStyle()}
+              >
+                <CheckIcon />
+                <span>{selectedIds.size === readings?.length ? h("deselectAllButton") : h("selectAllButton")}</span>
+              </button>
+              <ToolbarDivider />
+              <button type="button" onClick={handleExport} style={toolbarSegmentStyle()}>
+                <DownloadIcon />
+                <span>{h("exportMdButton")}</span>
+              </button>
+              <ToolbarDivider />
+              <button
+                type="button"
+                aria-label={h("deleteSelectedButton")}
+                title={h("deleteSelectedButton")}
+                onClick={() => setConfirmingBulkDelete(true)}
+                style={{ ...toolbarSegmentStyle(), color: "var(--status-danger)" }}
+              >
+                <TrashIcon />
+              </button>
+            </div>
+
+            {confirmingBulkDelete && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  right: 0,
+                  marginTop: 8,
+                  zIndex: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  maxWidth: 320,
+                  background: "var(--surface-card)",
+                  border: "1px solid var(--status-danger)",
+                  borderRadius: 8,
+                  boxShadow: "var(--shadow-md)",
+                  padding: "10px 16px",
+                }}
+              >
+                <span style={{ fontSize: 13, fontStyle: "italic", color: "var(--status-danger)" }}>
+                  {h("confirmDeleteSelected", { count: selectedIds.size })}
+                </span>
+                <button type="button" style={pillStyle("danger")} onClick={handleBulkDelete}>
+                  {h("confirmDeleteYes")}
+                </button>
+                <button type="button" style={pillStyle("ghost")} onClick={() => setConfirmingBulkDelete(false)}>
+                  {h("confirmDeleteCancel")}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -328,7 +494,7 @@ export default function HistoryList() {
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-        {readings?.map((reading) => (
+        {pagedReadings.map((reading) => (
           <Row
             key={reading.id}
             reading={reading}
@@ -339,11 +505,56 @@ export default function HistoryList() {
           />
         ))}
       </div>
+
+      {readings && readings.length > PAGE_SIZE && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginTop: 28 }}>
+          <button
+            type="button"
+            aria-label={h("prevPage")}
+            title={h("prevPage")}
+            disabled={currentPage <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            style={{
+              ...pillStyle("ghost"),
+              opacity: currentPage <= 1 ? 0.4 : 1,
+              cursor: currentPage <= 1 ? "default" : "pointer",
+            }}
+          >
+            ‹
+          </button>
+          <span
+            style={{
+              fontFamily: "var(--font-smallcaps)",
+              textTransform: "uppercase",
+              letterSpacing: "var(--tracking-caps)",
+              fontSize: 11,
+              color: "var(--text-muted)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {h("pageIndicator", { page: currentPage, total: totalPages })}
+          </span>
+          <button
+            type="button"
+            aria-label={h("nextPage")}
+            title={h("nextPage")}
+            disabled={currentPage >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            style={{
+              ...pillStyle("ghost"),
+              opacity: currentPage >= totalPages ? 0.4 : 1,
+              cursor: currentPage >= totalPages ? "default" : "pointer",
+            }}
+          >
+            ›
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
-function Row({
+export function Row({
   reading,
   dateFormatter,
   onChanged,
@@ -353,8 +564,8 @@ function Row({
   reading: Reading;
   dateFormatter: ReadingDateFormatter;
   onChanged: () => void;
-  selected: boolean;
-  onToggleSelected: () => void;
+  selected?: boolean;
+  onToggleSelected?: () => void;
 }) {
   const h = useTranslations("history");
   const t = useTranslations("draw");
@@ -427,7 +638,7 @@ function Row({
     <article
       style={{
         background: "var(--surface-card)",
-        border: "1px solid var(--border-hair)",
+        border: `1px solid ${selected ? "var(--gold-400)" : "var(--border-hair)"}`,
         borderRadius: 8,
         boxShadow: "var(--shadow-sm)",
         padding: "22px 26px",
@@ -435,13 +646,15 @@ function Row({
     >
       <div className={styles.rowHeader}>
         <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flex: "1 1 0%", minWidth: 0 }}>
-          <input
-            type="checkbox"
-            checked={selected}
-            onChange={onToggleSelected}
-            aria-label={h("selectReadingLabel")}
-            style={{ marginTop: 4, width: 16, height: 16, cursor: "pointer", flexShrink: 0 }}
-          />
+          {onToggleSelected && (
+            <input
+              type="checkbox"
+              checked={!!selected}
+              onChange={onToggleSelected}
+              aria-label={h("selectReadingLabel")}
+              style={{ marginTop: 4, width: 16, height: 16, cursor: "pointer", flexShrink: 0 }}
+            />
+          )}
           <div className={styles.content}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <h2
@@ -464,7 +677,10 @@ function Row({
               type="button"
               aria-label={note.trim() ? h("readNoteTooltip") : h("addNoteTooltip")}
               title={note.trim() ? h("readNoteTooltip") : h("addNoteTooltip")}
-              onClick={handleEditNoteClick}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditNoteClick();
+              }}
               style={{
                 display: "inline-flex",
                 alignItems: "center",

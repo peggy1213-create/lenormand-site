@@ -105,9 +105,27 @@
     "selectAllButton": "全選",
     "deselectAllButton": "取消全選",
     "selectedCount": "已選 {count} 筆",
-    "selectReadingLabel": "選取此紀錄以匯出",
+    "selectReadingLabel": "選取此紀錄",
+    "closeSelectionLabel": "清除選取",
+    "deleteSelectedButton": "刪除已選取的紀錄",
+    "confirmDeleteSelected": "刪除已選取的 {count} 筆紀錄？此動作無法復原。",
     "firstVisitNotice": "抽牌紀錄僅儲存於此裝置與瀏覽器。",
-    "incognitoWarning": "你的瀏覽器似乎處於無痕模式，本次瀏覽結束後紀錄將不會被保留。"
+    "incognitoWarning": "你的瀏覽器似乎處於無痕模式，本次瀏覽結束後紀錄將不會被保留。",
+    "viewList": "清單",
+    "viewCalendar": "日曆",
+    "pageIndicator": "第 {page} / {total} 頁",
+    "prevPage": "上一頁",
+    "nextPage": "下一頁",
+    "calendar": {
+      "monthView": "月",
+      "yearView": "年",
+      "prev": "上一個",
+      "next": "下一個",
+      "emptyAll": "尚無紀錄。往後的抽牌會依日期顯示在這裡。",
+      "emptyMonth": "這個月尚無抽牌紀錄。",
+      "readingsOnDay": "這一天有 {count} 筆紀錄",
+      "selectDayHint": "點選有標記的日期即可在此查看紀錄。"
+    }
   },
   "about": {
     "title": "關於",

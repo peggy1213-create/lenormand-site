@@ -489,11 +489,11 @@ export default function DrawFlow() {
                 style={{
                   display: "flex",
                   flexWrap: "wrap",
-                  gap: 18,
+                  gap: 12,
                   justifyContent: "center",
                   alignItems: "center",
-                  marginTop: 22,
-                  minHeight: chosen.length ? 0 : 12,
+                  marginTop: 14,
+                  minHeight: "calc(clamp(100px, 27vw, 176px) + 26px)",
                 }}
               >
                 {chosen.map((di) => {
@@ -508,15 +508,15 @@ export default function DrawFlow() {
                     >
                       <div
                         style={cardBackStyle({
-                          width: "clamp(84px, 24vw, 148px)",
-                          height: "clamp(132px, 37.7vw, 232px)",
+                          width: "clamp(64px, 17vw, 112px)",
+                          height: "clamp(100px, 27vw, 176px)",
                           backgroundImage: `url('${shown ? card.image : CARD_BACK_IMAGE}')`,
                         })}
                       />
                       <div
                         style={{
-                          marginTop: 10,
-                          minHeight: 18,
+                          marginTop: 8,
+                          minHeight: 16,
                           fontFamily: "var(--font-smallcaps)",
                           textTransform: "uppercase",
                           letterSpacing: "var(--tracking-wide)",
@@ -541,10 +541,10 @@ export default function DrawFlow() {
                       key={card.id}
                       onClick={() => choose(i, deckOrder)}
                       style={cardBackStyle({
-                        width: "clamp(56px, 14vw, 96px)",
-                        height: "clamp(88px, 22vw, 152px)",
+                        width: "clamp(48px, 11vw, 76px)",
+                        height: "clamp(76px, 17.5vw, 120px)",
                         flex: "0 0 auto",
-                        marginLeft: i ? "calc(-1 * clamp(56px, 14vw, 96px) * 0.79)" : 0,
+                        marginLeft: i ? "calc(-1 * clamp(48px, 11vw, 76px) * 0.79)" : 0,
                         cursor: done || taken ? "default" : "pointer",
                         opacity: taken ? 0 : 1,
                         transform: taken ? "translateY(-24px)" : "none",
