@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import OrnamentRule from "@/components/ds/OrnamentRule";
-import HistoryList from "@/components/HistoryList";
+import HistoryView from "@/components/HistoryView";
 
 export default async function HistoryPage({
   params,
@@ -55,7 +55,7 @@ export default async function HistoryPage({
         </p>
       </div>
 
-      <HistoryList />
+      <HistoryView />
     </main>
   );
 }

@@ -110,7 +110,22 @@
     "deleteSelectedButton": "Delete selected readings",
     "confirmDeleteSelected": "Delete {count} readings? This cannot be undone.",
     "firstVisitNotice": "Readings are saved only on this device and browser.",
-    "incognitoWarning": "Your browser appears to be in private/incognito mode. History will not be saved after this session ends."
+    "incognitoWarning": "Your browser appears to be in private/incognito mode. History will not be saved after this session ends.",
+    "viewList": "List",
+    "viewCalendar": "Calendar",
+    "pageIndicator": "Page {page} of {total}",
+    "prevPage": "Previous page",
+    "nextPage": "Next page",
+    "calendar": {
+      "monthView": "Month",
+      "yearView": "Year",
+      "prev": "Previous",
+      "next": "Next",
+      "emptyAll": "Nothing recorded yet. Your readings will appear here as you go.",
+      "emptyMonth": "No readings this month.",
+      "readingsOnDay": "{count} readings on this day",
+      "selectDayHint": "Tap a marked day to open its reading here."
+    }
   },
   "about": {
     "title": "About",

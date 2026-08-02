@@ -20,6 +20,7 @@ import CopyToClipboardButton from "./CopyToClipboardButton";
 import styles from "./HistoryList.module.css";
 
 const NOTICE_SEEN_KEY = "lenormand.historyNoticeSeen";
+const PAGE_SIZE = 10;
 
 function TrashIcon() {
   return (
@@ -160,7 +161,7 @@ function ChevronIcon() {
   );
 }
 
-function pillStyle(tone: "gilt" | "ghost" | "danger"): CSSProperties {
+export function pillStyle(tone: "gilt" | "ghost" | "danger"): CSSProperties {
   const borderColor =
     tone === "gilt" ? "var(--gold-400)" : tone === "danger" ? "var(--status-danger)" : "var(--border-hair)";
   return {
@@ -208,9 +209,9 @@ function ToolbarDivider() {
 const zhTWDatePart = new Intl.DateTimeFormat("zh-TW", { year: "numeric", month: "2-digit", day: "2-digit" });
 const zhTWTimePart = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 
-type ReadingDateFormatter = { format: (date: Date) => string };
+export type ReadingDateFormatter = { format: (date: Date) => string };
 
-function makeReadingDateFormatter(locale: string): ReadingDateFormatter {
+export function makeReadingDateFormatter(locale: string): ReadingDateFormatter {
   if (locale === "zh-TW") {
     return { format: (date: Date) => `${zhTWDatePart.format(date)} ${zhTWTimePart.format(date)}` };
   }
@@ -229,6 +230,7 @@ export default function HistoryList() {
   const [persistable, setPersistable] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmingBulkDelete, setConfirmingBulkDelete] = useState(false);
+  const [page, setPage] = useState(1);
 
   function refresh() {
     const list = [...getHistory()].sort(
@@ -287,6 +289,10 @@ export default function HistoryList() {
   }, []);
 
   const dateFormatter = makeReadingDateFormatter(locale);
+
+  const totalPages = Math.max(1, Math.ceil((readings?.length ?? 0) / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedReadings = (readings ?? []).slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   function handleExport() {
     const selected = (readings ?? []).filter((reading) => selectedIds.has(reading.id));
@@ -488,7 +494,7 @@ export default function HistoryList() {
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-        {readings?.map((reading) => (
+        {pagedReadings.map((reading) => (
           <Row
             key={reading.id}
             reading={reading}
@@ -499,11 +505,56 @@ export default function HistoryList() {
           />
         ))}
       </div>
+
+      {readings && readings.length > PAGE_SIZE && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginTop: 28 }}>
+          <button
+            type="button"
+            aria-label={h("prevPage")}
+            title={h("prevPage")}
+            disabled={currentPage <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            style={{
+              ...pillStyle("ghost"),
+              opacity: currentPage <= 1 ? 0.4 : 1,
+              cursor: currentPage <= 1 ? "default" : "pointer",
+            }}
+          >
+            ‹
+          </button>
+          <span
+            style={{
+              fontFamily: "var(--font-smallcaps)",
+              textTransform: "uppercase",
+              letterSpacing: "var(--tracking-caps)",
+              fontSize: 11,
+              color: "var(--text-muted)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {h("pageIndicator", { page: currentPage, total: totalPages })}
+          </span>
+          <button
+            type="button"
+            aria-label={h("nextPage")}
+            title={h("nextPage")}
+            disabled={currentPage >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            style={{
+              ...pillStyle("ghost"),
+              opacity: currentPage >= totalPages ? 0.4 : 1,
+              cursor: currentPage >= totalPages ? "default" : "pointer",
+            }}
+          >
+            ›
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
-function Row({
+export function Row({
   reading,
   dateFormatter,
   onChanged,
@@ -513,8 +564,8 @@ function Row({
   reading: Reading;
   dateFormatter: ReadingDateFormatter;
   onChanged: () => void;
-  selected: boolean;
-  onToggleSelected: () => void;
+  selected?: boolean;
+  onToggleSelected?: () => void;
 }) {
   const h = useTranslations("history");
   const t = useTranslations("draw");
@@ -595,13 +646,15 @@ function Row({
     >
       <div className={styles.rowHeader}>
         <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flex: "1 1 0%", minWidth: 0 }}>
-          <input
-            type="checkbox"
-            checked={selected}
-            onChange={onToggleSelected}
-            aria-label={h("selectReadingLabel")}
-            style={{ marginTop: 4, width: 16, height: 16, cursor: "pointer", flexShrink: 0 }}
-          />
+          {onToggleSelected && (
+            <input
+              type="checkbox"
+              checked={!!selected}
+              onChange={onToggleSelected}
+              aria-label={h("selectReadingLabel")}
+              style={{ marginTop: 4, width: 16, height: 16, cursor: "pointer", flexShrink: 0 }}
+            />
+          )}
           <div className={styles.content}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <h2
@@ -624,7 +677,10 @@ function Row({
               type="button"
               aria-label={note.trim() ? h("readNoteTooltip") : h("addNoteTooltip")}
               title={note.trim() ? h("readNoteTooltip") : h("addNoteTooltip")}
-              onClick={handleEditNoteClick}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEditNoteClick();
+              }}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
