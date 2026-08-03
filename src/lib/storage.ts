@@ -8,11 +8,14 @@ export type Reading = {
   question?: string;
   cards: { cardId: number; position: number }[];
   notes?: string;
+  tags?: string[];
   lang: Locale;
 };
 
 const STORAGE_KEY = "lenormand.history";
 const MAX_READINGS = 500;
+export const MAX_TAGS_PER_READING = 3;
+export const MAX_DISTINCT_TAGS = 3;
 
 function hasWindow(): boolean {
   return typeof window !== "undefined";
@@ -79,8 +82,25 @@ export function updateReadingNote(id: string, notes: string): void {
   writeHistory(next);
 }
 
+export function updateReadingTags(id: string, tags: string[]): void {
+  const capped = tags.slice(0, MAX_TAGS_PER_READING);
+  const next = getHistory().map((r) => (r.id === id ? { ...r, tags: capped } : r));
+  writeHistory(next);
+}
+
+export function getAllTags(): string[] {
+  const set = new Set<string>();
+  getHistory().forEach((r) => (r.tags ?? []).forEach((tag) => set.add(tag)));
+  return Array.from(set);
+}
+
 export function deleteReading(id: string): void {
   writeHistory(getHistory().filter((r) => r.id !== id));
+}
+
+export function deleteReadings(ids: string[]): void {
+  const idSet = new Set(ids);
+  writeHistory(getHistory().filter((r) => !idSet.has(r.id)));
 }
 
 function isSameLocalDay(a: Date, b: Date): boolean {
