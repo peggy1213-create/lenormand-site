@@ -119,7 +119,22 @@
     "addTagButton": "新增",
     "removeTagLabel": "移除標籤",
     "existingTagsLabel": "或選擇已使用過的標籤",
-    "maxTagsReached": "整個紀錄最多可使用 3 個標籤"
+    "maxTagsReached": "整個紀錄最多可使用 3 個標籤",
+    "viewList": "清單",
+    "viewCalendar": "日曆",
+    "pageIndicator": "第 {page} / {total} 頁",
+    "prevPage": "上一頁",
+    "nextPage": "下一頁",
+    "calendar": {
+      "monthView": "月",
+      "yearView": "年",
+      "prev": "上一個",
+      "next": "下一個",
+      "emptyAll": "尚無紀錄。往後的抽牌會依日期顯示在這裡。",
+      "emptyMonth": "這個月尚無抽牌紀錄。",
+      "readingsOnDay": "這一天有 {count} 筆紀錄",
+      "selectDayHint": "點選有標記的日期即可在此查看紀錄。"
+    }
   },
   "about": {
     "title": "關於",

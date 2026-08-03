@@ -17,6 +17,10 @@ type Phase = "question" | "shuffle" | "choose" | "locked";
 
 const FIELD_W = 820;
 const FIELD_H = 260;
+const DECK_CARD_MIN_W = 46;
+const DECK_CARD_MAX_W = 96;
+const DECK_CARD_ASPECT = 152 / 96;
+const DECK_OVERLAP = 0.6;
 
 function scatter(): ScatterCard[] {
   const n = 16;
@@ -82,6 +86,8 @@ export default function DrawFlow() {
   const [revealed, setRevealed] = useState<number[]>([]);
   const [dailyLocked, setDailyLocked] = useState(false);
   const [fieldScale, setFieldScale] = useState(1);
+  const [deckCardW, setDeckCardW] = useState(DECK_CARD_MAX_W);
+  const [deckScrollable, setDeckScrollable] = useState(false);
 
   // Read on mount only (not during SSR): the lock depends on localStorage
   // and the viewer's local clock, so it can only be known client-side.
@@ -90,6 +96,7 @@ export default function DrawFlow() {
   }, []);
 
   const fieldRef = useRef<HTMLDivElement | null>(null);
+  const deckRowRef = useRef<HTMLDivElement | null>(null);
   const pressedRef = useRef(false);
   const phaseRef = useRef<Phase>("question");
   useEffect(() => {
@@ -133,6 +140,26 @@ export default function DrawFlow() {
   const done = choosing && chosen.length >= need;
   const allShown = done && chosen.every((di) => revealed.includes(di));
   const ready = churn >= 60;
+
+  // The fanned deck's card size is derived from its actual rendered width
+  // rather than guessed from viewport units, so every card gets the largest
+  // overlap-adjusted size that still fits without clipping; below the
+  // comfortable minimum it falls back to a scrollable row instead of
+  // shrinking cards into an unclickably thin sliver.
+  useEffect(() => {
+    const el = deckRowRef.current;
+    if (!el) return;
+    const factor = 1 + (CARDS.length - 1) * (1 - DECK_OVERLAP);
+    const ro = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width ?? 0;
+      if (!width) return;
+      const raw = width / factor;
+      setDeckCardW(clamp(raw, DECK_CARD_MIN_W, DECK_CARD_MAX_W));
+      setDeckScrollable(raw < DECK_CARD_MIN_W);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [phase, done]);
 
   function openSpread(i: number) {
     const spreadAt = SPREADS[i];
@@ -391,7 +418,7 @@ export default function DrawFlow() {
                 letterSpacing: "0.16em",
                 textTransform: "uppercase",
                 color: "var(--parchment-50)",
-                marginTop: 12,
+                marginTop: "clamp(6px, 1.5vh, 12px)",
               }}
             >
               {stageTitle}
@@ -459,9 +486,9 @@ export default function DrawFlow() {
               <div
                 style={{
                   maxWidth: 620,
-                  margin: "24px auto 0",
+                  margin: "clamp(10px, 2.5vh, 24px) auto 0",
                   textAlign: "center",
-                  paddingTop: 18,
+                  paddingTop: "clamp(8px, 2vh, 18px)",
                   borderTop: "1px solid rgba(231,199,137,.28)",
                 }}
               >
@@ -484,7 +511,18 @@ export default function DrawFlow() {
               </div>
             )}
 
-            {choosing && (
+            {choosing && (() => {
+              // While the deck fan is still on screen, the chosen row shares
+              // vertical space with it, so it gets a smaller reserved size;
+              // once selection is done the fan disappears and there's room
+              // to grow the cards for the reveal moment.
+              const chosenW = done
+                ? "clamp(80px, min(27vw, 18vh), 168px)"
+                : "clamp(70px, min(24vw, 14vh), 148px)";
+              const chosenH = done
+                ? "clamp(126px, min(42.6vw, 28.4vh), 265px)"
+                : "clamp(110px, min(37.7vw, 22vh), 232px)";
+              return (
               <div
                 style={{
                   display: "flex",
@@ -492,8 +530,8 @@ export default function DrawFlow() {
                   gap: 18,
                   justifyContent: "center",
                   alignItems: "center",
-                  marginTop: 22,
-                  minHeight: chosen.length ? 0 : 12,
+                  marginTop: "clamp(10px, 2.5vh, 22px)",
+                  minHeight: `calc(${chosenH} + 28px)`,
                 }}
               >
                 {chosen.map((di) => {
@@ -508,8 +546,8 @@ export default function DrawFlow() {
                     >
                       <div
                         style={cardBackStyle({
-                          width: "clamp(84px, 24vw, 148px)",
-                          height: "clamp(132px, 37.7vw, 232px)",
+                          width: chosenW,
+                          height: chosenH,
                           backgroundImage: `url('${shown ? card.image : CARD_BACK_IMAGE}')`,
                         })}
                       />
@@ -530,10 +568,18 @@ export default function DrawFlow() {
                   );
                 })}
               </div>
-            )}
+              );
+            })()}
 
             {choosing && !done && (
-              <div className={styles.deckRow}>
+              <div
+                ref={deckRowRef}
+                className={styles.deckRow}
+                style={{
+                  overflowX: deckScrollable ? "auto" : "hidden",
+                  justifyContent: deckScrollable ? "flex-start" : "center",
+                }}
+              >
                 {deckOrder.map((card, i) => {
                   const taken = chosen.includes(i);
                   return (
@@ -541,10 +587,10 @@ export default function DrawFlow() {
                       key={card.id}
                       onClick={() => choose(i, deckOrder)}
                       style={cardBackStyle({
-                        width: "clamp(56px, 14vw, 96px)",
-                        height: "clamp(88px, 22vw, 152px)",
+                        width: deckCardW,
+                        height: deckCardW * DECK_CARD_ASPECT,
                         flex: "0 0 auto",
-                        marginLeft: i ? "calc(-1 * clamp(56px, 14vw, 96px) * 0.79)" : 0,
+                        marginLeft: i ? -(deckCardW * DECK_OVERLAP) : 0,
                         cursor: done || taken ? "default" : "pointer",
                         opacity: taken ? 0 : 1,
                         transform: taken ? "translateY(-24px)" : "none",
@@ -563,14 +609,14 @@ export default function DrawFlow() {
                 fontStyle: "italic",
                 fontSize: 17,
                 color: "var(--moss-100)",
-                marginTop: 26,
+                marginTop: "clamp(10px, 2.5vh, 26px)",
                 minHeight: 26,
               }}
             >
               {stageHint}
             </div>
 
-            <div style={{ display: "flex", gap: 18, justifyContent: "center", marginTop: 22, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 18, justifyContent: "center", marginTop: "clamp(10px, 2.2vh, 22px)", flexWrap: "wrap" }}>
               <button
                 type="button"
                 onClick={layAction}

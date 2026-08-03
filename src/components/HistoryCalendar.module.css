@@ -1,0 +1,227 @@
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.navButton {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-hair);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.navButton:hover {
+  border-color: var(--gold-400);
+  color: var(--gold-500);
+}
+
+.monthLabel {
+  font-family: var(--font-display);
+  font-size: 17px;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-strong);
+  margin: 0;
+  min-width: 170px;
+  text-align: center;
+}
+
+.weekdayRow,
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.weekdayRow {
+  margin-bottom: 6px;
+}
+.weekdayRow span {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.dayCell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background: var(--surface-raised);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-body);
+  display: flex;
+  align-items: flex-start;
+  padding: 6px;
+}
+.dayCellOut {
+  background: transparent;
+  color: var(--text-subtle);
+  opacity: 0.35;
+}
+.dayCellHasReading {
+  cursor: pointer;
+  background: var(--surface-card);
+  border-color: var(--border-hair);
+  transition: border-color var(--dur-fast) var(--ease-standard);
+}
+.dayCellHasReading:hover,
+.dayCellHasReading:focus-visible {
+  border-color: var(--gold-400);
+}
+.dayCellSelected {
+  border-color: var(--gold-500);
+  box-shadow: inset 0 0 0 1px var(--gold-500);
+}
+.dayCellToday .dayNum {
+  color: var(--gold-500);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--gold-400);
+  text-underline-offset: 3px;
+}
+
+.cornerFold {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 11px 11px;
+  border-color: transparent transparent var(--gold-400) transparent;
+  border-radius: 0 0 4px 0;
+  opacity: 0.85;
+}
+
+.emptyNote {
+  text-align: center;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-subtle);
+  padding: 16px 0 4px;
+}
+
+/* --- year view --- */
+.yearStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px 26px;
+  justify-content: center;
+}
+.yearMonth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.yearMonthLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+.yearGrid {
+  display: grid;
+  grid-template-rows: repeat(7, 9px);
+  grid-auto-flow: column;
+  grid-auto-columns: 9px;
+  gap: 2px;
+}
+.yearCell {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-hair);
+  padding: 0;
+  cursor: default;
+}
+.yearCellBlank {
+  background: transparent;
+  border-color: transparent;
+}
+.yearCellHasReading {
+  cursor: pointer;
+  position: relative;
+  background: var(--surface-card);
+  border-color: var(--border-hair);
+}
+.yearCellHasReading::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 6px 6px;
+  border-color: transparent transparent var(--gold-400) transparent;
+}
+.yearCellToday {
+  box-shadow: inset 0 0 0 1px var(--gold-600);
+}
+.yearCellSelected {
+  box-shadow: inset 0 0 0 1px var(--gold-500), 0 0 0 2px var(--gold-100);
+}
+.yearCell:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 1px;
+}
+
+/* --- selected day stack --- */
+.detail {
+  margin-top: 28px;
+}
+.detailHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.detailHead h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-strong);
+  margin: 0;
+}
+.detailCount {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .dayCell {
+    font-size: 11px;
+    padding: 4px;
+  }
+  .cornerFold {
+    border-width: 0 0 8px 8px;
+  }
+}

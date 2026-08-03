@@ -119,7 +119,22 @@
     "addTagButton": "Add",
     "removeTagLabel": "Remove tag",
     "existingTagsLabel": "Or pick one you've already used",
-    "maxTagsReached": "You can have up to 3 tags across your history"
+    "maxTagsReached": "You can have up to 3 tags across your history",
+    "viewList": "List",
+    "viewCalendar": "Calendar",
+    "pageIndicator": "Page {page} of {total}",
+    "prevPage": "Previous page",
+    "nextPage": "Next page",
+    "calendar": {
+      "monthView": "Month",
+      "yearView": "Year",
+      "prev": "Previous",
+      "next": "Next",
+      "emptyAll": "Nothing recorded yet. Your readings will appear here as you go.",
+      "emptyMonth": "No readings this month.",
+      "readingsOnDay": "{count} readings on this day",
+      "selectDayHint": "Tap a marked day to open its reading here."
+    }
   },
   "about": {
     "title": "About",
