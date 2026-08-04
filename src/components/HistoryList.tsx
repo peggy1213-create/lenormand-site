@@ -8,8 +8,11 @@ import {
   getHistory,
   isStoragePersistable,
   updateReadingNote,
-  deleteReading,
+  updateReadingTags,
   deleteReadings,
+  getAllTags,
+  MAX_TAGS_PER_READING,
+  MAX_DISTINCT_TAGS,
   type Reading,
 } from "@/lib/storage";
 import { getCardById } from "@/data/cards";
@@ -21,28 +24,6 @@ import styles from "./HistoryList.module.css";
 
 const NOTICE_SEEN_KEY = "lenormand.historyNoticeSeen";
 const PAGE_SIZE = 10;
-
-function TrashIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-      <path d="M10 11v6" />
-      <path d="M14 11v6" />
-      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-    </svg>
-  );
-}
 
 function PencilIcon() {
   return (
@@ -82,6 +63,47 @@ function NotebookPenIcon() {
       <path d="M2 14h4" />
       <path d="M2 18h4" />
       <path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" />
+    </svg>
+  );
+}
+
+function TagIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+      <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
     </svg>
   );
 }
@@ -141,6 +163,24 @@ function DownloadIcon() {
       <line x1="12" y1="15" x2="12" y2="3" />
     </svg>
   );
+}
+
+function tagChipStyle(removable: boolean): CSSProperties {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    padding: removable ? "3px 6px 3px 10px" : "3px 10px",
+    borderRadius: 999,
+    border: "1px solid var(--gold-400)",
+    background: "var(--gilt-soft)",
+    color: "var(--ink-900)",
+    fontFamily: "var(--font-smallcaps)",
+    textTransform: "uppercase",
+    letterSpacing: "var(--tracking-wide)",
+    fontSize: 10,
+    whiteSpace: "nowrap",
+  };
 }
 
 function ChevronIcon() {
@@ -391,12 +431,13 @@ export default function HistoryList() {
             <div
               style={{
                 display: "flex",
+                flexWrap: "wrap",
                 alignItems: "stretch",
+                justifyContent: "center",
                 background: "var(--surface-card)",
                 border: "1px solid var(--border-hair)",
                 borderRadius: 999,
                 boxShadow: "var(--shadow-sm)",
-                overflowX: "auto",
               }}
             >
               <button
@@ -576,9 +617,13 @@ export function Row({
   const [expandedPosition, setExpandedPosition] = useState<number | null>(null);
   const [note, setNote] = useState(reading.notes ?? "");
   const [noteSaved, setNoteSaved] = useState(false);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [tags, setTags] = useState<string[]>(reading.tags ?? []);
+  const [tagInput, setTagInput] = useState("");
   const [pendingNoteFocus, setPendingNoteFocus] = useState(false);
+  const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
+  const tagPopoverRef = useRef<HTMLDivElement>(null);
+  const tagInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open && pendingNoteFocus && noteRef.current) {
@@ -587,6 +632,23 @@ export function Row({
       setPendingNoteFocus(false);
     }
   }, [open, pendingNoteFocus]);
+
+  useEffect(() => {
+    if (tagPopoverOpen) {
+      tagInputRef.current?.focus();
+    }
+  }, [tagPopoverOpen]);
+
+  useEffect(() => {
+    if (!tagPopoverOpen) return;
+    function handlePointerDown(e: MouseEvent) {
+      if (tagPopoverRef.current && !tagPopoverRef.current.contains(e.target as Node)) {
+        setTagPopoverOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [tagPopoverOpen]);
 
   function handleEditNoteClick() {
     setOpen(true);
@@ -626,13 +688,37 @@ export function Row({
     setTimeout(() => setNoteSaved(false), 2000);
   }
 
-  // An inline confirm row instead of window.confirm(): native confirm()
-  // dialogs are silently blocked in sandboxed preview iframes, which made
-  // delete look broken there even though the handler ran fine.
-  function handleDelete() {
-    deleteReading(reading.id);
+  function addTagValue(value: string) {
+    if (!value || tags.length >= MAX_TAGS_PER_READING || tags.includes(value)) return;
+    const allTags = getAllTags();
+    if (!allTags.includes(value) && allTags.length >= MAX_DISTINCT_TAGS) return;
+    const next = [...tags, value];
+    setTags(next);
+    updateReadingTags(reading.id, next);
     onChanged();
   }
+
+  function handleAddTag() {
+    addTagValue(tagInput.trim());
+    setTagInput("");
+  }
+
+  function handleSelectExistingTag(tag: string) {
+    addTagValue(tag);
+    setTagInput("");
+    tagInputRef.current?.focus();
+  }
+
+  function handleRemoveTag(tag: string) {
+    const next = tags.filter((existing) => existing !== tag);
+    setTags(next);
+    updateReadingTags(reading.id, next);
+    onChanged();
+  }
+
+  const allTags = getAllTags();
+  const unusedTags = allTags.filter((tag) => !tags.includes(tag));
+  const canAddMoreTags = tags.length < MAX_TAGS_PER_READING && (allTags.length < MAX_DISTINCT_TAGS || unusedTags.length > 0);
 
   return (
     <article
@@ -645,7 +731,7 @@ export function Row({
       }}
     >
       <div className={styles.rowHeader}>
-        <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flex: "1 1 0%", minWidth: 0 }}>
+        <div style={{ display: "flex", gap: 14, alignItems: "flex-start", flex: "1 1 0%" }}>
           {onToggleSelected && (
             <input
               type="checkbox"
@@ -696,6 +782,201 @@ export function Row({
             >
               {note.trim() ? <NotebookPenIcon /> : <PencilIcon />}
             </button>
+            <div style={{ position: "relative" }} ref={tagPopoverRef}>
+              <button
+                type="button"
+                aria-label={tags.length > 0 ? h("viewTagsTooltip") : h("addTagsTooltip")}
+                title={tags.length > 0 ? h("viewTagsTooltip") : h("addTagsTooltip")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTagPopoverOpen((v) => !v);
+                }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: 0,
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  color: tags.length > 0 ? "var(--gold-500)" : "var(--text-subtle)",
+                }}
+              >
+                {tags.length > 0 ? (
+                  tags.map((tag) => (
+                    <span key={tag} style={tagChipStyle(false)}>
+                      {tag}
+                    </span>
+                  ))
+                ) : (
+                  <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 22, height: 22 }}>
+                    <TagIcon />
+                  </span>
+                )}
+              </button>
+
+              {tagPopoverOpen && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    marginTop: 8,
+                    zIndex: 6,
+                    width: 260,
+                    maxWidth: "80vw",
+                    background: "var(--surface-card)",
+                    border: "1px solid var(--border-hair)",
+                    borderRadius: 8,
+                    boxShadow: "var(--shadow-md)",
+                    padding: "14px 16px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-smallcaps)",
+                        textTransform: "uppercase",
+                        letterSpacing: "var(--tracking-wide)",
+                        fontSize: 11,
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      {h("tagsLabel")}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={h("closeTagsPopover")}
+                      title={h("closeTagsPopover")}
+                      onClick={() => setTagPopoverOpen(false)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 18,
+                        height: 18,
+                        padding: 0,
+                        border: "none",
+                        background: "transparent",
+                        color: "var(--text-muted)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <CloseIcon />
+                    </button>
+                  </div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                    {tags.map((tag) => (
+                      <span key={tag} style={tagChipStyle(true)}>
+                        {tag}
+                        <button
+                          type="button"
+                          aria-label={h("removeTagLabel")}
+                          title={h("removeTagLabel")}
+                          onClick={() => handleRemoveTag(tag)}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 14,
+                            height: 14,
+                            padding: 0,
+                            border: "none",
+                            borderRadius: "50%",
+                            background: "transparent",
+                            color: "inherit",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <CloseIcon />
+                        </button>
+                      </span>
+                    ))}
+                    {canAddMoreTags ? (
+                      <>
+                        <input
+                          ref={tagInputRef}
+                          type="text"
+                          value={tagInput}
+                          onChange={(e) => setTagInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddTag();
+                            }
+                          }}
+                          placeholder={h("addTagPlaceholder")}
+                          maxLength={24}
+                          autoComplete="off"
+                          style={{
+                            flex: "1 1 120px",
+                            minWidth: 100,
+                            border: "none",
+                            borderBottom: "1px solid var(--border-hair)",
+                            background: "transparent",
+                            padding: "3px 2px",
+                            fontFamily: "var(--font-serif)",
+                            fontSize: 13,
+                            color: "var(--text-body)",
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddTag}
+                          disabled={!tagInput.trim()}
+                          style={{
+                            ...pillStyle("ghost"),
+                            padding: "4px 12px",
+                            opacity: tagInput.trim() ? 1 : 0.5,
+                            cursor: tagInput.trim() ? "pointer" : "not-allowed",
+                          }}
+                        >
+                          {h("addTagButton")}
+                        </button>
+                      </>
+                    ) : (
+                      <span style={{ fontSize: 12, fontStyle: "italic", color: "var(--text-subtle)" }}>
+                        {h("maxTagsReached")}
+                      </span>
+                    )}
+                  </div>
+
+                  {canAddMoreTags && unusedTags.length > 0 && (
+                    <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--border-hair)" }}>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-smallcaps)",
+                          textTransform: "uppercase",
+                          letterSpacing: "var(--tracking-wide)",
+                          fontSize: 10,
+                          color: "var(--text-subtle)",
+                          marginBottom: 6,
+                        }}
+                      >
+                        {h("existingTagsLabel")}
+                      </div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {unusedTags.map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => handleSelectExistingTag(tag)}
+                            style={{
+                              ...tagChipStyle(false),
+                              cursor: "pointer",
+                              border: "1px dashed var(--gold-400)",
+                              background: "transparent",
+                            }}
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           <div style={{ fontSize: 17, lineHeight: 1.5, color: "var(--text-body)", marginTop: 10 }}>{cardNames}</div>
           <div style={{ fontStyle: "italic", fontSize: 18, color: "var(--text-muted)", marginTop: 6, overflowWrap: "break-word" }}>
@@ -705,77 +986,44 @@ export function Row({
         </div>
 
         <div className={styles.actions}>
-          {confirmingDelete ? (
-            <>
-              <span style={{ fontSize: 13, fontStyle: "italic", color: "var(--status-danger)" }}>
-                {t("confirmDelete")}
-              </span>
-              <button type="button" style={pillStyle("danger")} onClick={handleDelete}>
-                {h("confirmDeleteYes")}
-              </button>
-              <button type="button" style={pillStyle("ghost")} onClick={() => setConfirmingDelete(false)}>
-                {h("confirmDeleteCancel")}
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                aria-label={open ? h("hideDrawButton") : h("replayButton")}
-                title={open ? h("hideDrawButton") : h("replayButton")}
-                aria-expanded={open}
-                onClick={() => {
-                  setOpen((v) => !v);
-                  setExpandedPosition(null);
-                }}
-                style={{
-                  ...pillStyle("gilt"),
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 35,
-                  height: 35,
-                  padding: 0,
-                }}
-              >
-                <span
-                  style={{
-                    display: "inline-flex",
-                    transform: open ? "rotate(180deg)" : "rotate(0deg)",
-                    transition: "transform 0.2s ease",
-                  }}
-                >
-                  <ChevronIcon />
-                </span>
-              </button>
-              <CopyToClipboardButton
-                text={promptText}
-                label={h("copyPromptButton")}
-                copiedLabel={t("copiedToast")}
-                fallbackTitle={t("copyFallbackTitle")}
-                fallbackHint={t("copyFallbackHint")}
-                selectAllLabel={t("selectAllButton")}
-                buttonStyle={pillStyle("ghost")}
-              />
-              <button
-                type="button"
-                aria-label={h("deleteButton")}
-                title={h("deleteButton")}
-                onClick={() => setConfirmingDelete(true)}
-                style={{
-                  ...pillStyle("ghost"),
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 35,
-                  height: 35,
-                  padding: 0,
-                }}
-              >
-                <TrashIcon />
-              </button>
-            </>
-          )}
+          <button
+            type="button"
+            aria-label={open ? h("hideDrawButton") : h("replayButton")}
+            title={open ? h("hideDrawButton") : h("replayButton")}
+            aria-expanded={open}
+            onClick={() => {
+              setOpen((v) => !v);
+              setExpandedPosition(null);
+            }}
+            style={{
+              ...pillStyle("gilt"),
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 35,
+              height: 35,
+              padding: 0,
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                transform: open ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.2s ease",
+              }}
+            >
+              <ChevronIcon />
+            </span>
+          </button>
+          <CopyToClipboardButton
+            text={promptText}
+            label={h("copyPromptButton")}
+            copiedLabel={t("copiedToast")}
+            fallbackTitle={t("copyFallbackTitle")}
+            fallbackHint={t("copyFallbackHint")}
+            selectAllLabel={t("selectAllButton")}
+            buttonStyle={pillStyle("ghost")}
+          />
         </div>
       </div>
 
