@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import OrnamentRule from "@/components/ds/OrnamentRule";
 import DrawFlow from "@/components/DrawFlow";
+import styles from "./page.module.css";
 
 export default async function DrawPage({
   params,
@@ -24,7 +25,7 @@ export default async function DrawPage({
         }}
       />
 
-      <main style={{ position: "relative", maxWidth: 1180, margin: "0 auto", padding: "64px 48px 40px" }}>
+      <main className={styles.main} style={{ position: "relative", maxWidth: 1180, margin: "0 auto" }}>
         <div style={{ textAlign: "center", maxWidth: 620, margin: "0 auto 52px" }}>
           <div
             style={{
