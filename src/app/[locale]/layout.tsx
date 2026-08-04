@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale, getTranslations, getMessages } from "next-intl/server";
@@ -7,11 +7,16 @@ import { routing } from "@/i18n/routing";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import "../globals.css";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
+
+export const viewport: Viewport = {
+  themeColor: "#314b29",
+};
 
 export async function generateMetadata({
   params,
@@ -23,6 +28,19 @@ export async function generateMetadata({
   return {
     title: t("title"),
     description: t("tagline"),
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: t("title"),
+    },
+    icons: {
+      icon: [
+        { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+        { url: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
+      ],
+      apple: "/icons/apple-touch-icon.png",
+    },
   };
 }
 
@@ -69,6 +87,7 @@ export default async function LocaleLayout({
             <LanguageSwitcher />
           </div>
         </NextIntlClientProvider>
+        <ServiceWorkerRegister />
         <Analytics />
       </body>
     </html>
