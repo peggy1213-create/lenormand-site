@@ -621,8 +621,10 @@ export function Row({
   const [tagInput, setTagInput] = useState("");
   const [pendingNoteFocus, setPendingNoteFocus] = useState(false);
   const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
+  const [tagPanelShift, setTagPanelShift] = useState(0);
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const tagPopoverRef = useRef<HTMLDivElement>(null);
+  const tagPanelRef = useRef<HTMLDivElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -634,8 +636,25 @@ export function Row({
   }, [open, pendingNoteFocus]);
 
   useEffect(() => {
-    if (tagPopoverOpen) {
-      tagInputRef.current?.focus();
+    if (!tagPopoverOpen) {
+      setTagPanelShift(0);
+      return;
+    }
+    tagInputRef.current?.focus();
+    // The panel is anchored to the tag button via `left: 0`, but that button can
+    // sit anywhere along the row header — on narrow screens the panel can run
+    // past the right (or, rarely, left) edge of the viewport, so nudge it back
+    // into view after it mounts at its natural position.
+    const el = tagPanelRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const margin = 12;
+    const overflowRight = rect.right + margin - window.innerWidth;
+    const overflowLeft = margin - rect.left;
+    if (overflowRight > 0) {
+      setTagPanelShift(-overflowRight);
+    } else if (overflowLeft > 0) {
+      setTagPanelShift(overflowLeft);
     }
   }, [tagPopoverOpen]);
 
@@ -817,10 +836,12 @@ export function Row({
 
               {tagPopoverOpen && (
                 <div
+                  ref={tagPanelRef}
                   style={{
                     position: "absolute",
                     top: "100%",
                     left: 0,
+                    transform: tagPanelShift ? `translateX(${tagPanelShift}px)` : undefined,
                     marginTop: 8,
                     zIndex: 6,
                     width: 260,
