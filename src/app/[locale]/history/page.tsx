@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import OrnamentRule from "@/components/ds/OrnamentRule";
 import HistoryView from "@/components/HistoryView";
+import styles from "./page.module.css";
 
 export default async function HistoryPage({
   params,
@@ -12,7 +13,7 @@ export default async function HistoryPage({
   const t = await getTranslations("history");
 
   return (
-    <main style={{ maxWidth: 980, margin: "0 auto", padding: "64px 48px 80px" }}>
+    <main className={styles.main} style={{ maxWidth: 980, margin: "0 auto" }}>
       <div style={{ textAlign: "center", maxWidth: 620, margin: "0 auto 48px" }}>
         <h1
           style={{

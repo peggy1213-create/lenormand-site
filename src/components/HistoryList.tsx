@@ -271,6 +271,9 @@ export default function HistoryList() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmingBulkDelete, setConfirmingBulkDelete] = useState(false);
   const [page, setPage] = useState(1);
+  const [tagFilter, setTagFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   function refresh() {
     const list = [...getHistory()].sort(
@@ -300,12 +303,19 @@ export default function HistoryList() {
   }
 
   function selectAll() {
-    setSelectedIds(new Set((readings ?? []).map((r) => r.id)));
+    setSelectedIds(new Set(filteredReadings.map((r) => r.id)));
   }
 
   function selectNone() {
     setSelectedIds(new Set());
     setConfirmingBulkDelete(false);
+  }
+
+  function clearFilters() {
+    setTagFilter("");
+    setDateFrom("");
+    setDateTo("");
+    setPage(1);
   }
 
   function handleBulkDelete() {
@@ -330,9 +340,18 @@ export default function HistoryList() {
 
   const dateFormatter = makeReadingDateFormatter(locale);
 
-  const totalPages = Math.max(1, Math.ceil((readings?.length ?? 0) / PAGE_SIZE));
+  const allTags = getAllTags();
+  const filteredReadings = (readings ?? []).filter((r) => {
+    if (tagFilter && !(r.tags ?? []).includes(tagFilter)) return false;
+    if (dateFrom && new Date(r.createdAt) < new Date(`${dateFrom}T00:00:00`)) return false;
+    if (dateTo && new Date(r.createdAt) > new Date(`${dateTo}T23:59:59.999`)) return false;
+    return true;
+  });
+  const filtersActive = !!tagFilter || !!dateFrom || !!dateTo;
+
+  const totalPages = Math.max(1, Math.ceil(filteredReadings.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const pagedReadings = (readings ?? []).slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pagedReadings = filteredReadings.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   function handleExport() {
     const selected = (readings ?? []).filter((reading) => selectedIds.has(reading.id));
@@ -456,11 +475,11 @@ export default function HistoryList() {
               <ToolbarDivider />
               <button
                 type="button"
-                onClick={selectedIds.size === readings?.length ? selectNone : selectAll}
+                onClick={selectedIds.size === filteredReadings.length ? selectNone : selectAll}
                 style={toolbarSegmentStyle()}
               >
                 <CheckIcon />
-                <span>{selectedIds.size === readings?.length ? h("deselectAllButton") : h("selectAllButton")}</span>
+                <span>{selectedIds.size === filteredReadings.length ? h("deselectAllButton") : h("selectAllButton")}</span>
               </button>
               <ToolbarDivider />
               <button type="button" onClick={handleExport} style={toolbarSegmentStyle()}>
@@ -534,6 +553,138 @@ export default function HistoryList() {
         </div>
       )}
 
+      {readings && readings.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 14,
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 24,
+          }}
+        >
+          {allTags.length > 0 && (
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <label
+                htmlFor="history-filter-tag"
+                style={{
+                  fontFamily: "var(--font-smallcaps)",
+                  textTransform: "uppercase",
+                  letterSpacing: "var(--tracking-wide)",
+                  fontSize: 11,
+                  color: "var(--text-muted)",
+                }}
+              >
+                {h("tagsLabel")}
+              </label>
+              <select
+                id="history-filter-tag"
+                value={tagFilter}
+                onChange={(e) => {
+                  setTagFilter(e.target.value);
+                  setPage(1);
+                }}
+                style={{
+                  border: "1px solid var(--border-hair)",
+                  borderRadius: 6,
+                  background: "var(--surface-raised)",
+                  padding: "5px 8px",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 12,
+                  color: "var(--text-body)",
+                  cursor: "pointer",
+                }}
+              >
+                <option value="">{h("filterAllTags")}</option>
+                {allTags.map((tag) => (
+                  <option key={tag} value={tag}>
+                    {tag}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <label
+              htmlFor="history-filter-date-from"
+              style={{
+                fontFamily: "var(--font-smallcaps)",
+                textTransform: "uppercase",
+                letterSpacing: "var(--tracking-wide)",
+                fontSize: 11,
+                color: "var(--text-muted)",
+              }}
+            >
+              {h("filterDateFrom")}
+            </label>
+            <input
+              id="history-filter-date-from"
+              type="date"
+              value={dateFrom}
+              max={dateTo || undefined}
+              onChange={(e) => {
+                setDateFrom(e.target.value);
+                setPage(1);
+              }}
+              style={{
+                border: "1px solid var(--border-hair)",
+                borderRadius: 6,
+                background: "var(--surface-raised)",
+                padding: "5px 8px",
+                fontFamily: "var(--font-mono)",
+                fontSize: 12,
+                color: "var(--text-body)",
+              }}
+            />
+            <label
+              htmlFor="history-filter-date-to"
+              style={{
+                fontFamily: "var(--font-smallcaps)",
+                textTransform: "uppercase",
+                letterSpacing: "var(--tracking-wide)",
+                fontSize: 11,
+                color: "var(--text-muted)",
+              }}
+            >
+              {h("filterDateTo")}
+            </label>
+            <input
+              id="history-filter-date-to"
+              type="date"
+              value={dateTo}
+              min={dateFrom || undefined}
+              onChange={(e) => {
+                setDateTo(e.target.value);
+                setPage(1);
+              }}
+              style={{
+                border: "1px solid var(--border-hair)",
+                borderRadius: 6,
+                background: "var(--surface-raised)",
+                padding: "5px 8px",
+                fontFamily: "var(--font-mono)",
+                fontSize: 12,
+                color: "var(--text-body)",
+              }}
+            />
+          </div>
+
+          {filtersActive && (
+            <button type="button" style={pillStyle("ghost")} onClick={clearFilters}>
+              {h("clearFiltersButton")}
+            </button>
+          )}
+        </div>
+      )}
+
+      {readings && readings.length > 0 && filteredReadings.length === 0 && (
+        <p style={{ textAlign: "center", fontStyle: "italic", fontSize: 16, color: "var(--text-muted)", padding: "20px 0" }}>
+          {h("noResultsFiltered")}
+        </p>
+      )}
+
       <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         {pagedReadings.map((reading) => (
           <Row
@@ -547,7 +698,7 @@ export default function HistoryList() {
         ))}
       </div>
 
-      {readings && readings.length > PAGE_SIZE && (
+      {filteredReadings.length > PAGE_SIZE && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginTop: 28 }}>
           <button
             type="button"
@@ -621,8 +772,10 @@ export function Row({
   const [tagInput, setTagInput] = useState("");
   const [pendingNoteFocus, setPendingNoteFocus] = useState(false);
   const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
+  const [tagPanelShift, setTagPanelShift] = useState(0);
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const tagPopoverRef = useRef<HTMLDivElement>(null);
+  const tagPanelRef = useRef<HTMLDivElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -634,8 +787,25 @@ export function Row({
   }, [open, pendingNoteFocus]);
 
   useEffect(() => {
-    if (tagPopoverOpen) {
-      tagInputRef.current?.focus();
+    if (!tagPopoverOpen) {
+      setTagPanelShift(0);
+      return;
+    }
+    tagInputRef.current?.focus();
+    // The panel is anchored to the tag button via `left: 0`, but that button can
+    // sit anywhere along the row header — on narrow screens the panel can run
+    // past the right (or, rarely, left) edge of the viewport, so nudge it back
+    // into view after it mounts at its natural position.
+    const el = tagPanelRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const margin = 12;
+    const overflowRight = rect.right + margin - window.innerWidth;
+    const overflowLeft = margin - rect.left;
+    if (overflowRight > 0) {
+      setTagPanelShift(-overflowRight);
+    } else if (overflowLeft > 0) {
+      setTagPanelShift(overflowLeft);
     }
   }, [tagPopoverOpen]);
 
@@ -817,10 +987,12 @@ export function Row({
 
               {tagPopoverOpen && (
                 <div
+                  ref={tagPanelRef}
                   style={{
                     position: "absolute",
                     top: "100%",
                     left: 0,
+                    transform: tagPanelShift ? `translateX(${tagPanelShift}px)` : undefined,
                     marginTop: 8,
                     zIndex: 6,
                     width: 260,

@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import OrnamentRule from "@/components/ds/OrnamentRule";
+import styles from "./page.module.css";
 
 export default async function AboutPage({
   params,
@@ -12,7 +13,7 @@ export default async function AboutPage({
   const body = t.raw("body") as string[];
 
   return (
-    <main style={{ maxWidth: 720, margin: "0 auto", padding: "64px 48px 80px" }}>
+    <main className={styles.main} style={{ maxWidth: 720, margin: "0 auto" }}>
       <div style={{ textAlign: "center", marginBottom: 40 }}>
         <h1
           style={{
