@@ -8,6 +8,35 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.join(__dirname, "..", "public", "icons");
+const publicDir = path.join(__dirname, "..", "public");
+
+// Builds a .ico container embedding PNG-compressed images directly
+// (supported by all modern OSes/browsers since Windows Vista).
+function buildIco(pngBuffers) {
+  const count = pngBuffers.length;
+  const headerSize = 6 + count * 16;
+  let offset = headerSize;
+  const header = Buffer.alloc(headerSize);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // type: icon
+  header.writeUInt16LE(count, 4);
+
+  pngBuffers.forEach((png, i) => {
+    const entryOffset = 6 + i * 16;
+    const size = png.width >= 256 ? 0 : png.width;
+    header.writeUInt8(size, entryOffset); // width
+    header.writeUInt8(size, entryOffset + 1); // height
+    header.writeUInt8(0, entryOffset + 2); // color count
+    header.writeUInt8(0, entryOffset + 3); // reserved
+    header.writeUInt16LE(1, entryOffset + 4); // planes
+    header.writeUInt16LE(32, entryOffset + 6); // bit count
+    header.writeUInt32LE(png.buffer.length, entryOffset + 8); // bytes in resource
+    header.writeUInt32LE(offset, entryOffset + 12); // image offset
+    offset += png.buffer.length;
+  });
+
+  return Buffer.concat([header, ...pngBuffers.map((p) => p.buffer)]);
+}
 
 const APP_ICON_SVG = `<?xml version="1.0"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="In-Betweens">
@@ -46,6 +75,7 @@ const targets = [
 
 await mkdir(outDir, { recursive: true });
 
+const icoSizes = [];
 for (const t of targets) {
   const png = await sharp(Buffer.from(t.svg), { density: 384 })
     .resize(t.size, t.size)
@@ -53,4 +83,12 @@ for (const t of targets) {
     .toBuffer();
   await writeFile(path.join(outDir, t.name), png);
   console.log("wrote", t.name);
+  if (t.name === "favicon-16.png" || t.name === "favicon-32.png") {
+    icoSizes.push({ width: t.size, buffer: png });
+  }
 }
+
+icoSizes.sort((a, b) => a.width - b.width);
+const ico = buildIco(icoSizes);
+await writeFile(path.join(publicDir, "favicon.ico"), ico);
+console.log("wrote favicon.ico");
