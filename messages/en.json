@@ -125,6 +125,11 @@
     "pageIndicator": "Page {page} of {total}",
     "prevPage": "Previous page",
     "nextPage": "Next page",
+    "filterAllTags": "All tags",
+    "filterDateFrom": "From",
+    "filterDateTo": "To",
+    "clearFiltersButton": "Clear filters",
+    "noResultsFiltered": "No readings match these filters.",
     "calendar": {
       "monthView": "Month",
       "yearView": "Year",

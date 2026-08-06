@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { getHistory, type Reading } from "@/lib/storage";
 import { groupReadingsByLocalDay, localDayKey } from "@/lib/readingCalendar";
@@ -58,9 +58,15 @@ export default function HistoryCalendar() {
   const [mode, setMode] = useState<"month" | "year">("month");
   const [viewDate, setViewDate] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
 
   function refresh() {
     setReadings([...getHistory()]);
+  }
+
+  function selectDay(key: string) {
+    setSelectedDay(key);
+    detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   useEffect(() => {
@@ -153,10 +159,14 @@ export default function HistoryCalendar() {
                     isSameLocalDay(cell.date, today) && styles.dayCellToday,
                   )}
                   aria-label={hasReading ? `${fullDateFormatter.format(cell.date)} — ${dayReadings!.length}` : undefined}
-                  onClick={hasReading ? () => setSelectedDay(key) : undefined}
+                  onClick={hasReading ? () => selectDay(key) : undefined}
                 >
                   <span className={styles.dayNum}>{cell.date.getDate()}</span>
-                  {hasReading && <span className={styles.cornerFold} aria-hidden="true" />}
+                  {hasReading && (
+                    <span className={styles.dayCount} aria-hidden="true">
+                      {dayReadings!.length}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -197,7 +207,7 @@ export default function HistoryCalendar() {
                           isSameLocalDay(date, today) && styles.yearCellToday,
                         )}
                         title={`${fullDateFormatter.format(date)} — ${dayReadings!.length}`}
-                        onClick={() => setSelectedDay(key)}
+                        onClick={() => selectDay(key)}
                       />
                     );
                   })}
@@ -208,7 +218,7 @@ export default function HistoryCalendar() {
         </div>
       )}
 
-      <div className={styles.detail}>
+      <div className={styles.detail} ref={detailRef}>
         {selectedDay && selectedReadings.length > 0 ? (
           <>
             <div className={styles.detailHead}>

@@ -125,6 +125,11 @@
     "pageIndicator": "第 {page} / {total} 頁",
     "prevPage": "上一頁",
     "nextPage": "下一頁",
+    "filterAllTags": "所有標籤",
+    "filterDateFrom": "起始日期",
+    "filterDateTo": "結束日期",
+    "clearFiltersButton": "清除篩選",
+    "noResultsFiltered": "沒有符合篩選條件的紀錄。",
     "calendar": {
       "monthView": "月",
       "yearView": "年",
