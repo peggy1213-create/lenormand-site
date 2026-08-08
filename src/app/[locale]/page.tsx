@@ -62,7 +62,7 @@ export default async function HomePage({
             <OrnamentRule motif="✦" />
           </div>
 
-          <Link href="/draw" style={{ display: "inline-block", marginTop: 8, textDecoration: "none" }}>
+          <Link href="/spreads" style={{ display: "inline-block", marginTop: 8, textDecoration: "none" }}>
             <Button size="lg">{t("chooseSpreadCta")}</Button>
           </Link>
         </div>
