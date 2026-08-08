@@ -110,6 +110,49 @@ How to read
 4. Stay grounded and specific. Lenormand speaks about ordinary life: work, relationships, health, money, decisions, communication, movement, timing. Avoid mystical or vague language.`;
 }
 
+function ninePromptText(
+  messages: Messages,
+  cards: Array<{ cardId: number }>,
+  question: string | undefined,
+  locale: Locale,
+): string {
+  const c = cards.map((card) => cardText(messages, card.cardId));
+  const nm = (i: number) => (c[i] ? c[i].name : "");
+  const q = (question ?? "").trim();
+  const lang = langLabel(locale);
+
+  return `You are reading a 3×3 Box spread of nine Lenormand cards for a querent.
+
+The querent's question: ${q || "none given"}
+
+The nine cards, in position order (left to right, top to bottom):
+Row 1 (top): ${nm(0)}, ${nm(1)}, ${nm(2)}
+Row 2 (middle): ${nm(3)}, ${nm(4)}, ${nm(5)}
+Row 3 (bottom): ${nm(6)}, ${nm(7)}, ${nm(8)}
+
+Read this spread as a Lenormand box, not as isolated positions. The centre card (${nm(4)}) is the heart of the reading — the core of the question, its essence. Every other card is read in relation to it.
+
+Work through the box in this order:
+
+1. **The centre** (${nm(4)}). Begin here. What is the core of the situation the querent is asking about?
+
+2. **The frame** — the four corners (${nm(0)}, ${nm(2)}, ${nm(6)}, ${nm(8)}). Read these as the context surrounding the centre. You may read them clockwise from the top-left, or as pairs across the diagonals (1↔9, 3↔7). Choose whichever reading the cards themselves suggest.
+
+3. **The three horizontal rows.** The top row (${nm(0)}, ${nm(1)}, ${nm(2)}) speaks to what is held in mind — ideas, hopes, what the querent is reaching toward. The middle row (${nm(3)}, ${nm(4)}, ${nm(5)}) speaks to lived reality — the day-to-day of the situation. The bottom row (${nm(6)}, ${nm(7)}, ${nm(8)}) speaks to what runs underneath — the undercurrent, what is carried in from before, what shapes the situation without being named.
+
+4. **The three vertical columns.** The left column (${nm(0)}, ${nm(3)}, ${nm(6)}) speaks to what has come before. The middle column (${nm(1)}, ${nm(4)}, ${nm(7)}) speaks to what is present now. The right column (${nm(2)}, ${nm(5)}, ${nm(8)}) speaks to what lies ahead.
+
+5. **The two diagonals** (${nm(0)}–${nm(4)}–${nm(8)} and ${nm(2)}–${nm(4)}–${nm(6)}). Read these as currents of influence or directions in which the situation is moving. They cross at the centre, so both diagonals pass through and are coloured by ${nm(4)}.
+
+Draw on your knowledge of Lenormand card meanings and traditional combinations. Read the cards as a chain — each card modifies its neighbours, and meaning emerges from how they join, not from any fixed label attached to a position.
+
+Do not use the language of fortune-telling. Do not speak of luck, fate, destiny, or good and bad outcomes. Do not tell the querent what will happen or what they should do. Offer the reading as a mirror for reflection: what the cards illuminate about the situation, and what the querent might sit with.
+
+Write in flowing prose, not bullet points. Let the reading feel like one continuous unfolding, not a checklist of positions.
+
+Language: Respond in ${lang}.`;
+}
+
 export function buildAIPrompt(input: {
   spread: SpreadId;
   cards: Array<{ cardId: number }>; // in position order
@@ -122,6 +165,9 @@ export function buildAIPrompt(input: {
   }
   if (input.spread === "three") {
     return threePromptText(messages, input.cards, input.question, input.locale);
+  }
+  if (input.spread === "nine") {
+    return ninePromptText(messages, input.cards, input.question, input.locale);
   }
   return fivePromptText(messages, input.cards, input.question, input.locale);
 }

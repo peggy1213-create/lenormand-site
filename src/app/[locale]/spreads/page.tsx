@@ -27,17 +27,6 @@ export default async function DrawPage({
 
       <main className={styles.main} style={{ position: "relative", maxWidth: 1180, margin: "0 auto" }}>
         <div style={{ textAlign: "center", maxWidth: 620, margin: "0 auto 52px" }}>
-          <div
-            style={{
-              fontFamily: "var(--font-smallcaps)",
-              textTransform: "uppercase",
-              letterSpacing: "var(--tracking-caps)",
-              fontSize: 12,
-              color: "var(--gold-500)",
-            }}
-          >
-            {t("pageEyebrow")}
-          </div>
           <h1
             style={{
               fontFamily: "var(--font-display)",
@@ -47,7 +36,7 @@ export default async function DrawPage({
               letterSpacing: "0.06em",
               textTransform: "uppercase",
               color: "var(--ink-900)",
-              margin: "14px 0 0",
+              margin: 0,
             }}
           >
             {t("pageHeading")}

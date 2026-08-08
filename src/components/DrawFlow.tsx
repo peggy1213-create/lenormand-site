@@ -343,18 +343,7 @@ export default function DrawFlow() {
               onClick={() => openSpread(i)}
               style={{ opacity: lockedCard ? 0.6 : 1 }}
             >
-              <div
-                style={{
-                  position: "absolute",
-                  inset: -1,
-                  borderRadius: 8,
-                  border: "1px solid var(--gold-400)",
-                  boxShadow: sel === i ? "var(--shadow-gilt-glow)" : "none",
-                  opacity: sel === i ? 1 : 0,
-                  transition: "opacity var(--dur-med) var(--ease-out-soft)",
-                  pointerEvents: "none",
-                }}
-              />
+              <div className={styles.glowFrame} />
               <h2
                 style={{
                   fontFamily: "var(--font-display)",
@@ -522,17 +511,29 @@ export default function DrawFlow() {
               const chosenH = done
                 ? "clamp(126px, min(42.6vw, 28.4vh), 265px)"
                 : "clamp(110px, min(37.7vw, 22vh), 232px)";
+              const isGrid = spread.id === "nine";
               return (
               <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 18,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginTop: "clamp(10px, 2.5vh, 22px)",
-                  minHeight: `calc(${chosenH} + 28px)`,
-                }}
+                style={
+                  isGrid
+                    ? {
+                        display: "grid",
+                        gridTemplateColumns: `repeat(3, ${chosenW})`,
+                        gap: 18,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        marginTop: "clamp(10px, 2.5vh, 22px)",
+                      }
+                    : {
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 18,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        marginTop: "clamp(10px, 2.5vh, 22px)",
+                        minHeight: `calc(${chosenH} + 28px)`,
+                      }
+                }
               >
                 {chosen.map((di) => {
                   const shown = revealed.includes(di);
