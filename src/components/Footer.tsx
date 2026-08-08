@@ -26,7 +26,7 @@ export default async function Footer() {
           fontSize: "var(--footer-caps-size)",
           color: "var(--gold-500)",
         }}
-      >{`© ${year} Little Think  Lenormand`}</span>
+      >{`© ${year} In-Betweens by Peggy Hsieh`}</span>
       <span
         style={{
           fontFamily: "var(--font-serif)",

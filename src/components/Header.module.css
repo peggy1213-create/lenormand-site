@@ -16,21 +16,7 @@
 }
 
 .wordmark {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 19px;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--gold-500);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.script {
-  font-family: var(--font-script);
-  font-size: 17px;
-  color: var(--gold-400);
-  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav {
@@ -114,12 +100,8 @@
   }
 
   .wordmark {
-    font-size: 16px;
-    letter-spacing: 0.2em;
-  }
-
-  .script {
-    font-size: 14px;
+    transform: scale(0.8);
+    transform-origin: left center;
   }
 
   .nav {

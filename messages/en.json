@@ -1,6 +1,6 @@
 {
   "site": {
-    "title": "Lenormand",
+    "title": "In-Betweens",
     "tagline": "Draw Lenormand cards and keep a personal reading history — no account needed."
   },
   "nav": {
@@ -150,7 +150,7 @@
     ]
   },
   "footer": {
-    "disclaimer": "For reflection and entertainment purposes only. Not a substitute for any professional advice."
+    "disclaimer": "For entertainment purposes only. Not a substitute for professional, legal, financial, or medical advice."
   },
   "cards": {
     "rider": {
