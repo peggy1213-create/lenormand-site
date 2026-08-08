@@ -29,6 +29,19 @@ export default async function HomePage({
 
       <main className={styles.heroMain}>
         <div>
+          <p
+            style={{
+              fontFamily: "var(--font-smallcaps)",
+              textTransform: "uppercase",
+              letterSpacing: "0.22em",
+              fontSize: 12,
+              color: "var(--gold-500)",
+              margin: 0,
+            }}
+          >
+            Petit Lenormand
+          </p>
+
           <h1
             style={{
               fontFamily: "\"Cinzel\", \"Cormorant Garamond\", Georgia, serif",

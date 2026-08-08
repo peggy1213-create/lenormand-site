@@ -1,6 +1,6 @@
 {
   "site": {
-    "title": "雷諾曼",
+    "title": "In-Betweens",
     "tagline": "抽取雷諾曼卡牌，並保留個人抽牌紀錄 — 無需註冊。"
   },
   "nav": {
@@ -150,7 +150,7 @@
     ]
   },
   "footer": {
-    "disclaimer": "僅供反思及娛樂，不能取代任何專業建議"
+    "disclaimer": "僅供娛樂用途，不能取代專業、法律、財務或醫療建議。"
   },
   "cards": {
     "rider": {
