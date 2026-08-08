@@ -8,7 +8,7 @@ export default async function HomeDeckTeaser() {
   const back = { backgroundImage: `url('${CARD_BACK_IMAGE}')` };
 
   return (
-    <Link href="/draw" className={styles.wrap}>
+    <Link href="/spreads" className={styles.wrap}>
       <div className={`${styles.card} ${styles.cardL}`} style={back} />
       <div className={`${styles.card} ${styles.cardM}`} style={back} />
       <div className={`${styles.card} ${styles.cardR}`} style={back} />

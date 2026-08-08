@@ -30,7 +30,7 @@ export default function Header() {
   }, [pathname]);
 
   const navItems = [
-    { href: "/draw", label: t("home") },
+    { href: "/spreads", label: t("home") },
     { href: "/history", label: t("history") },
     { href: "/about", label: t("about") },
   ];

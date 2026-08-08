@@ -539,7 +539,7 @@ export default function HistoryList() {
             {h("empty")}
           </p>
           <Link
-            href="/draw"
+            href="/spreads"
             style={{
               fontFamily: "var(--font-smallcaps)",
               textTransform: "uppercase",
