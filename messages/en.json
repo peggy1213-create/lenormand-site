@@ -39,6 +39,19 @@
       "pos3": "Card 3",
       "pos4": "Card 4",
       "pos5": "Card 5"
+    },
+    "nine": {
+      "name": "Nine Cards",
+      "description": "A fuller portrait of a situation, its influences, and its unfolding.",
+      "pos1": "Card 1",
+      "pos2": "Card 2",
+      "pos3": "Card 3",
+      "pos4": "Card 4",
+      "pos5": "Card 5",
+      "pos6": "Card 6",
+      "pos7": "Card 7",
+      "pos8": "Card 8",
+      "pos9": "Card 9"
     }
   },
   "draw": {

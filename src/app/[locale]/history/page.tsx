@@ -24,7 +24,7 @@ export default async function HistoryPage({
             letterSpacing: "0.06em",
             textTransform: "uppercase",
             color: "var(--ink-900)",
-            margin: "14px 0 0",
+            margin: 0,
           }}
         >
           {t("title")}

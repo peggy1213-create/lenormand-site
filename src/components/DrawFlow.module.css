@@ -11,12 +11,19 @@
 
 .spreadGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 32px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
   align-items: stretch;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 1040px) {
+  .spreadGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
+
+@media (max-width: 560px) {
   .spreadGrid {
     grid-template-columns: 1fr;
     gap: 20px;
@@ -30,7 +37,7 @@
   border: 1px solid var(--border-hair);
   border-radius: 8px;
   box-shadow: var(--shadow-md);
-  padding: 38px 34px 36px;
+  padding: 34px 26px 32px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -41,6 +48,24 @@
 .spreadCard:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
+}
+
+.glowFrame {
+  position: absolute;
+  inset: -1px;
+  border-radius: 8px;
+  border: 1px solid var(--gold-400);
+  box-shadow: none;
+  opacity: 0;
+  transition:
+    opacity var(--dur-med) var(--ease-out-soft),
+    box-shadow var(--dur-med) var(--ease-out-soft);
+  pointer-events: none;
+}
+
+.spreadCard:hover .glowFrame {
+  box-shadow: var(--shadow-gilt-glow);
+  opacity: 1;
 }
 
 .scrim {
