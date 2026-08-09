@@ -59,9 +59,18 @@
     "pageHeading": "Choose a Spread",
     "pageLead": "Pick a spread, draw your cards, and read the story they tell. One question at a time.",
     "questionPlaceholder": "What should I attend to this week?",
-    "askOneAtATime": "Ask one question at a time.",
     "charCount": "{count} / 250",
     "yourQuestionLabel": "Your question",
+    "questionHelp": {
+      "buttonLabel": "How to ask a good question",
+      "title": "How to ask a question",
+      "intro": "Ground it in your life right now. Focus on what or how, not when or whether.",
+      "tryLabel": "Try:",
+      "tryExamples": "“What's shaping my week at work?” · “How am I holding this friendship?”",
+      "avoidLabel": "Avoid:",
+      "avoidExamples": "“Will I get the job?” · “Is he the one?”",
+      "footer": "Lenormand reflects the situation around you, not a fixed future."
+    },
     "stageTitle": {
       "question": "Name your question",
       "shuffle": "Shuffle the deck",

@@ -88,6 +88,8 @@ export default function DrawFlow() {
   const [fieldScale, setFieldScale] = useState(1);
   const [deckCardW, setDeckCardW] = useState(DECK_CARD_MAX_W);
   const [deckScrollable, setDeckScrollable] = useState(false);
+  const [questionHelpOpen, setQuestionHelpOpen] = useState(false);
+  const questionHelpRef = useRef<HTMLDivElement | null>(null);
 
   // Read on mount only (not during SSR): the lock depends on localStorage
   // and the viewer's local clock, so it can only be known client-side.
@@ -132,6 +134,24 @@ export default function DrawFlow() {
       document.body.style.overflow = previousBodyOverflow;
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!questionHelpOpen) return;
+    function handlePointerDown(e: MouseEvent) {
+      if (questionHelpRef.current && !questionHelpRef.current.contains(e.target as Node)) {
+        setQuestionHelpOpen(false);
+      }
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setQuestionHelpOpen(false);
+    }
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [questionHelpOpen]);
 
   const spread = SPREADS[sel];
   const need = spread.cardCount;
@@ -415,6 +435,35 @@ export default function DrawFlow() {
 
             {asking && (
               <div style={{ marginTop: 28, textAlign: "left" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
+                  <div ref={questionHelpRef} style={{ position: "relative" }}>
+                    <button
+                      type="button"
+                      onClick={() => setQuestionHelpOpen((v) => !v)}
+                      aria-expanded={questionHelpOpen}
+                      aria-label={t("questionHelp.buttonLabel")}
+                      title={t("questionHelp.buttonLabel")}
+                      className={styles.questionHelpButton}
+                    >
+                      ?
+                    </button>
+                    {questionHelpOpen && (
+                      <div className={styles.questionHelpPopover} role="dialog" aria-label={t("questionHelp.title")}>
+                        <div className={styles.questionHelpTitle}>{t("questionHelp.title")}</div>
+                        <p className={styles.questionHelpText}>{t("questionHelp.intro")}</p>
+                        <p className={styles.questionHelpText}>
+                          <span className={styles.questionHelpLabel}>{t("questionHelp.tryLabel")}</span>
+                          {t("questionHelp.tryExamples")}
+                        </p>
+                        <p className={styles.questionHelpText}>
+                          <span className={styles.questionHelpLabel}>{t("questionHelp.avoidLabel")}</span>
+                          {t("questionHelp.avoidExamples")}
+                        </p>
+                        <p className={styles.questionHelpFooter}>{t("questionHelp.footer")}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <textarea
                   value={question}
                   onChange={(e) => setQuestion(e.target.value.slice(0, 250))}
@@ -425,7 +474,7 @@ export default function DrawFlow() {
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: "space-between",
+                    justifyContent: "flex-end",
                     alignItems: "baseline",
                     marginTop: 10,
                     fontFamily: "var(--font-smallcaps)",
@@ -435,7 +484,6 @@ export default function DrawFlow() {
                     color: "var(--gold-200)",
                   }}
                 >
-                  <span>{t("askOneAtATime")}</span>
                   <span style={{ color: charCount >= 250 ? "var(--gold-300)" : "var(--gold-200)" }}>
                     {t("charCount", { count: charCount })}
                   </span>

@@ -112,6 +112,82 @@
   border-color: var(--gold-300);
 }
 
+.questionHelpButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border-radius: 50%;
+  border: 1px solid rgba(231, 199, 137, 0.45);
+  background: transparent;
+  cursor: pointer;
+  color: var(--gold-200);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  line-height: 1;
+  transition:
+    color var(--dur-med) var(--ease-out-soft),
+    border-color var(--dur-med) var(--ease-out-soft),
+    background var(--dur-med) var(--ease-out-soft);
+}
+.questionHelpButton:hover {
+  color: var(--gold-300);
+  border-color: var(--gold-300);
+  background: rgba(231, 199, 137, 0.08);
+}
+
+.questionHelpPopover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 50;
+  width: min(340px, 84vw);
+  background: rgba(20, 15, 8, 0.97);
+  border: 1px solid var(--gold-400);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  padding: 18px 20px;
+  animation: drift var(--dur-med) var(--ease-out-soft) both;
+}
+
+.questionHelpTitle {
+  font-family: var(--font-smallcaps);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  font-size: 12px;
+  color: var(--gold-300);
+  margin: 0 0 10px;
+}
+
+.questionHelpText {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--parchment-50);
+  margin: 0 0 10px;
+}
+
+.questionHelpLabel {
+  font-family: var(--font-smallcaps);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  font-size: 11px;
+  color: var(--gold-200);
+  margin-right: 5px;
+}
+
+.questionHelpFooter {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(251, 246, 234, 0.65);
+  margin: 0;
+}
+
 .shuffleField {
   position: relative;
   width: 100%;
