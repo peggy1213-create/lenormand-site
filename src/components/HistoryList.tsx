@@ -24,6 +24,7 @@ import styles from "./HistoryList.module.css";
 
 const NOTICE_SEEN_KEY = "lenormand.historyNoticeSeen";
 const PAGE_SIZE = 10;
+const DAILY_TAG_VALUE = "__daily__";
 
 function PencilIcon() {
   return (
@@ -342,7 +343,11 @@ export default function HistoryList() {
 
   const allTags = getAllTags();
   const filteredReadings = (readings ?? []).filter((r) => {
-    if (tagFilter && !(r.tags ?? []).includes(tagFilter)) return false;
+    if (tagFilter === DAILY_TAG_VALUE) {
+      if (r.spread !== "daily") return false;
+    } else if (tagFilter && !(r.tags ?? []).includes(tagFilter)) {
+      return false;
+    }
     if (dateFrom && new Date(r.createdAt) < new Date(`${dateFrom}T00:00:00`)) return false;
     if (dateTo && new Date(r.createdAt) > new Date(`${dateTo}T23:59:59.999`)) return false;
     return true;
@@ -564,47 +569,46 @@ export default function HistoryList() {
             marginBottom: 24,
           }}
         >
-          {allTags.length > 0 && (
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <label
-                htmlFor="history-filter-tag"
-                style={{
-                  fontFamily: "var(--font-smallcaps)",
-                  textTransform: "uppercase",
-                  letterSpacing: "var(--tracking-wide)",
-                  fontSize: 11,
-                  color: "var(--text-muted)",
-                }}
-              >
-                {h("tagsLabel")}
-              </label>
-              <select
-                id="history-filter-tag"
-                value={tagFilter}
-                onChange={(e) => {
-                  setTagFilter(e.target.value);
-                  setPage(1);
-                }}
-                style={{
-                  border: "1px solid var(--border-hair)",
-                  borderRadius: 6,
-                  background: "var(--surface-raised)",
-                  padding: "5px 8px",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 12,
-                  color: "var(--text-body)",
-                  cursor: "pointer",
-                }}
-              >
-                <option value="">{h("filterAllTags")}</option>
-                {allTags.map((tag) => (
-                  <option key={tag} value={tag}>
-                    {tag}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <label
+              htmlFor="history-filter-tag"
+              style={{
+                fontFamily: "var(--font-smallcaps)",
+                textTransform: "uppercase",
+                letterSpacing: "var(--tracking-wide)",
+                fontSize: 11,
+                color: "var(--text-muted)",
+              }}
+            >
+              {h("tagsLabel")}
+            </label>
+            <select
+              id="history-filter-tag"
+              value={tagFilter}
+              onChange={(e) => {
+                setTagFilter(e.target.value);
+                setPage(1);
+              }}
+              style={{
+                border: "1px solid var(--border-hair)",
+                borderRadius: 6,
+                background: "var(--surface-raised)",
+                padding: "5px 8px",
+                fontFamily: "var(--font-mono)",
+                fontSize: 12,
+                color: "var(--text-body)",
+                cursor: "pointer",
+              }}
+            >
+              <option value="">{h("filterAllTags")}</option>
+              <option value={DAILY_TAG_VALUE}>{h("dailyTagOption")}</option>
+              {allTags.map((tag) => (
+                <option key={tag} value={tag}>
+                  {tag}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <label

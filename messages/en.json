@@ -148,6 +148,7 @@
     "prevPage": "Previous page",
     "nextPage": "Next page",
     "filterAllTags": "All tags",
+    "dailyTagOption": "Daily",
     "filterDateFrom": "From",
     "filterDateTo": "To",
     "clearFiltersButton": "Clear filters",
