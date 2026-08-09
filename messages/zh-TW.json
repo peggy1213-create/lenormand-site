@@ -59,9 +59,18 @@
     "pageHeading": "選擇牌陣",
     "pageLead": "選擇一種牌陣、抽出卡牌，讀出屬於你的故事。一次只問一個問題。",
     "questionPlaceholder": "這一週我該留意什麼？",
-    "askOneAtATime": "一次只問一個問題",
     "charCount": "{count} / 250",
     "yourQuestionLabel": "你的問題",
+    "questionHelp": {
+      "buttonLabel": "如何問一個好問題",
+      "title": "怎麼問一個好問題",
+      "intro": "從你此刻的生活出發，問「是什麼」或「怎麼樣」，而不是「什麼時候」或「會不會」。",
+      "tryLabel": "試試看：",
+      "tryExamples": "「這週工作上有什麼在影響我？」·「我怎麼看待這段友誼？」",
+      "avoidLabel": "避免：",
+      "avoidExamples": "「我會得到那份工作嗎？」·「他是對的人嗎？」",
+      "footer": "Lenormand 映照你身處的情境，不是被定下的未來。"
+    },
     "stageTitle": {
       "question": "說出你的問題",
       "shuffle": "洗牌",
