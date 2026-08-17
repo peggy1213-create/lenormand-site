@@ -116,6 +116,8 @@
     "replayButton": "View spread",
     "hideDrawButton": "Hide spread",
     "copyPromptButton": "Copy prompt",
+    "downloadImageButton": "Download image",
+    "downloadingImage": "Preparing…",
     "addNoteTooltip": "Add a note to this spread",
     "readNoteTooltip": "Read the note kept with this spread",
     "addTagsTooltip": "Add tags to this spread",

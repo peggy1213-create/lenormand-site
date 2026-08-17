@@ -18,6 +18,7 @@ import {
 import { getCardById } from "@/data/cards";
 import { getSpread } from "@/data/spreads";
 import { buildAIPrompt } from "@/lib/prompt";
+import { exportReadingAsJpeg } from "@/lib/exportImage";
 import CardKeywordsPanel from "./CardKeywordsPanel";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import styles from "./HistoryList.module.css";
@@ -767,6 +768,7 @@ export function Row({
   const t = useTranslations("draw");
   const s = useTranslations("spread");
   const cardsT = useTranslations("cards");
+  const siteT = useTranslations("site");
 
   const [open, setOpen] = useState(false);
   const [expandedPosition, setExpandedPosition] = useState<number | null>(null);
@@ -777,6 +779,7 @@ export function Row({
   const [pendingNoteFocus, setPendingNoteFocus] = useState(false);
   const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
   const [tagPanelShift, setTagPanelShift] = useState(0);
+  const [downloadingImage, setDownloadingImage] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const tagPopoverRef = useRef<HTMLDivElement>(null);
   const tagPanelRef = useRef<HTMLDivElement>(null);
@@ -860,6 +863,46 @@ export function Row({
     setNoteSaved(true);
     onChanged();
     setTimeout(() => setNoteSaved(false), 2000);
+  }
+
+  async function handleDownloadImage() {
+    if (downloadingImage) return;
+    setDownloadingImage(true);
+    try {
+      const url = await exportReadingAsJpeg({
+        siteTitle: siteT("title"),
+        spreadName,
+        dateLabel: dateFormatter.format(new Date(reading.createdAt)),
+        question: reading.question,
+        noQuestionLabel: h("questionPreviewNone"),
+        notesLabel: t("noteLabel"),
+        notes: reading.notes,
+        cards: reading.cards.map((c) => {
+          const card = getCardById(c.cardId);
+          return {
+            position: c.position,
+            image: card.image,
+            name: cardsT(`${card.slug}.name`),
+            positionLabel: positionLabels[c.position] ?? `#${c.position + 1}`,
+          };
+        }),
+      });
+      const createdAt = new Date(reading.createdAt);
+      const datestamp = `${createdAt.getFullYear()}${String(createdAt.getMonth() + 1).padStart(2, "0")}${String(
+        createdAt.getDate(),
+      ).padStart(2, "0")}`;
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `lenormand-${reading.spread}-${datestamp}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export reading image", err);
+    } finally {
+      setDownloadingImage(false);
+    }
   }
 
   function addTagValue(value: string) {
@@ -1200,6 +1243,24 @@ export function Row({
             selectAllLabel={t("selectAllButton")}
             buttonStyle={pillStyle("ghost")}
           />
+          <button
+            type="button"
+            aria-label={h("downloadImageButton")}
+            title={h("downloadImageButton")}
+            onClick={handleDownloadImage}
+            disabled={downloadingImage}
+            style={{
+              ...pillStyle("ghost"),
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              opacity: downloadingImage ? 0.6 : 1,
+              cursor: downloadingImage ? "default" : "pointer",
+            }}
+          >
+            <DownloadIcon />
+            <span>{downloadingImage ? h("downloadingImage") : h("downloadImageButton")}</span>
+          </button>
         </div>
       </div>
 
