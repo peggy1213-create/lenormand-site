@@ -9,7 +9,9 @@ import { CARDS, CARD_BACK_IMAGE, type Card } from "@/data/cards";
 import { shuffle } from "@/lib/shuffle";
 import { addReading, hasDrawnDailyToday } from "@/lib/storage";
 import { buildAIPrompt } from "@/lib/prompt";
+import { hasAnyProviderConfigured } from "@/lib/apiSettings";
 import CopyToClipboardButton from "./CopyToClipboardButton";
+import ReadWithApiPanel from "./ReadWithApiPanel";
 import styles from "./DrawFlow.module.css";
 
 type ScatterCard = { id: number; x: number; y: number; rot: number };
@@ -89,6 +91,12 @@ export default function DrawFlow() {
   const [deckCardW, setDeckCardW] = useState(DECK_CARD_MAX_W);
   const [deckScrollable, setDeckScrollable] = useState(false);
   const [questionHelpOpen, setQuestionHelpOpen] = useState(false);
+  const [showApiPanel, setShowApiPanel] = useState(false);
+  const [apiConfigured, setApiConfigured] = useState(false);
+
+  useEffect(() => {
+    setApiConfigured(hasAnyProviderConfigured());
+  }, [open]);
   const questionHelpRef = useRef<HTMLDivElement | null>(null);
 
   // Read on mount only (not during SSR): the lock depends on localStorage
@@ -194,6 +202,7 @@ export default function DrawFlow() {
     setDeckOrder([]);
     setChosen([]);
     setRevealed([]);
+    setShowApiPanel(false);
   }
 
   function toShuffle() {
@@ -282,6 +291,7 @@ export default function DrawFlow() {
     setChosen([]);
     setRevealed([]);
     setQuestion("");
+    setShowApiPanel(false);
   }
 
   const promptText = allShown
@@ -682,7 +692,16 @@ export default function DrawFlow() {
               </button>
 
               {done && (
-                <div style={{ opacity: allShown ? 1 : 0.45, pointerEvents: allShown ? "auto" : "none" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 18,
+                    flexWrap: "wrap",
+                    justifyContent: "center",
+                    opacity: allShown ? 1 : 0.45,
+                    pointerEvents: allShown ? "auto" : "none",
+                  }}
+                >
                   <CopyToClipboardButton
                     text={promptText}
                     label={t("copyPromptButton")}
@@ -691,6 +710,15 @@ export default function DrawFlow() {
                     fallbackHint={t("copyFallbackHint")}
                     selectAllLabel={t("selectAllButton")}
                   />
+                  {apiConfigured && !showApiPanel && (
+                    <button
+                      type="button"
+                      onClick={() => setShowApiPanel(true)}
+                      style={pillButtonStyle(true, "gilt")}
+                    >
+                      {t("readWithApiButton")}
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -698,6 +726,8 @@ export default function DrawFlow() {
                 {t("backToSpreadsButton")}
               </button>
             </div>
+
+            {done && allShown && showApiPanel && <ReadWithApiPanel prompt={promptText} />}
           </div>
         </div>
       )}

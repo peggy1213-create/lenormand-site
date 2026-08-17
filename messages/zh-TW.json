@@ -6,6 +6,7 @@
   "nav": {
     "home": "牌陣",
     "history": "紀錄",
+    "settings": "設定",
     "about": "關於",
     "language": "語言",
     "openMenu": "開啟選單",
@@ -103,7 +104,14 @@
     "saveNoteButton": "儲存筆記",
     "noteSavedToast": "已儲存",
     "deleteButton": "刪除這次抽牌",
-    "confirmDelete": "刪除這次抽牌紀錄？此動作無法復原！"
+    "confirmDelete": "刪除這次抽牌紀錄？此動作無法復原！",
+    "readWithApiButton": "用你的 API 解讀",
+    "readingStreamingLabel": "解讀中…",
+    "tokenCountFormat": "約 {count} 個 token",
+    "apiErrorInvalidKey": "這個金鑰似乎無法使用。請到設定頁確認，或改為複製下方的提示詞。",
+    "apiErrorRateLimited": "你的帳號已達到速率限制。請稍後再試，或改為複製下方的提示詞。",
+    "apiErrorRefusal": "這次無法完成解讀。請複製下方的提示詞，改用你自己的用戶端嘗試。",
+    "apiErrorNetwork": "連線中斷了。請改為複製下方的提示詞。"
   },
   "history": {
     "title": "你的抽牌紀錄",
@@ -171,6 +179,30 @@
       "雷諾曼的閱讀方式與塔羅不同：牌與牌之間互相組合，串成一段簡短的敘事，而不是各自獨立解讀。這裡提供的三種牌陣 —— 每日抽牌、三張牌與五張牌 —— 都是為了保留這種閱讀方式而設計。",
       "你抽到的每一筆紀錄都只保存在自己的裝置上，不會傳送到任何地方。請把它當作反思與娛樂之用，而非專業建議的替代品。"
     ]
+  },
+  "settings": {
+    "title": "設定",
+    "apiSectionHeading": "使用你自己的 API 金鑰",
+    "apiSectionLead": "使用你自己的 Anthropic、OpenAI 或 Gemini 金鑰直接進行解讀，不必再另外複製提示詞。",
+    "providerLabel": "服務商",
+    "providerAnthropic": "Anthropic",
+    "providerOpenAI": "OpenAI",
+    "providerGemini": "Gemini",
+    "apiKeyLabel": "API 金鑰",
+    "apiKeyHelp": "僅儲存在此瀏覽器中，不會傳送到 Little Think 的伺服器。",
+    "apiKeyPlaceholder": "sk-...",
+    "showKeyLabel": "顯示金鑰",
+    "hideKeyLabel": "隱藏金鑰",
+    "modelLabel": "模型",
+    "modelHelp": "請輸入你所使用服務商文件中列出的確切模型名稱。",
+    "modelPlaceholderAnthropic": "claude-opus-5",
+    "modelPlaceholderOther": "請參考你的服務商提供的模型清單",
+    "testButton": "測試金鑰",
+    "testCostNote": "測試會使用你自己帳號中的少量額度。",
+    "testSuccessToast": "金鑰可正常使用",
+    "testFailureToast": "金鑰無法使用",
+    "privacyDisclosureTitle": "資料流向說明",
+    "privacyDisclosureBody": "你的金鑰僅儲存在這個瀏覽器的本機儲存空間中，不會存放在 Little Think 的伺服器上。當你要求解讀時，金鑰與提示詞會經過一個不記錄任何內容的中繼站，轉送給你選擇的服務商。你選擇的服務商會依照其自身條款看到提示詞與你的問題。你可以隨時在上方清除金鑰。"
   },
   "footer": {
     "disclaimer": "僅供娛樂用途，不能取代專業、法律、財務或醫療建議。"
