@@ -116,6 +116,8 @@
     "replayButton": "查看",
     "hideDrawButton": "收合",
     "copyPromptButton": "複製提示",
+    "downloadImageButton": "下載圖片",
+    "downloadingImage": "準備中…",
     "addNoteTooltip": "為這個牌陣新增筆記",
     "readNoteTooltip": "查看這個牌陣的筆記",
     "addTagsTooltip": "為這個牌陣新增標籤",
