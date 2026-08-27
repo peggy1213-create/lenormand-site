@@ -6,6 +6,7 @@
   "nav": {
     "home": "Spreads",
     "history": "History",
+    "settings": "Settings",
     "about": "About",
     "language": "Language",
     "openMenu": "Open menu",
@@ -103,7 +104,14 @@
     "saveNoteButton": "Save note",
     "noteSavedToast": "Saved",
     "deleteButton": "Delete reading",
-    "confirmDelete": "Delete this reading? This cannot be undone."
+    "confirmDelete": "Delete this reading? This cannot be undone.",
+    "readWithApiButton": "Read with your API",
+    "readingStreamingLabel": "Reading…",
+    "tokenCountFormat": "≈ {count} tokens",
+    "apiErrorInvalidKey": "That key doesn't seem to work. Check it in Settings, or copy the prompt below instead.",
+    "apiErrorRateLimited": "Your account has hit a rate limit. Try again in a moment, or copy the prompt below instead.",
+    "apiErrorRefusal": "The reading couldn't be completed this time. Copy the prompt below and try your own client instead.",
+    "apiErrorNetwork": "Something interrupted the connection. Copy the prompt below instead."
   },
   "history": {
     "title": "Your Readings",
@@ -115,6 +123,7 @@
     "questionPreviewNone": "(no question)",
     "replayButton": "View spread",
     "hideDrawButton": "Hide spread",
+    "apiReadingLabel": "Reading",
     "copyPromptButton": "Copy prompt",
     "downloadImageButton": "Download image",
     "downloadingImage": "Preparing…",
@@ -173,6 +182,31 @@
       "Lenormand is read differently from Tarot: cards are combined and read together, building a short narrative rather than standing alone. The spreads here — a Daily Draw, a Three Cards chain, and a Five Cards spread anchored on the centre — are meant to keep that in view.",
       "Everything you draw stays on your own device; nothing is sent anywhere. Use it for reflection and fun rather than as a substitute for professional advice."
     ]
+  },
+  "settings": {
+    "title": "Settings",
+    "apiSectionHeading": "Read with your own API key",
+    "apiSectionLead": "Bring your own Anthropic, OpenAI, or Gemini key to run readings directly, instead of copying the prompt elsewhere.",
+    "providerLabel": "Provider",
+    "providerAnthropic": "Anthropic",
+    "providerOpenAI": "OpenAI",
+    "providerGemini": "Gemini",
+    "apiKeyLabel": "API key",
+    "apiKeyHelp": "Stored only in this browser. Never sent to Little Think servers.",
+    "apiKeyPlaceholder": "sk-...",
+    "showKeyLabel": "Show key",
+    "hideKeyLabel": "Hide key",
+    "modelLabel": "Model",
+    "modelHelp": "Enter the exact model name from your provider's documentation.",
+    "modelLoadingLabel": "Loading models…",
+    "modelPlaceholderAnthropic": "claude-opus-5",
+    "modelPlaceholderOther": "see your provider's model list",
+    "testButton": "Test key",
+    "testCostNote": "Testing uses a small amount of your own API usage.",
+    "testSuccessToast": "Key works",
+    "testFailureToast": "Key didn't work",
+    "privacyDisclosureTitle": "Where this goes",
+    "privacyDisclosureBody": "Your key is stored only in this browser's local storage — never on Little Think's servers. When you request a reading, the key and prompt pass through a stateless relay that forwards them to your chosen provider and is not logged. Your provider will see the prompt and your question, subject to their own terms. Remove your key any time by clearing it above."
   },
   "footer": {
     "disclaimer": "For entertainment purposes only. Not a substitute for professional, legal, financial, or medical advice."

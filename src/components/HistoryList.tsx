@@ -21,6 +21,7 @@ import { buildAIPrompt } from "@/lib/prompt";
 import { exportReadingAsJpeg } from "@/lib/exportImage";
 import CardKeywordsPanel from "./CardKeywordsPanel";
 import CopyToClipboardButton from "./CopyToClipboardButton";
+import MarkdownReading from "./MarkdownReading";
 import styles from "./HistoryList.module.css";
 
 const NOTICE_SEEN_KEY = "lenormand.historyNoticeSeen";
@@ -1312,6 +1313,24 @@ export function Row({
             </div>
           );
         })()}
+
+      {open && reading.apiReadingText && (
+        <div style={{ marginTop: 18, paddingTop: 18, borderTop: "1px solid var(--border-hair)" }}>
+          <div
+            style={{
+              fontFamily: "var(--font-smallcaps)",
+              textTransform: "uppercase",
+              letterSpacing: "var(--tracking-wide)",
+              fontSize: 11,
+              color: "var(--text-muted)",
+              marginBottom: 8,
+            }}
+          >
+            {h("apiReadingLabel")}
+          </div>
+          <MarkdownReading text={reading.apiReadingText} tone="onLight" />
+        </div>
+      )}
 
       {open && (
         <div style={{ marginTop: 18, paddingTop: 18, borderTop: "1px solid var(--border-hair)" }}>

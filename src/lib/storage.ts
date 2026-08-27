@@ -10,6 +10,7 @@ export type Reading = {
   notes?: string;
   tags?: string[];
   lang: Locale;
+  apiReadingText?: string; // Markdown reading generated via "Read with your API"
 };
 
 const STORAGE_KEY = "lenormand.history";
@@ -79,6 +80,11 @@ export function addReading(input: Omit<Reading, "id" | "createdAt">): Reading {
 
 export function updateReadingNote(id: string, notes: string): void {
   const next = getHistory().map((r) => (r.id === id ? { ...r, notes } : r));
+  writeHistory(next);
+}
+
+export function updateReadingApiText(id: string, apiReadingText: string): void {
+  const next = getHistory().map((r) => (r.id === id ? { ...r, apiReadingText } : r));
   writeHistory(next);
 }
 
