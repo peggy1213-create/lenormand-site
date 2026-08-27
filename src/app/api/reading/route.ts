@@ -11,6 +11,10 @@ import { GoogleGenAI } from "@google/genai";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Extended thinking on Gemini can otherwise push a single response past 30–70s
+// (observed directly), which risks the Vercel serverless timeout on top of
+// being a slow reading. Gives the route more room than the 10s default.
+export const maxDuration = 60;
 
 type ApiProvider = "anthropic" | "openai" | "gemini";
 type ErrorCode = "invalid_key" | "rate_limited" | "network";
@@ -33,13 +37,17 @@ async function* anthropicChunks(
   model: string,
   prompt: string,
   maxTokens: number,
+  signal: AbortSignal,
 ): AsyncGenerator<string, ProviderResult, void> {
   const client = new Anthropic({ apiKey });
-  const stream = client.messages.stream({
-    model,
-    max_tokens: maxTokens,
-    messages: [{ role: "user", content: prompt }],
-  });
+  const stream = client.messages.stream(
+    {
+      model,
+      max_tokens: maxTokens,
+      messages: [{ role: "user", content: prompt }],
+    },
+    { signal },
+  );
   for await (const event of stream) {
     if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
       yield event.delta.text;
@@ -60,15 +68,19 @@ async function* openaiChunks(
   model: string,
   prompt: string,
   maxTokens: number,
+  signal: AbortSignal,
 ): AsyncGenerator<string, ProviderResult, void> {
   const client = new OpenAI({ apiKey });
-  const stream = await client.chat.completions.create({
-    model,
-    max_tokens: maxTokens,
-    messages: [{ role: "user", content: prompt }],
-    stream: true,
-    stream_options: { include_usage: true },
-  });
+  const stream = await client.chat.completions.create(
+    {
+      model,
+      max_tokens: maxTokens,
+      messages: [{ role: "user", content: prompt }],
+      stream: true,
+      stream_options: { include_usage: true },
+    },
+    { signal },
+  );
   const usage: Usage = { inputTokens: 0, outputTokens: 0 };
   let refused = false;
   for await (const chunk of stream) {
@@ -84,21 +96,23 @@ async function* openaiChunks(
 }
 
 // Gemini's request/response shape was verified against @google/genai's
-// published quickstart (GoogleGenAI.models.generateContentStream({model,
-// contents}) -> async iterable of chunks with `.text`) but not against a
-// live call at spec time — see specs/byo-api-reading.md open question 1.
-// Spot-check this against a real key before shipping.
+// published quickstart and confirmed against live calls during development.
+// Thinking is explicitly disabled (thinkingBudget: 0) — on models that
+// support extended reasoning (observed on 3.x-generation Flash models),
+// leaving it at its default cost 30-70+ seconds for a single reading, which
+// risks the serverless timeout on top of just being slow for this use case.
 async function* geminiChunks(
   apiKey: string,
   model: string,
   prompt: string,
   maxTokens: number,
+  signal: AbortSignal,
 ): AsyncGenerator<string, ProviderResult, void> {
   const client = new GoogleGenAI({ apiKey });
   const stream = await client.models.generateContentStream({
     model,
     contents: prompt,
-    config: { maxOutputTokens: maxTokens },
+    config: { maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 }, abortSignal: signal },
   });
   const usage: Usage = { inputTokens: 0, outputTokens: 0 };
   let refused = false;
@@ -122,10 +136,11 @@ function providerChunks(
   model: string,
   prompt: string,
   maxTokens: number,
+  signal: AbortSignal,
 ): AsyncGenerator<string, ProviderResult, void> {
-  if (provider === "anthropic") return anthropicChunks(apiKey, model, prompt, maxTokens);
-  if (provider === "openai") return openaiChunks(apiKey, model, prompt, maxTokens);
-  return geminiChunks(apiKey, model, prompt, maxTokens);
+  if (provider === "anthropic") return anthropicChunks(apiKey, model, prompt, maxTokens, signal);
+  if (provider === "openai") return openaiChunks(apiKey, model, prompt, maxTokens, signal);
+  return geminiChunks(apiKey, model, prompt, maxTokens, signal);
 }
 
 function jsonError(code: ErrorCode, status: number) {
@@ -160,7 +175,7 @@ export async function POST(req: Request) {
       ? Math.min(maxOutputTokens, MAX_OUTPUT_TOKENS)
       : MAX_OUTPUT_TOKENS;
 
-  const generator = providerChunks(provider, apiKey, model, prompt, maxTokens);
+  const generator = providerChunks(provider, apiKey, model, prompt, maxTokens, req.signal);
 
   // Drive the generator once before returning a Response, so an immediate
   // auth or rate-limit failure surfaces as a proper HTTP status instead of a

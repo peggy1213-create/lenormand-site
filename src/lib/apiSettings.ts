@@ -67,15 +67,23 @@ export function clearProviderConfig(provider: ApiProvider): void {
   writeSettings(next);
 }
 
+// A provider only counts as usable once both fields are filled — a saved
+// key with no model (or vice versa) would otherwise pass this check, show
+// the "Read with your API" button, and then fail with a generic proxy error
+// that gives no hint the actual problem is a missing field back in Settings.
+function isConfigComplete(config: ProviderConfig | undefined): config is ProviderConfig {
+  return !!config && config.apiKey.trim().length > 0 && config.model.trim().length > 0;
+}
+
 export function getLastUsedProvider(): ApiProvider | undefined {
   const settings = readSettings();
-  if (settings.lastUsedProvider && settings[settings.lastUsedProvider]) {
+  if (settings.lastUsedProvider && isConfigComplete(settings[settings.lastUsedProvider])) {
     return settings.lastUsedProvider;
   }
-  // Fall back to whichever provider has a stored config, if the recorded
-  // last-used provider's config was since cleared.
+  // Fall back to whichever provider has a complete stored config, if the
+  // recorded last-used provider's config was since cleared or incomplete.
   const providers: ApiProvider[] = ["anthropic", "openai", "gemini"];
-  return providers.find((p) => settings[p]);
+  return providers.find((p) => isConfigComplete(settings[p]));
 }
 
 export function hasAnyProviderConfigured(): boolean {

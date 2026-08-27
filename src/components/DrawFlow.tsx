@@ -93,6 +93,7 @@ export default function DrawFlow() {
   const [questionHelpOpen, setQuestionHelpOpen] = useState(false);
   const [showApiPanel, setShowApiPanel] = useState(false);
   const [apiConfigured, setApiConfigured] = useState(false);
+  const [currentReadingId, setCurrentReadingId] = useState<string | null>(null);
 
   useEffect(() => {
     setApiConfigured(hasAnyProviderConfigured());
@@ -203,6 +204,7 @@ export default function DrawFlow() {
     setChosen([]);
     setRevealed([]);
     setShowApiPanel(false);
+    setCurrentReadingId(null);
   }
 
   function toShuffle() {
@@ -268,12 +270,13 @@ export default function DrawFlow() {
     const next = [...chosen, i];
     setChosen(next);
     if (next.length >= need) {
-      addReading({
+      const reading = addReading({
         spread: spread.id,
         question: question.trim() || undefined,
         cards: next.map((di, idx) => ({ cardId: order[di].id, position: idx })),
         lang: locale,
       });
+      setCurrentReadingId(reading.id);
       if (spread.id === "daily") setDailyLocked(true);
     }
   }
@@ -292,6 +295,7 @@ export default function DrawFlow() {
     setRevealed([]);
     setQuestion("");
     setShowApiPanel(false);
+    setCurrentReadingId(null);
   }
 
   const promptText = allShown
@@ -727,7 +731,9 @@ export default function DrawFlow() {
               </button>
             </div>
 
-            {done && allShown && showApiPanel && <ReadWithApiPanel prompt={promptText} />}
+            {done && allShown && showApiPanel && (
+              <ReadWithApiPanel prompt={promptText} readingId={currentReadingId} />
+            )}
           </div>
         </div>
       )}

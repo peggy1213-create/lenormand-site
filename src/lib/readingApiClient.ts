@@ -24,6 +24,7 @@ export async function streamReading(
     maxOutputTokens?: number;
   },
   onText: (chunk: string) => void,
+  signal?: AbortSignal,
 ): Promise<ReadingStreamResult> {
   let res: Response;
   try {
@@ -31,6 +32,7 @@ export async function streamReading(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(params),
+      signal,
     });
   } catch {
     return { ok: false, error: "network" };
@@ -51,15 +53,22 @@ export async function streamReading(
   const decoder = new TextDecoder();
   let pending = "";
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    pending += decoder.decode(value, { stream: true });
-    if (pending.length > SENTINEL_HOLDBACK) {
-      const emitLength = pending.length - SENTINEL_HOLDBACK;
-      onText(pending.slice(0, emitLength));
-      pending = pending.slice(emitLength);
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      pending += decoder.decode(value, { stream: true });
+      if (pending.length > SENTINEL_HOLDBACK) {
+        const emitLength = pending.length - SENTINEL_HOLDBACK;
+        onText(pending.slice(0, emitLength));
+        pending = pending.slice(emitLength);
+      }
     }
+  } catch {
+    // Aborted mid-stream (e.g. the caller cancelled) or a genuine read
+    // error — either way, resolve rather than leaving an unhandled
+    // rejection; the caller decides whether this result still matters.
+    return { ok: false, error: "network" };
   }
   pending += decoder.decode();
 
@@ -90,4 +99,29 @@ export async function streamReading(
   // reading with unknown token usage rather than discarding the text.
   onText(pending);
   return { ok: true, usage: { inputTokens: 0, outputTokens: 0 } };
+}
+
+// Best-effort model suggestions for the settings page — used to populate a
+// <datalist> alongside the free-text model field, never to block it. Any
+// failure (bad key, network, rate limit) is swallowed and returns an empty
+// list rather than surfacing an error, since typing the model manually
+// always remains available.
+export async function fetchProviderModels(
+  provider: ApiProvider,
+  apiKey: string,
+  signal?: AbortSignal,
+): Promise<string[]> {
+  try {
+    const res = await fetch("/api/models", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider, apiKey }),
+      signal,
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data?.models) ? data.models.filter((m: unknown) => typeof m === "string") : [];
+  } catch {
+    return [];
+  }
 }

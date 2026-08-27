@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import ApiKeyInput from "./ApiKeyInput";
-import { streamReading } from "@/lib/readingApiClient";
+import { streamReading, fetchProviderModels } from "@/lib/readingApiClient";
 import {
   getProviderConfig,
   setProviderConfig,
@@ -19,21 +19,64 @@ type TestState = "idle" | "testing" | "success" | "failure";
 
 export default function ApiSettingsForm() {
   const t = useTranslations("settings");
-  const [provider, setProvider] = useState<ApiProvider>("anthropic");
+  const [provider, setProvider] = useState<ApiProvider>("gemini");
   const [drafts, setDrafts] = useState<Record<ApiProvider, ProviderConfig>>({
     anthropic: EMPTY_CONFIG,
     openai: EMPTY_CONFIG,
     gemini: EMPTY_CONFIG,
   });
   const [testState, setTestState] = useState<TestState>("idle");
+  // Mirrors what's actually persisted (not every keystroke) — the model
+  // fetch below is keyed on this, so it only fires on save/provider switch,
+  // never on every character typed into the key field.
+  const [savedKey, setSavedKey] = useState<Record<ApiProvider, string>>({
+    anthropic: "",
+    openai: "",
+    gemini: "",
+  });
+  const [modelOptions, setModelOptions] = useState<string[]>([]);
+  const [fetchingModels, setFetchingModels] = useState(false);
+  // Guards persist() from writing before the real stored config has loaded —
+  // without this, a blur event firing in the window between mount and the
+  // load effect committing (e.g. a component remount from a full page nav)
+  // writes the still-empty initial draft back to storage, silently
+  // clobbering a previously saved model/key with blanks.
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setDrafts({
+    const loadedConfig = {
       anthropic: getProviderConfig("anthropic") ?? EMPTY_CONFIG,
       openai: getProviderConfig("openai") ?? EMPTY_CONFIG,
       gemini: getProviderConfig("gemini") ?? EMPTY_CONFIG,
+    };
+    setDrafts(loadedConfig);
+    setSavedKey({
+      anthropic: loadedConfig.anthropic.apiKey,
+      openai: loadedConfig.openai.apiKey,
+      gemini: loadedConfig.gemini.apiKey,
     });
+    setLoaded(true);
   }, []);
+
+  useEffect(() => {
+    const key = savedKey[provider];
+    if (!key) {
+      setModelOptions([]);
+      return;
+    }
+    let cancelled = false;
+    const controller = new AbortController();
+    setFetchingModels(true);
+    fetchProviderModels(provider, key, controller.signal).then((models) => {
+      if (cancelled) return;
+      setModelOptions(models);
+      setFetchingModels(false);
+    });
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [provider, savedKey]);
 
   const draft = drafts[provider];
 
@@ -43,11 +86,13 @@ export default function ApiSettingsForm() {
   }
 
   function persist() {
+    if (!loaded) return;
     if (draft.apiKey.trim()) {
       setProviderConfig(provider, draft);
     } else {
       clearProviderConfig(provider);
     }
+    setSavedKey((prev) => ({ ...prev, [provider]: draft.apiKey.trim() }));
   }
 
   async function handleTest() {
@@ -120,6 +165,7 @@ export default function ApiSettingsForm() {
         <input
           id="settings-model"
           type="text"
+          list="settings-model-options"
           value={draft.model}
           onChange={(e) => updateDraft({ model: e.target.value })}
           onBlur={persist}
@@ -128,7 +174,12 @@ export default function ApiSettingsForm() {
           spellCheck={false}
           style={textInputStyle()}
         />
-        <p style={helpTextStyle()}>{t("modelHelp")}</p>
+        <datalist id="settings-model-options">
+          {modelOptions.map((m) => (
+            <option key={m} value={m} />
+          ))}
+        </datalist>
+        <p style={helpTextStyle()}>{fetchingModels ? t("modelLoadingLabel") : t("modelHelp")}</p>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
