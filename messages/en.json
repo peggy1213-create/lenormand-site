@@ -108,10 +108,10 @@
     "readWithApiButton": "Read with your API",
     "readingStreamingLabel": "Reading…",
     "tokenCountFormat": "≈ {count} tokens",
-    "apiErrorInvalidKey": "That key doesn't seem to work. Check it in Settings, or copy the prompt below instead.",
-    "apiErrorRateLimited": "Your account has hit a rate limit. Try again in a moment, or copy the prompt below instead.",
-    "apiErrorRefusal": "The reading couldn't be completed this time. Copy the prompt below and try your own client instead.",
-    "apiErrorNetwork": "Something interrupted the connection. Copy the prompt below instead."
+    "apiErrorInvalidKey": "That key doesn't seem to work. Check it in Settings, or copy the prompt above instead.",
+    "apiErrorRateLimited": "Your account has hit a rate limit. Try again in a moment, or copy the prompt above instead.",
+    "apiErrorRefusal": "The reading couldn't be completed this time. Copy the prompt above and try your own client instead.",
+    "apiErrorNetwork": "Something interrupted the connection. Copy the prompt above instead."
   },
   "history": {
     "title": "Your Readings",

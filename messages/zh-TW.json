@@ -108,10 +108,10 @@
     "readWithApiButton": "用你的 API 解讀",
     "readingStreamingLabel": "解讀中…",
     "tokenCountFormat": "約 {count} 個 token",
-    "apiErrorInvalidKey": "這個金鑰似乎無法使用。請到設定頁確認，或改為複製下方的提示詞。",
-    "apiErrorRateLimited": "你的帳號已達到速率限制。請稍後再試，或改為複製下方的提示詞。",
-    "apiErrorRefusal": "這次無法完成解讀。請複製下方的提示詞，改用你自己的用戶端嘗試。",
-    "apiErrorNetwork": "連線中斷了。請改為複製下方的提示詞。"
+    "apiErrorInvalidKey": "這個金鑰似乎無法使用。請到設定頁確認，或改為複製上方的提示詞。",
+    "apiErrorRateLimited": "你的帳號已達到速率限制。請稍後再試，或改為複製上方的提示詞。",
+    "apiErrorRefusal": "這次無法完成解讀。請複製上方的提示詞，改用你自己的用戶端嘗試。",
+    "apiErrorNetwork": "連線中斷了。請改為複製上方的提示詞。"
   },
   "history": {
     "title": "你的抽牌紀錄",

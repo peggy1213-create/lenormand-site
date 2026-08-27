@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import CopyToClipboardButton from "./CopyToClipboardButton";
 import MarkdownReading from "./MarkdownReading";
 import { streamReading, type ReadingApiErrorCode } from "@/lib/readingApiClient";
 import { getLastUsedProvider, getProviderConfig } from "@/lib/apiSettings";
@@ -12,10 +11,10 @@ type PanelState = "streaming" | "done" | "error";
 
 // Streams a reading through the caller's own provider key (via
 // src/app/api/reading/route.ts) and renders it progressively, no typewriter
-// effect — text simply grows as it arrives. On any failure, the copy-prompt
-// fallback is rendered directly below the error message so it stays
-// reachable without scrolling back up to the button above this panel. On
-// success, the finished markdown is saved onto the matching history entry
+// effect — text simply grows as it arrives. On any failure, just a short
+// error line is shown — the "Copy AI reading prompt" button above this
+// panel is still the fallback, so it isn't duplicated here. On success,
+// the finished markdown is saved onto the matching history entry
 // (readingId) so it shows up again on the History page.
 export default function ReadWithApiPanel({
   prompt,
@@ -94,6 +93,24 @@ export default function ReadWithApiPanel({
           ? "apiErrorRefusal"
           : "apiErrorNetwork";
 
+  if (state === "error") {
+    return (
+      <p
+        style={{
+          marginTop: "clamp(16px, 3vh, 32px)",
+          maxWidth: 640,
+          marginLeft: "auto",
+          marginRight: "auto",
+          fontSize: 14,
+          color: "var(--gold-200)",
+          textAlign: "center",
+        }}
+      >
+        {t(errorMessageKey)}
+      </p>
+    );
+  }
+
   return (
     <div
       style={{
@@ -102,11 +119,12 @@ export default function ReadWithApiPanel({
         marginLeft: "auto",
         marginRight: "auto",
         textAlign: "left",
-        background: "rgba(251, 246, 234, 0.06)",
-        border: "1px solid rgba(231, 199, 137, 0.28)",
+        background: "rgba(18, 26, 16, 0.55)",
+        border: "1px solid rgba(231, 199, 137, 0.35)",
         borderRadius: 12,
         boxShadow: "var(--shadow-md)",
         padding: "clamp(20px, 4vw, 36px)",
+        backdropFilter: "blur(2px)",
       }}
     >
       {state === "streaming" && text.length === 0 && (
@@ -139,22 +157,6 @@ export default function ReadWithApiPanel({
         >
           {t("tokenCountFormat", { count: tokenCount.toLocaleString(locale) })}
         </p>
-      )}
-
-      {state === "error" && (
-        <div style={{ marginTop: 18, textAlign: "center" }}>
-          <p style={{ fontSize: 14, color: "var(--gold-200)", marginBottom: 14 }}>
-            {t(errorMessageKey)}
-          </p>
-          <CopyToClipboardButton
-            text={prompt}
-            label={t("copyPromptButton")}
-            copiedLabel={t("copiedToast")}
-            fallbackTitle={t("copyFallbackTitle")}
-            fallbackHint={t("copyFallbackHint")}
-            selectAllLabel={t("selectAllButton")}
-          />
-        </div>
       )}
     </div>
   );
