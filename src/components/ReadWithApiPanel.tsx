@@ -102,6 +102,11 @@ export default function ReadWithApiPanel({
         marginLeft: "auto",
         marginRight: "auto",
         textAlign: "left",
+        background: "rgba(251, 246, 234, 0.06)",
+        border: "1px solid rgba(231, 199, 137, 0.28)",
+        borderRadius: 12,
+        boxShadow: "var(--shadow-md)",
+        padding: "clamp(20px, 4vw, 36px)",
       }}
     >
       {state === "streaming" && text.length === 0 && (
