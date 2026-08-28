@@ -2,6 +2,35 @@
 
 Status: **draft, awaiting approval**. No implementation until this is approved.
 
+## Amendment (post-launch) — no provider or model selection
+
+The settings form no longer has a provider dropdown or a model field. The user
+pastes one API key; everything else is derived:
+
+- **Provider** is inferred from the key prefix (`detectProvider` in
+  `src/lib/apiSettings.ts`): `sk-ant-` → Anthropic, `AIza` / `AQ.` → Gemini,
+  any other `sk-` → OpenAI. An unrecognized key shows an inline hint and stores
+  nothing. The proxy request body still carries `provider` — it's just computed,
+  not chosen.
+- **Model** is resolved automatically by probing, because the provider model
+  listing can't be trusted on its own (it returns retired models that 404 and
+  models with no free-tier quota that 429). The settings form fetches
+  `/api/models`, ranks the results version-aware (`modelCandidates` /
+  `scoreModel` — newest Gemini flash; sonnet/opus over haiku; OpenAI family
+  rank), then `resolveWorkingModel` calls `/api/reading` against the top few
+  (`MAX_PROBES`) and keeps the first that actually completes. The result is
+  stored with a `verified` flag; an unverified result (nothing responded, or
+  only rate limits) re-probes on the next visit. `DEFAULT_MODELS[provider]` is
+  the last resort.
+- **Gemini thinking**: the reading route sends `thinkingConfig.thinkingBudget`
+  as `128`, not `0` — Gemini 3.x Flash models reject `0` with a 400 and can't
+  fully disable thinking. 128 is the floor they accept and stays instant.
+- **Storage** collapsed from `{ anthropic?, openai?, gemini?, lastUsedProvider }`
+  to a single `{ provider, apiKey, model, verified }`. `readConfig` migrates the
+  old shape on read (forcing a re-probe). Sections a/d/f below describing the
+  dropdown, the free-text model field, the "Test key" button, and "all three
+  configured simultaneously" are superseded by this.
+
 ## 0. Context established during pre-spec verification
 
 - Branch: `master`, clean.

@@ -1,4 +1,4 @@
-import type { ApiProvider } from "./apiSettings";
+import { DEFAULT_MODELS, type ApiProvider } from "./apiSettings";
 
 export type ReadingApiErrorCode = "invalid_key" | "rate_limited" | "refusal" | "network";
 
@@ -101,11 +101,64 @@ export async function streamReading(
   return { ok: true, usage: { inputTokens: 0, outputTokens: 0 } };
 }
 
-// Best-effort model suggestions for the settings page — used to populate a
-// <datalist> alongside the free-text model field, never to block it. Any
-// failure (bad key, network, rate limit) is swallowed and returns an empty
-// list rather than surfacing an error, since typing the model manually
-// always remains available.
+export type ModelResolution = {
+  model: string;
+  verified: boolean;
+  // Set when no candidate was verified and at least one failed specifically
+  // with a rate limit — the key may be fine, just temporarily throttled
+  // (common on Gemini's free tier).
+  rateLimited: boolean;
+};
+
+// How many of the ranked candidates to actually probe. The provider listing
+// is dozens of entries deep; probing all of them would burn real quota (and
+// on a free tier, trip the rate limit that then fails the rest). The best
+// few cover the realistic cases — newest model, newest-that-has-quota,
+// newest-that-isn't-retired.
+const MAX_PROBES = 4;
+
+// Walks the top `candidates` in order and returns the first model that
+// completes a tiny real call through the proxy. The provider's model listing
+// can't be trusted on its own — it returns retired models (404) and models
+// with no free-tier quota (429) — so this is how the settings page lands on
+// a model that actually works for this key. If none respond, returns the top
+// candidate with `verified: false` so the caller can flag the key.
+export async function resolveWorkingModel(
+  provider: ApiProvider,
+  apiKey: string,
+  candidates: string[],
+  signal?: AbortSignal,
+): Promise<ModelResolution> {
+  let throttledModel: string | undefined;
+  for (const model of candidates.slice(0, MAX_PROBES)) {
+    if (signal?.aborted) break;
+    const result = await streamReading(
+      // Above Gemini's thinking floor (thinkingBudget: 128 in the reading
+      // route) — a lower cap makes those models return an empty MAX_TOKENS
+      // response, which is a useless probe signal.
+      { provider, model, apiKey, prompt: "Reply with OK.", maxOutputTokens: 256 },
+      () => {},
+      signal,
+    );
+    // Stop the moment the caller cancels — streamReading reports an aborted
+    // request as a plain failure, which would otherwise fall through to
+    // probing the next candidate for a run that no longer matters.
+    if (signal?.aborted) break;
+    if (result.ok) return { model, verified: true, rateLimited: false };
+    // A 429 means the model exists for this key, just has no quota right now —
+    // a better fallback than the top candidate, which might be retired (404).
+    if (result.error === "rate_limited" && !throttledModel) throttledModel = model;
+  }
+  return {
+    model: throttledModel ?? candidates[0] ?? DEFAULT_MODELS[provider],
+    verified: false,
+    rateLimited: throttledModel !== undefined,
+  };
+}
+
+// Best-effort model suggestions for the settings page — used to rank models
+// for resolveWorkingModel, never to block. Any failure (bad key, network,
+// rate limit) is swallowed and returns an empty list.
 export async function fetchProviderModels(
   provider: ApiProvider,
   apiKey: string,

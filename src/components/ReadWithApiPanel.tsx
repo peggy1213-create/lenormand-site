@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import MarkdownReading from "./MarkdownReading";
 import { streamReading, type ReadingApiErrorCode } from "@/lib/readingApiClient";
-import { getLastUsedProvider, getProviderConfig } from "@/lib/apiSettings";
+import { getActiveConfig, DEFAULT_MODELS } from "@/lib/apiSettings";
 import { updateReadingApiText } from "@/lib/storage";
 
 type PanelState = "streaming" | "done" | "error";
@@ -47,16 +47,19 @@ export default function ReadWithApiPanel({
     setState("streaming");
     setErrorCode(null);
 
-    const provider = getLastUsedProvider();
-    const config = provider ? getProviderConfig(provider) : undefined;
-    if (!provider || !config) {
+    const config = getActiveConfig();
+    if (!config) {
       setState("error");
       setErrorCode("network");
       return;
     }
+    // The settings form resolves the model asynchronously after a key is
+    // entered; if the user got here before that settled, fall back to the
+    // provider's default rather than sending an empty model.
+    const model = config.model.trim() || DEFAULT_MODELS[config.provider];
 
     streamReading(
-      { provider, model: config.model, apiKey: config.apiKey, prompt },
+      { provider: config.provider, model, apiKey: config.apiKey, prompt },
       (chunk) => {
         if (cancelled) return;
         fullText += chunk;
