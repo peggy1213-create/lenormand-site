@@ -209,6 +209,49 @@
   "footer": {
     "disclaimer": "For entertainment purposes only. Not a substitute for professional, legal, financial, or medical advice."
   },
+  "changelog": {
+    "buttonLabel": "What's new",
+    "title": "What's New",
+    "close": "Close",
+    "entries": [
+      {
+        "date": "2026-08-27",
+        "text": "Run readings directly with your own Anthropic, OpenAI, or Gemini API key, and read the result as formatted text."
+      },
+      {
+        "date": "2026-08-17",
+        "text": "Download any reading from your history as an image."
+      },
+      {
+        "date": "2026-08-09",
+        "text": "Added a “how to ask a good question” guide to the spreads page, and a Daily filter to History."
+      },
+      {
+        "date": "2026-08-08",
+        "text": "New Nine Cards (3×3) spread, and the home page rebranded to In-Betweens."
+      },
+      {
+        "date": "2026-08-06",
+        "text": "History calendar now shows how many readings fall on each day, with new tag and date filters."
+      },
+      {
+        "date": "2026-08-04",
+        "text": "Install In-Betweens as an app, with offline support."
+      },
+      {
+        "date": "2026-08-02",
+        "text": "Added a calendar view and pagination to your reading history."
+      },
+      {
+        "date": "2026-07-31",
+        "text": "Select and delete readings in bulk from your history."
+      },
+      {
+        "date": "2026-07-29",
+        "text": "Improved Traditional Chinese typography with a dedicated display font."
+      }
+    ]
+  },
   "cards": {
     "rider": {
       "name": "Rider",
