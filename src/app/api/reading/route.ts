@@ -97,10 +97,12 @@ async function* openaiChunks(
 
 // Gemini's request/response shape was verified against @google/genai's
 // published quickstart and confirmed against live calls during development.
-// Thinking is explicitly disabled (thinkingBudget: 0) — on models that
-// support extended reasoning (observed on 3.x-generation Flash models),
-// leaving it at its default cost 30-70+ seconds for a single reading, which
-// risks the serverless timeout on top of just being slow for this use case.
+// Thinking is held to the floor (thinkingBudget: 128) rather than off:
+// leaving it at the default costs 30-70+ seconds for a single reading and
+// risks the serverless timeout, but `thinkingBudget: 0` is rejected outright
+// (400 INVALID_ARGUMENT) by Gemini 3.x Flash models, which can't fully
+// disable thinking — verified live. 128 is the minimum those models accept
+// and is still effectively instant.
 async function* geminiChunks(
   apiKey: string,
   model: string,
@@ -112,7 +114,7 @@ async function* geminiChunks(
   const stream = await client.models.generateContentStream({
     model,
     contents: prompt,
-    config: { maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 }, abortSignal: signal },
+    config: { maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 128 }, abortSignal: signal },
   });
   const usage: Usage = { inputTokens: 0, outputTokens: 0 };
   let refused = false;

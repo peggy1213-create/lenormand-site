@@ -57,10 +57,31 @@ export default async function SettingsPage({
             fontSize: 15,
             lineHeight: 1.55,
             color: "var(--text-muted)",
-            margin: "0 0 28px",
+            margin: "0 0 8px",
           }}
         >
           {t("apiSectionLead")}
+        </p>
+        <p
+          style={{
+            fontSize: 13,
+            lineHeight: 1.55,
+            color: "var(--text-subtle)",
+            margin: "0 0 28px",
+          }}
+        >
+          {t.rich("apiKeyFreeHint", {
+            link: (chunks) => (
+              <a
+                href="https://aistudio.google.com/"
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: "var(--gold-500)", textDecoration: "underline" }}
+              >
+                {chunks}
+              </a>
+            ),
+          })}
         </p>
 
         <ApiSettingsForm />
