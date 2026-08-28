@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import Changelog from "@/components/Changelog";
 
 export default async function Footer() {
   const t = await getTranslations("footer");
@@ -37,6 +38,7 @@ export default async function Footer() {
       >
         {t("disclaimer")}
       </span>
+      <Changelog />
     </footer>
   );
 }
