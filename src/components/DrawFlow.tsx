@@ -12,6 +12,7 @@ import { buildAIPrompt } from "@/lib/prompt";
 import { hasAnyProviderConfigured } from "@/lib/apiSettings";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import ReadWithApiPanel from "./ReadWithApiPanel";
+import TagEditor from "./TagEditor";
 import styles from "./DrawFlow.module.css";
 
 type ScatterCard = { id: number; x: number; y: number; rot: number };
@@ -730,6 +731,24 @@ export default function DrawFlow() {
                 {t("backToSpreadsButton")}
               </button>
             </div>
+
+            {done && currentReadingId && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginTop: "clamp(10px, 2.2vh, 20px)",
+                }}
+              >
+                <TagEditor
+                  key={currentReadingId}
+                  readingId={currentReadingId}
+                  initialTags={[]}
+                  tone="dark"
+                  triggerLabel={t("addTagsButton")}
+                />
+              </div>
+            )}
 
             {done && allShown && showApiPanel && (
               <ReadWithApiPanel prompt={promptText} readingId={currentReadingId} />

@@ -1,6 +1,8 @@
 import type { SpreadId } from "@/data/spreads";
 import type { Locale } from "@/i18n/routing";
 
+export type ApiFollowUp = { question: string; answer: string };
+
 export type Reading = {
   id: string;
   createdAt: string; // ISO
@@ -11,6 +13,7 @@ export type Reading = {
   tags?: string[];
   lang: Locale;
   apiReadingText?: string; // Markdown reading generated via "Read with your API"
+  apiFollowUps?: ApiFollowUp[]; // Follow-up Q&A on the "Read with your API" reading
 };
 
 const STORAGE_KEY = "lenormand.history";
@@ -85,6 +88,11 @@ export function updateReadingNote(id: string, notes: string): void {
 
 export function updateReadingApiText(id: string, apiReadingText: string): void {
   const next = getHistory().map((r) => (r.id === id ? { ...r, apiReadingText } : r));
+  writeHistory(next);
+}
+
+export function updateReadingApiFollowUps(id: string, apiFollowUps: ApiFollowUp[]): void {
+  const next = getHistory().map((r) => (r.id === id ? { ...r, apiFollowUps } : r));
   writeHistory(next);
 }
 

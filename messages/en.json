@@ -94,6 +94,7 @@
     "revealAllCardsButton": "Reveal all cards",
     "drawAgainButton": "Draw again",
     "backToSpreadsButton": "Back to spreads",
+    "addTagsButton": "Add tags",
     "copyPromptButton": "Copy AI reading prompt",
     "copiedToast": "Prompt copied",
     "copyFallbackTitle": "Copy manually",
@@ -111,7 +112,13 @@
     "apiErrorInvalidKey": "That key doesn't seem to work. Check it in AI Reading, or copy the prompt above instead.",
     "apiErrorRateLimited": "Your account has hit a rate limit. Try again in a moment, or copy the prompt above instead.",
     "apiErrorRefusal": "The reading couldn't be completed this time. Copy the prompt above and try your own client instead.",
-    "apiErrorNetwork": "Something interrupted the connection. Copy the prompt above instead."
+    "apiErrorNetwork": "Something interrupted the connection. Copy the prompt above instead.",
+    "followUpHeading": "Ask a follow-up",
+    "followUpPlaceholder": "Ask about this reading…",
+    "followUpSendButton": "Ask",
+    "followUpQuestionLabel": "You asked",
+    "followUpRemaining": "{count} of 3 follow-ups left",
+    "followUpLimitReached": "You've asked all three follow-ups for this reading."
   },
   "history": {
     "title": "Your Readings",
