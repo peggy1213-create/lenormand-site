@@ -20,6 +20,7 @@ type ApiProvider = "anthropic" | "openai" | "gemini";
 type ErrorCode = "invalid_key" | "rate_limited" | "network";
 type Usage = { inputTokens: number; outputTokens: number };
 type ProviderResult = { usage: Usage; refused: boolean };
+type ChatMessage = { role: "user" | "assistant"; content: string };
 
 const MAX_OUTPUT_TOKENS = 4096;
 
@@ -35,7 +36,7 @@ function classifyError(err: unknown): ErrorCode {
 async function* anthropicChunks(
   apiKey: string,
   model: string,
-  prompt: string,
+  messages: ChatMessage[],
   maxTokens: number,
   signal: AbortSignal,
 ): AsyncGenerator<string, ProviderResult, void> {
@@ -44,7 +45,7 @@ async function* anthropicChunks(
     {
       model,
       max_tokens: maxTokens,
-      messages: [{ role: "user", content: prompt }],
+      messages: messages.map((m) => ({ role: m.role, content: m.content })),
     },
     { signal },
   );
@@ -66,7 +67,7 @@ async function* anthropicChunks(
 async function* openaiChunks(
   apiKey: string,
   model: string,
-  prompt: string,
+  messages: ChatMessage[],
   maxTokens: number,
   signal: AbortSignal,
 ): AsyncGenerator<string, ProviderResult, void> {
@@ -75,7 +76,7 @@ async function* openaiChunks(
     {
       model,
       max_tokens: maxTokens,
-      messages: [{ role: "user", content: prompt }],
+      messages: messages.map((m) => ({ role: m.role, content: m.content })),
       stream: true,
       stream_options: { include_usage: true },
     },
@@ -106,14 +107,17 @@ async function* openaiChunks(
 async function* geminiChunks(
   apiKey: string,
   model: string,
-  prompt: string,
+  messages: ChatMessage[],
   maxTokens: number,
   signal: AbortSignal,
 ): AsyncGenerator<string, ProviderResult, void> {
   const client = new GoogleGenAI({ apiKey });
   const stream = await client.models.generateContentStream({
     model,
-    contents: prompt,
+    contents: messages.map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    })),
     config: { maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 128 }, abortSignal: signal },
   });
   const usage: Usage = { inputTokens: 0, outputTokens: 0 };
@@ -136,13 +140,36 @@ function providerChunks(
   provider: ApiProvider,
   apiKey: string,
   model: string,
-  prompt: string,
+  messages: ChatMessage[],
   maxTokens: number,
   signal: AbortSignal,
 ): AsyncGenerator<string, ProviderResult, void> {
-  if (provider === "anthropic") return anthropicChunks(apiKey, model, prompt, maxTokens, signal);
-  if (provider === "openai") return openaiChunks(apiKey, model, prompt, maxTokens, signal);
-  return geminiChunks(apiKey, model, prompt, maxTokens, signal);
+  if (provider === "anthropic") return anthropicChunks(apiKey, model, messages, maxTokens, signal);
+  if (provider === "openai") return openaiChunks(apiKey, model, messages, maxTokens, signal);
+  return geminiChunks(apiKey, model, messages, maxTokens, signal);
+}
+
+// Accepts either a single `prompt` string (the initial reading) or a
+// `messages` array (a reading plus one or more follow-up turns). Anything
+// that isn't a well-formed {role, content} pair is dropped rather than
+// trusted — the array comes straight off the request body.
+function normalizeMessages(prompt: unknown, messages: unknown): ChatMessage[] {
+  if (Array.isArray(messages)) {
+    const cleaned = messages.filter(
+      (m): m is ChatMessage =>
+        !!m &&
+        typeof m === "object" &&
+        (m as ChatMessage).role != null &&
+        ((m as ChatMessage).role === "user" || (m as ChatMessage).role === "assistant") &&
+        typeof (m as ChatMessage).content === "string" &&
+        (m as ChatMessage).content.length > 0,
+    );
+    if (cleaned.length > 0) return cleaned;
+  }
+  if (typeof prompt === "string" && prompt.length > 0) {
+    return [{ role: "user", content: prompt }];
+  }
+  return [];
 }
 
 function jsonError(code: ErrorCode, status: number) {
@@ -155,6 +182,7 @@ export async function POST(req: Request) {
     model?: string;
     apiKey?: string;
     prompt?: string;
+    messages?: ChatMessage[];
     maxOutputTokens?: number;
   };
   try {
@@ -163,12 +191,13 @@ export async function POST(req: Request) {
     return jsonError("network", 400);
   }
 
-  const { provider, model, apiKey, prompt, maxOutputTokens } = body;
+  const { provider, model, apiKey, prompt, messages, maxOutputTokens } = body;
+  const chatMessages = normalizeMessages(prompt, messages);
   if (
     (provider !== "anthropic" && provider !== "openai" && provider !== "gemini") ||
     !model ||
     !apiKey ||
-    !prompt
+    chatMessages.length === 0
   ) {
     return jsonError("network", 400);
   }
@@ -177,7 +206,7 @@ export async function POST(req: Request) {
       ? Math.min(maxOutputTokens, MAX_OUTPUT_TOKENS)
       : MAX_OUTPUT_TOKENS;
 
-  const generator = providerChunks(provider, apiKey, model, prompt, maxTokens, req.signal);
+  const generator = providerChunks(provider, apiKey, model, chatMessages, maxTokens, req.signal);
 
   // Drive the generator once before returning a Response, so an immediate
   // auth or rate-limit failure surfaces as a proper HTTP status instead of a

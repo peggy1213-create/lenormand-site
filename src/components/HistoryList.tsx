@@ -8,11 +8,8 @@ import {
   getHistory,
   isStoragePersistable,
   updateReadingNote,
-  updateReadingTags,
   deleteReadings,
   getAllTags,
-  MAX_TAGS_PER_READING,
-  MAX_DISTINCT_TAGS,
   type Reading,
 } from "@/lib/storage";
 import { getCardById } from "@/data/cards";
@@ -22,6 +19,7 @@ import { exportReadingAsJpeg } from "@/lib/exportImage";
 import CardKeywordsPanel from "./CardKeywordsPanel";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import MarkdownReading from "./MarkdownReading";
+import TagEditor from "./TagEditor";
 import styles from "./HistoryList.module.css";
 
 const NOTICE_SEEN_KEY = "lenormand.historyNoticeSeen";
@@ -66,25 +64,6 @@ function NotebookPenIcon() {
       <path d="M2 14h4" />
       <path d="M2 18h4" />
       <path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" />
-    </svg>
-  );
-}
-
-function TagIcon() {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
-      <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" stroke="none" />
     </svg>
   );
 }
@@ -166,24 +145,6 @@ function DownloadIcon() {
       <line x1="12" y1="15" x2="12" y2="3" />
     </svg>
   );
-}
-
-function tagChipStyle(removable: boolean): CSSProperties {
-  return {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    padding: removable ? "3px 6px 3px 10px" : "3px 10px",
-    borderRadius: 999,
-    border: "1px solid var(--gold-400)",
-    background: "var(--gilt-soft)",
-    color: "var(--ink-900)",
-    fontFamily: "var(--font-smallcaps)",
-    textTransform: "uppercase",
-    letterSpacing: "var(--tracking-wide)",
-    fontSize: 10,
-    whiteSpace: "nowrap",
-  };
 }
 
 function ChevronIcon() {
@@ -775,16 +736,9 @@ export function Row({
   const [expandedPosition, setExpandedPosition] = useState<number | null>(null);
   const [note, setNote] = useState(reading.notes ?? "");
   const [noteSaved, setNoteSaved] = useState(false);
-  const [tags, setTags] = useState<string[]>(reading.tags ?? []);
-  const [tagInput, setTagInput] = useState("");
   const [pendingNoteFocus, setPendingNoteFocus] = useState(false);
-  const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
-  const [tagPanelShift, setTagPanelShift] = useState(0);
   const [downloadingImage, setDownloadingImage] = useState(false);
   const noteRef = useRef<HTMLTextAreaElement>(null);
-  const tagPopoverRef = useRef<HTMLDivElement>(null);
-  const tagPanelRef = useRef<HTMLDivElement>(null);
-  const tagInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open && pendingNoteFocus && noteRef.current) {
@@ -793,40 +747,6 @@ export function Row({
       setPendingNoteFocus(false);
     }
   }, [open, pendingNoteFocus]);
-
-  useEffect(() => {
-    if (!tagPopoverOpen) {
-      setTagPanelShift(0);
-      return;
-    }
-    tagInputRef.current?.focus();
-    // The panel is anchored to the tag button via `left: 0`, but that button can
-    // sit anywhere along the row header — on narrow screens the panel can run
-    // past the right (or, rarely, left) edge of the viewport, so nudge it back
-    // into view after it mounts at its natural position.
-    const el = tagPanelRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const margin = 12;
-    const overflowRight = rect.right + margin - window.innerWidth;
-    const overflowLeft = margin - rect.left;
-    if (overflowRight > 0) {
-      setTagPanelShift(-overflowRight);
-    } else if (overflowLeft > 0) {
-      setTagPanelShift(overflowLeft);
-    }
-  }, [tagPopoverOpen]);
-
-  useEffect(() => {
-    if (!tagPopoverOpen) return;
-    function handlePointerDown(e: MouseEvent) {
-      if (tagPopoverRef.current && !tagPopoverRef.current.contains(e.target as Node)) {
-        setTagPopoverOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [tagPopoverOpen]);
 
   function handleEditNoteClick() {
     setOpen(true);
@@ -906,38 +826,6 @@ export function Row({
     }
   }
 
-  function addTagValue(value: string) {
-    if (!value || tags.length >= MAX_TAGS_PER_READING || tags.includes(value)) return;
-    const allTags = getAllTags();
-    if (!allTags.includes(value) && allTags.length >= MAX_DISTINCT_TAGS) return;
-    const next = [...tags, value];
-    setTags(next);
-    updateReadingTags(reading.id, next);
-    onChanged();
-  }
-
-  function handleAddTag() {
-    addTagValue(tagInput.trim());
-    setTagInput("");
-  }
-
-  function handleSelectExistingTag(tag: string) {
-    addTagValue(tag);
-    setTagInput("");
-    tagInputRef.current?.focus();
-  }
-
-  function handleRemoveTag(tag: string) {
-    const next = tags.filter((existing) => existing !== tag);
-    setTags(next);
-    updateReadingTags(reading.id, next);
-    onChanged();
-  }
-
-  const allTags = getAllTags();
-  const unusedTags = allTags.filter((tag) => !tags.includes(tag));
-  const canAddMoreTags = tags.length < MAX_TAGS_PER_READING && (allTags.length < MAX_DISTINCT_TAGS || unusedTags.length > 0);
-
   return (
     <article
       style={{
@@ -1000,203 +888,11 @@ export function Row({
             >
               {note.trim() ? <NotebookPenIcon /> : <PencilIcon />}
             </button>
-            <div style={{ position: "relative" }} ref={tagPopoverRef}>
-              <button
-                type="button"
-                aria-label={tags.length > 0 ? h("viewTagsTooltip") : h("addTagsTooltip")}
-                title={tags.length > 0 ? h("viewTagsTooltip") : h("addTagsTooltip")}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setTagPopoverOpen((v) => !v);
-                }}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: 0,
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  color: tags.length > 0 ? "var(--gold-500)" : "var(--text-subtle)",
-                }}
-              >
-                {tags.length > 0 ? (
-                  tags.map((tag) => (
-                    <span key={tag} style={tagChipStyle(false)}>
-                      {tag}
-                    </span>
-                  ))
-                ) : (
-                  <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 22, height: 22 }}>
-                    <TagIcon />
-                  </span>
-                )}
-              </button>
-
-              {tagPopoverOpen && (
-                <div
-                  ref={tagPanelRef}
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    left: 0,
-                    transform: tagPanelShift ? `translateX(${tagPanelShift}px)` : undefined,
-                    marginTop: 8,
-                    zIndex: 6,
-                    width: 260,
-                    maxWidth: "80vw",
-                    background: "var(--surface-card)",
-                    border: "1px solid var(--border-hair)",
-                    borderRadius: 8,
-                    boxShadow: "var(--shadow-md)",
-                    padding: "14px 16px",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                    <span
-                      style={{
-                        fontFamily: "var(--font-smallcaps)",
-                        textTransform: "uppercase",
-                        letterSpacing: "var(--tracking-wide)",
-                        fontSize: 11,
-                        color: "var(--text-muted)",
-                      }}
-                    >
-                      {h("tagsLabel")}
-                    </span>
-                    <button
-                      type="button"
-                      aria-label={h("closeTagsPopover")}
-                      title={h("closeTagsPopover")}
-                      onClick={() => setTagPopoverOpen(false)}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 18,
-                        height: 18,
-                        padding: 0,
-                        border: "none",
-                        background: "transparent",
-                        color: "var(--text-muted)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <CloseIcon />
-                    </button>
-                  </div>
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-                    {tags.map((tag) => (
-                      <span key={tag} style={tagChipStyle(true)}>
-                        {tag}
-                        <button
-                          type="button"
-                          aria-label={h("removeTagLabel")}
-                          title={h("removeTagLabel")}
-                          onClick={() => handleRemoveTag(tag)}
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: 14,
-                            height: 14,
-                            padding: 0,
-                            border: "none",
-                            borderRadius: "50%",
-                            background: "transparent",
-                            color: "inherit",
-                            cursor: "pointer",
-                          }}
-                        >
-                          <CloseIcon />
-                        </button>
-                      </span>
-                    ))}
-                    {canAddMoreTags ? (
-                      <>
-                        <input
-                          ref={tagInputRef}
-                          type="text"
-                          value={tagInput}
-                          onChange={(e) => setTagInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleAddTag();
-                            }
-                          }}
-                          placeholder={h("addTagPlaceholder")}
-                          maxLength={24}
-                          autoComplete="off"
-                          style={{
-                            flex: "1 1 120px",
-                            minWidth: 100,
-                            border: "none",
-                            borderBottom: "1px solid var(--border-hair)",
-                            background: "transparent",
-                            padding: "3px 2px",
-                            fontFamily: "var(--font-serif)",
-                            fontSize: 13,
-                            color: "var(--text-body)",
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddTag}
-                          disabled={!tagInput.trim()}
-                          style={{
-                            ...pillStyle("ghost"),
-                            padding: "4px 12px",
-                            opacity: tagInput.trim() ? 1 : 0.5,
-                            cursor: tagInput.trim() ? "pointer" : "not-allowed",
-                          }}
-                        >
-                          {h("addTagButton")}
-                        </button>
-                      </>
-                    ) : (
-                      <span style={{ fontSize: 12, fontStyle: "italic", color: "var(--text-subtle)" }}>
-                        {h("maxTagsReached")}
-                      </span>
-                    )}
-                  </div>
-
-                  {canAddMoreTags && unusedTags.length > 0 && (
-                    <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--border-hair)" }}>
-                      <div
-                        style={{
-                          fontFamily: "var(--font-smallcaps)",
-                          textTransform: "uppercase",
-                          letterSpacing: "var(--tracking-wide)",
-                          fontSize: 10,
-                          color: "var(--text-subtle)",
-                          marginBottom: 6,
-                        }}
-                      >
-                        {h("existingTagsLabel")}
-                      </div>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                        {unusedTags.map((tag) => (
-                          <button
-                            key={tag}
-                            type="button"
-                            onClick={() => handleSelectExistingTag(tag)}
-                            style={{
-                              ...tagChipStyle(false),
-                              cursor: "pointer",
-                              border: "1px dashed var(--gold-400)",
-                              background: "transparent",
-                            }}
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <TagEditor
+              readingId={reading.id}
+              initialTags={reading.tags ?? []}
+              onChanged={onChanged}
+            />
           </div>
           <div style={{ fontSize: 17, lineHeight: 1.5, color: "var(--text-body)", marginTop: 10 }}>{cardNames}</div>
           <div style={{ fontStyle: "italic", fontSize: 18, color: "var(--text-muted)", marginTop: 6, overflowWrap: "break-word" }}>
@@ -1247,20 +943,18 @@ export function Row({
           <button
             type="button"
             aria-label={h("downloadImageButton")}
-            title={h("downloadImageButton")}
+            title={downloadingImage ? h("downloadingImage") : h("downloadImageButton")}
             onClick={handleDownloadImage}
             disabled={downloadingImage}
             style={{
               ...pillStyle("ghost"),
               display: "inline-flex",
               alignItems: "center",
-              gap: 6,
               opacity: downloadingImage ? 0.6 : 1,
               cursor: downloadingImage ? "default" : "pointer",
             }}
           >
             <DownloadIcon />
-            <span>{downloadingImage ? h("downloadingImage") : h("downloadImageButton")}</span>
           </button>
         </div>
       </div>
@@ -1329,6 +1023,31 @@ export function Row({
             {h("apiReadingLabel")}
           </div>
           <MarkdownReading text={reading.apiReadingText} tone="onLight" />
+
+          {reading.apiFollowUps && reading.apiFollowUps.length > 0 && (
+            <div style={{ marginTop: 14 }}>
+              {reading.apiFollowUps.map((f, i) => (
+                <div key={i} style={{ marginTop: i === 0 ? 0 : 14, paddingTop: 14, borderTop: "1px solid var(--border-hair)" }}>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-smallcaps)",
+                      textTransform: "uppercase",
+                      letterSpacing: "var(--tracking-wide)",
+                      fontSize: 11,
+                      color: "var(--text-muted)",
+                      marginBottom: 4,
+                    }}
+                  >
+                    {t("followUpQuestionLabel")}
+                  </div>
+                  <div style={{ fontStyle: "italic", fontSize: 16, color: "var(--text-muted)", marginBottom: 8 }}>
+                    {f.question}
+                  </div>
+                  <MarkdownReading text={f.answer} tone="onLight" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

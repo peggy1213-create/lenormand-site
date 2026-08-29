@@ -94,6 +94,7 @@
     "revealAllCardsButton": "全部翻開",
     "drawAgainButton": "重新抽牌",
     "backToSpreadsButton": "返回牌陣選擇",
+    "addTagsButton": "加上標籤",
     "copyPromptButton": "複製 AI 解讀提示",
     "copiedToast": "已複製",
     "copyFallbackTitle": "手動複製",
@@ -111,7 +112,13 @@
     "apiErrorInvalidKey": "這個金鑰似乎無法使用。請到「AI 解讀」頁確認，或改為複製上方的提示詞。",
     "apiErrorRateLimited": "你的帳號已達到速率限制。請稍後再試，或改為複製上方的提示詞。",
     "apiErrorRefusal": "這次無法完成解讀。請複製上方的提示詞，改用你自己的用戶端嘗試。",
-    "apiErrorNetwork": "連線中斷了。請改為複製上方的提示詞。"
+    "apiErrorNetwork": "連線中斷了。請改為複製上方的提示詞。",
+    "followUpHeading": "追問一個問題",
+    "followUpPlaceholder": "針對這次解讀提問…",
+    "followUpSendButton": "提問",
+    "followUpQuestionLabel": "你問了",
+    "followUpRemaining": "還可追問 {count} / 3 次",
+    "followUpLimitReached": "這次解讀的三次追問機會已用完。"
   },
   "history": {
     "title": "你的抽牌紀錄",

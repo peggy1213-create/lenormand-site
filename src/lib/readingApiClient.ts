@@ -2,6 +2,8 @@ import { DEFAULT_MODELS, type ApiProvider } from "./apiSettings";
 
 export type ReadingApiErrorCode = "invalid_key" | "rate_limited" | "refusal" | "network";
 
+export type ChatMessage = { role: "user" | "assistant"; content: string };
+
 export type ReadingStreamResult =
   | { ok: true; usage: { inputTokens: number; outputTokens: number } }
   | { ok: false; error: ReadingApiErrorCode };
@@ -15,12 +17,15 @@ const SENTINEL_HOLDBACK = 400;
 // prose chunks as they arrive and resolving once the trailing usage/error
 // sentinel has been parsed off the end of the stream. Shared by the
 // settings-page "Test key" button and the reading screen's live panel.
+// Pass `prompt` for a one-shot reading, or `messages` for a multi-turn
+// conversation (the reading plus follow-up questions).
 export async function streamReading(
   params: {
     provider: ApiProvider;
     model: string;
     apiKey: string;
-    prompt: string;
+    prompt?: string;
+    messages?: ChatMessage[];
     maxOutputTokens?: number;
   },
   onText: (chunk: string) => void,
