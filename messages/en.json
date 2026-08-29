@@ -222,6 +222,18 @@
     "close": "Close",
     "entries": [
       {
+        "date": "2026-08-29",
+        "text": "After a reading you run with your own API key, ask up to three follow-up questions — the whole Q&A is saved to your history."
+      },
+      {
+        "date": "2026-08-29",
+        "text": "Add tags to a reading right after you draw, without going to your history first."
+      },
+      {
+        "date": "2026-08-28",
+        "text": "Setting up “Read with your API” now just takes your API key — the provider and model are detected for you."
+      },
+      {
         "date": "2026-08-27",
         "text": "Run readings directly with your own Anthropic, OpenAI, or Gemini API key, and read the result as formatted text."
       },
