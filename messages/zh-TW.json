@@ -7,6 +7,7 @@
     "home": "牌陣",
     "history": "紀錄",
     "settings": "AI 解讀",
+    "learning": "學習",
     "about": "關於",
     "language": "語言",
     "openMenu": "開啟選單",
@@ -119,6 +120,10 @@
     "followUpQuestionLabel": "你問了",
     "followUpRemaining": "還可追問 {count} / 3 次",
     "followUpLimitReached": "這次解讀的三次追問機會已用完。"
+  },
+  "learning": {
+    "title": "學習",
+    "comingSoon": "即將推出"
   },
   "history": {
     "title": "你的抽牌紀錄",

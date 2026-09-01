@@ -1,0 +1,73 @@
+.main {
+  padding: 60px 48px 80px;
+}
+
+@media (max-width: 640px) {
+  .main {
+    padding: 60px 20px 56px;
+  }
+}
+
+.comingSoon {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 0.04em;
+  color: var(--text-body);
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.comingSoon .dots {
+  display: inline-block;
+  width: 1.5em;
+  text-align: left;
+}
+
+.comingSoon .dots::after {
+  content: "";
+  animation: comingSoonDots 1.6s steps(1, end) infinite;
+}
+
+@keyframes comingSoonDots {
+  0% {
+    content: "";
+  }
+  25% {
+    content: ".";
+  }
+  50% {
+    content: "..";
+  }
+  75% {
+    content: "...";
+  }
+  100% {
+    content: "";
+  }
+}
+
+.comingSoon {
+  animation: comingSoonPulse 3s ease-in-out infinite;
+}
+
+@keyframes comingSoonPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comingSoon,
+  .comingSoon .dots::after {
+    animation: none;
+  }
+
+  .comingSoon .dots::after {
+    content: "...";
+  }
+}

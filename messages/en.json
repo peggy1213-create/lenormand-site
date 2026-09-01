@@ -7,6 +7,7 @@
     "home": "Spreads",
     "history": "History",
     "settings": "AI Reading",
+    "learning": "Learning",
     "about": "About",
     "language": "Language",
     "openMenu": "Open menu",
@@ -119,6 +120,10 @@
     "followUpQuestionLabel": "You asked",
     "followUpRemaining": "{count} of 3 follow-ups left",
     "followUpLimitReached": "You've asked all three follow-ups for this reading."
+  },
+  "learning": {
+    "title": "Learning",
+    "comingSoon": "Coming soon"
   },
   "history": {
     "title": "Your Readings",
