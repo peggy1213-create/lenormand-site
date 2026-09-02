@@ -29,6 +29,10 @@ export async function generateMetadata({
     title: t("title"),
     description: t("tagline"),
     manifest: "/manifest.json",
+    verification: {
+      // Replace with the code from Google Search Console (Settings → Ownership verification → HTML tag).
+      google: "GOOGLE_VERIFICATION_CODE",
+    },
     appleWebApp: {
       capable: true,
       statusBarStyle: "default",
