@@ -229,6 +229,10 @@
     "close": "Close",
     "entries": [
       {
+        "date": "2026-09-03",
+        "text": "The site's official address is now https://www.in-betweens.cc/. The old https://in-betweens.vercel.app/ address still works for a while, but your earlier spread records aren't carried over to the new address — download them from History if you'd like to keep them."
+      },
+      {
         "date": "2026-09-02",
         "text": "Send feedback or report a bug without leaving the site — a contact form now opens right from the footer."
       },
