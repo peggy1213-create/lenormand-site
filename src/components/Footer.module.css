@@ -1,0 +1,19 @@
+/* "What's new" (left) and the Contact-me icon (right) share one row below
+   the disclaimer. */
+.bottomRow {
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+/* Below this width the floating language switcher (position: fixed, bottom
+   right) would sit on top of the Contact-me icon — inset the row so the icon
+   stays clear and clickable. */
+@media (max-width: 1180px) {
+  .bottomRow {
+    padding-right: 64px;
+  }
+}
