@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
+import ContactMe from "@/components/ContactMe";
 import styles from "./Header.module.css";
 
 function MenuIcon({ open }: { open: boolean }) {
@@ -106,6 +107,7 @@ export default function Header() {
               </Link>
             );
           })}
+          <ContactMe />
         </nav>
 
         <button
