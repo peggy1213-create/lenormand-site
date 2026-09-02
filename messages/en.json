@@ -214,13 +214,19 @@
     "privacyDisclosureBody": "Your key is stored only in this browser's local storage — never on In-Betweens' servers. When you request a reading, the key and prompt pass through a stateless relay that forwards them to your chosen provider and is not logged. Your provider will see the prompt and your question, subject to their own terms. Remove your key any time by clearing it above."
   },
   "footer": {
-    "disclaimer": "For entertainment purposes only. Not a substitute for professional, legal, financial, or medical advice."
+    "disclaimer": "For entertainment purposes only. Not a substitute for professional, legal, financial, or medical advice.",
+    "contact": "Contact me",
+    "contactClose": "Close"
   },
   "changelog": {
     "buttonLabel": "What's new",
     "title": "What's New",
     "close": "Close",
     "entries": [
+      {
+        "date": "2026-09-02",
+        "text": "Send feedback or report a bug without leaving the site — a contact form now opens right from the footer."
+      },
       {
         "date": "2026-08-29",
         "text": "After a reading you run with your own API key, ask up to three follow-up questions — the whole Q&A is saved to your history."

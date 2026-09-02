@@ -1,5 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import Changelog from "@/components/Changelog";
+import ContactMe from "@/components/ContactMe";
+import styles from "./Footer.module.css";
 
 export default async function Footer() {
   const t = await getTranslations("footer");
@@ -38,7 +40,10 @@ export default async function Footer() {
       >
         {t("disclaimer")}
       </span>
-      <Changelog />
+      <div className={styles.bottomRow}>
+        <Changelog />
+        <ContactMe />
+      </div>
     </footer>
   );
 }
