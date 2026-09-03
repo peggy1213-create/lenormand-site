@@ -18,6 +18,37 @@
     "chooseSpreadCta": "選擇牌陣",
     "deckCta": "點擊牌堆開始"
   },
+  "present": {
+    "dateFormat": "{year}年{month}月{day}日 {weekday}",
+    "weekdays": ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+    "months": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"],
+    "solarTerms": {
+      "xiaohan": "小寒",
+      "dahan": "大寒",
+      "lichun": "立春",
+      "yushui": "雨水",
+      "jingzhe": "驚蟄",
+      "chunfen": "春分",
+      "qingming": "清明",
+      "guyu": "穀雨",
+      "lixia": "立夏",
+      "xiaoman": "小滿",
+      "mangzhong": "芒種",
+      "xiazhi": "夏至",
+      "xiaoshu": "小暑",
+      "dashu": "大暑",
+      "liqiu": "立秋",
+      "chushu": "處暑",
+      "bailu": "白露",
+      "qiufen": "秋分",
+      "hanlu": "寒露",
+      "shuangjiang": "霜降",
+      "lidong": "立冬",
+      "xiaoxue": "小雪",
+      "daxue": "大雪",
+      "dongzhi": "冬至"
+    }
+  },
   "spread": {
     "daily": {
       "name": "每日抽牌",

@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import Button from "@/components/ds/Button";
 import OrnamentRule from "@/components/ds/OrnamentRule";
 import HomeDeckTeaser from "@/components/HomeDeckTeaser";
+import PresentMoment from "@/components/PresentMoment";
 import styles from "./page.module.css";
 
 export default async function HomePage({
@@ -57,6 +58,8 @@ export default async function HomePage({
           >
             {t("heading")}
           </h1>
+
+          <PresentMoment />
 
           <div className={styles.ornamentWrap}>
             <OrnamentRule motif="✦" />
