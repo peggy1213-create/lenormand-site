@@ -1,0 +1,36 @@
+.wrap {
+  margin: 14px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  font-family: var(--font-smallcaps);
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  color: #a38d78;
+}
+
+.date {
+  font-variant-numeric: tabular-nums;
+}
+
+.sep {
+  opacity: 0.6;
+}
+
+.term {
+  opacity: 0.85;
+}
+
+@media (max-width: 860px) {
+  .wrap {
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .sep {
+    display: none;
+  }
+}

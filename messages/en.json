@@ -18,6 +18,37 @@
     "chooseSpreadCta": "Choose a spread",
     "deckCta": "Click the deck to begin"
   },
+  "present": {
+    "dateFormat": "{weekday}, {month} {day}, {year}",
+    "weekdays": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "solarTerms": {
+      "xiaohan": "Xiǎohán · Minor Cold",
+      "dahan": "Dàhán · Major Cold",
+      "lichun": "Lìchūn · Start of Spring",
+      "yushui": "Yǔshuǐ · Rain Water",
+      "jingzhe": "Jīngzhé · Awakening of Insects",
+      "chunfen": "Chūnfēn · Spring Equinox",
+      "qingming": "Qīngmíng · Pure Brightness",
+      "guyu": "Gǔyǔ · Grain Rain",
+      "lixia": "Lìxià · Start of Summer",
+      "xiaoman": "Xiǎomǎn · Grain Buds",
+      "mangzhong": "Mángzhòng · Grain in Ear",
+      "xiazhi": "Xiàzhì · Summer Solstice",
+      "xiaoshu": "Xiǎoshǔ · Minor Heat",
+      "dashu": "Dàshǔ · Major Heat",
+      "liqiu": "Lìqiū · Start of Autumn",
+      "chushu": "Chǔshǔ · End of Heat",
+      "bailu": "Báilù · White Dew",
+      "qiufen": "Qiūfēn · Autumn Equinox",
+      "hanlu": "Hánlù · Cold Dew",
+      "shuangjiang": "Shuāngjiàng · Frost's Descent",
+      "lidong": "Lìdōng · Start of Winter",
+      "xiaoxue": "Xiǎoxuě · Minor Snow",
+      "daxue": "Dàxuě · Major Snow",
+      "dongzhi": "Dōngzhì · Winter Solstice"
+    }
+  },
   "spread": {
     "daily": {
       "name": "Daily Draw",
