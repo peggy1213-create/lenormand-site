@@ -1,7 +1,18 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import OrnamentRule from "@/components/ds/OrnamentRule";
 import DrawFlow from "@/components/DrawFlow";
+import { buildAlternates } from "@/lib/seo";
 import styles from "./page.module.css";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return { alternates: buildAlternates(locale, "/spreads") };
+}
 
 export default async function DrawPage({
   params,
