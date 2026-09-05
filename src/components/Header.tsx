@@ -34,7 +34,7 @@ export default function Header() {
     { href: "/spreads", label: t("home") },
     { href: "/history", label: t("history") },
     { href: "/settings", label: t("settings") },
-    { href: "/learning", label: t("learning") },
+    { href: "/learn/what-is-lenormand", label: t("learning") },
     { href: "/about", label: t("about") },
   ];
 

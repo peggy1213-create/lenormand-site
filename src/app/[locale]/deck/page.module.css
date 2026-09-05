@@ -1,0 +1,61 @@
+.main {
+  padding: 60px 48px 80px;
+}
+
+@media (max-width: 640px) {
+  .main {
+    padding: 48px 20px 64px;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 24px 16px;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+.cell:hover {
+  transform: translateY(-2px);
+}
+
+.cell:hover .image {
+  border-color: var(--gold-400);
+  box-shadow: var(--shadow-md);
+}
+
+.cell:hover .name {
+  color: var(--text-link-hover);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  max-width: 96px;
+  aspect-ratio: 96 / 152;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 4px;
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+.name {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--text-strong);
+  text-align: center;
+  transition: color var(--dur-fast) var(--ease-standard);
+}

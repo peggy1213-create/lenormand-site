@@ -156,6 +156,21 @@
     "title": "學習",
     "comingSoon": "即將推出"
   },
+  "learn": {
+    "title": "什麼是雷諾曼？",
+    "contentPending": "這篇介紹正在撰寫中。",
+    "exploreDeckCta": "探索牌卡"
+  },
+  "deck": {
+    "title": "牌卡指南",
+    "meaningHeading": "牌義",
+    "besideHeading": "與其他牌組合時",
+    "pairsHeading": "組合範例",
+    "prevCard": "上一張牌",
+    "nextCard": "下一張牌",
+    "backToDeck": "回到牌卡指南",
+    "notWrittenYet": "這段內容尚未撰寫。"
+  },
   "history": {
     "title": "你的抽牌紀錄",
     "exportTitle": "你的牌陣",

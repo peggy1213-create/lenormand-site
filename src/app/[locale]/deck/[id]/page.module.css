@@ -1,0 +1,132 @@
+.main {
+  padding: 60px 48px 80px;
+}
+
+@media (max-width: 640px) {
+  .main {
+    padding: 48px 20px 64px;
+  }
+}
+
+.num {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-subtle);
+}
+
+.image {
+  display: block;
+  width: 160px;
+  aspect-ratio: 96 / 152;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: 0 auto 36px;
+  border-radius: 6px;
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-md);
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.heading {
+  font-family: var(--font-smallcaps);
+  text-transform: none;
+  letter-spacing: var(--tracking-wide);
+  font-size: 13px;
+  color: var(--text-gilt);
+  margin: 0 0 10px;
+}
+
+.paragraph {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--text-body);
+  margin: 0 0 14px;
+}
+
+.paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.pending {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.pairList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pairItem {
+  padding: 16px 18px;
+  border: 1px solid var(--border-hair);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+
+.pairNames {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-family: var(--font-serif);
+  font-size: 17px;
+}
+
+.pairSubject {
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.pairArrow {
+  color: var(--text-subtle);
+}
+
+.pairModifier {
+  color: var(--text-link);
+}
+
+.pairModifier:hover {
+  color: var(--text-link-hover);
+}
+
+.prevNext {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 44px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-hair);
+  font-family: var(--font-smallcaps);
+  letter-spacing: var(--tracking-wide);
+  font-size: 13px;
+}
+
+.navLink {
+  color: var(--text-link);
+}
+
+.navLink:hover {
+  color: var(--text-link-hover);
+}
+
+.backLink {
+  color: var(--text-subtle);
+}
+
+.backLink:hover {
+  color: var(--text-strong);
+}
