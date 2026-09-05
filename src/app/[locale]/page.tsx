@@ -1,10 +1,21 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import Button from "@/components/ds/Button";
 import OrnamentRule from "@/components/ds/OrnamentRule";
 import HomeDeckTeaser from "@/components/HomeDeckTeaser";
 import PresentMoment from "@/components/PresentMoment";
+import { buildAlternates } from "@/lib/seo";
 import styles from "./page.module.css";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return { alternates: buildAlternates(locale) };
+}
 
 export default async function HomePage({
   params,
