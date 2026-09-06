@@ -24,9 +24,13 @@ export default async function DeckIndexPage({
   setRequestLocale(locale);
   const t = await getTranslations("deck");
   const cardsT = await getTranslations("cards");
+  const tLearning = await getTranslations("learning");
 
   return (
     <main className={styles.main} style={{ maxWidth: 980, margin: "0 auto" }}>
+      <Link href="/learning" className={styles.backToLearning}>
+        ← {tLearning("backToLearning")}
+      </Link>
       <div style={{ textAlign: "center", maxWidth: 620, margin: "0 auto 44px" }}>
         <h1
           style={{

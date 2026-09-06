@@ -34,7 +34,7 @@ The tone is genuinely light, and it is one of the few cards that lifts almost an
 
 Traditionally it also touches on trade and commerce, and on movement of goods or money over distance.
 
-The tone is neutral and open. A Ship is not good or bad; it describes range and direction. Read alone it tends to say *not here* and *not yet*.
+The tone is neutral and open. A Ship carries no verdict of its own; it describes range and direction. Read alone it tends to say *not here* and *not yet*.
 
 **Beside other cards.** Often the subject when travel is the question, and a modifier otherwise, where it pushes its neighbour outward — making it distant, foreign, or in transit. Ship + House is a home elsewhere, or a move. Ship + Heart is affection at a distance. It lengthens timelines rather than shortening them.
 
@@ -48,7 +48,7 @@ By extension it stands for real estate and for family lines, including the ways 
 
 The tone is warm and settled, but not passive. The House is one of the more stable cards in the deck, and it tends to anchor whatever is near it.
 
-**Beside other cards.** Usually the noun. Cards next to it describe the household's condition rather than replacing it — Clouds + House is an unsettled home, Fox + House is something dishonest close to home. When it modifies, it makes its neighbour domestic or familial: House + Ring is a marriage read through the family rather than the couple.
+**Beside other cards.** Usually the noun. Cards next to it describe the household's condition rather than replacing it — Clouds + House is an unsettled home, Fox + House is something self-serving close to home. When it modifies, it makes its neighbour domestic or familial: House + Ring is a marriage read through the family rather than the couple.
 
 ---
 
@@ -70,7 +70,7 @@ The tone is neutral and patient. The Tree resists speed. Where it appears, thing
 
 The traditional deck often shows the card with a dark side and a light side, and many readers use its orientation to see which way the confusion is moving. If your deck marks this, the darker end indicates where the trouble sits.
 
-The tone is uneasy and unresolved rather than actively bad. Clouds do not decide anything; they prevent you from seeing what has been decided.
+The tone is uneasy and unresolved rather than actively adverse. Clouds do not decide anything; they prevent you from seeing what has been decided.
 
 **Beside other cards.** Almost always a modifier. It clouds its neighbour — Clouds + Ring is an unclear agreement, Clouds + Man is a man whose intentions are not legible. It rarely stands as the subject unless the question is specifically about uncertainty itself.
 
@@ -154,21 +154,21 @@ The tone is restless and light. The Birds are busy rather than heavy. Their diff
 
 Literally it can mean a child, a pregnancy, or a young person, though the card should not be read as pregnancy on its own without clear support.
 
-The tone is fresh and gentle, and mostly light, though the naivety can cut both ways — a Child is trusting, which is sometimes a liability.
+The tone is fresh and gentle, and mostly light, though the naivety can cut both ways — a Child is trusting, and trust is not always returned.
 
-**Beside other cards.** Usually the modifier. It makes its neighbour new, small, or immature — Child + Ring is a young commitment, Child + Fox is naive trust misplaced. It shrinks whatever it modifies, which can be a relief beside heavy cards and a limitation beside good ones.
+**Beside other cards.** Usually the modifier. It makes its neighbour new, small, or immature — Child + Ring is a young commitment, Child + Fox is trust extended before the ground is known. It shrinks whatever it modifies, which can be a relief beside heavy cards and a limitation beside good ones.
 
 ---
 
 ## 14. Fox
 
-**Meaning.** Cunning, self-interest, and things that serve someone else's purpose. The Fox is the deck's card of caution: something here is not straightforwardly what it claims to be, and there is an agenda under it. It covers deception, but also skilled self-preservation — the Fox is competent, not merely dishonest.
+**Meaning.** Cunning, self-interest, and things that serve someone else's purpose. The Fox is the deck's card of caution: something here is not straightforwardly what it claims to be, and there is an agenda under it. It covers deception, but also skilled self-preservation — the Fox is competent, not merely self-serving.
 
 The tradition also connects it to employment and daily work, which sits oddly beside its trickery until you notice that both are about doing what is necessary to survive.
 
 The tone is wary. The Fox rarely announces itself, and its warning is usually to look again rather than to withdraw.
 
-**Beside other cards.** Almost always the modifier, and one of the deck's strongest. It casts suspicion on its neighbour — Fox + Ring is an agreement with something wrong in it, Fox + Letter is a message that misleads. Beside the Bouquet or the Heart, read for charm that is being used.
+**Beside other cards.** Almost always the modifier, and one of the deck's strongest. It casts suspicion on its neighbour — Fox + Ring is an agreement with something self-serving in it, Fox + Letter is a message shaped to serve the sender. Beside the Bouquet or the Heart, read for charm that is being used.
 
 ---
 
@@ -214,7 +214,7 @@ The tone is hopeful and mobile. Stork change is usually improvement, or at least
 
 Its constancy is its whole meaning. A Dog does not surprise you.
 
-The tone is warm and safe. It is one of the deck's most straightforwardly kind cards, and the tradition offers few cautions about it beyond the observation that loyalty can be given to the wrong person — which shows in the neighbours, not in the Dog.
+The tone is warm and safe. It is one of the deck's most straightforwardly kind cards, and the tradition offers few cautions about it beyond the observation that loyalty can be given to someone who does not return it — which shows in the neighbours, not in the Dog.
 
 **Beside other cards.** Often the subject when the question concerns a friend, and a modifier otherwise, where it makes its neighbour trustworthy or familiar. Dog + Letter is a message from a friend. Dog + Fox is loyalty being taken advantage of, and is worth reading carefully.
 
@@ -300,7 +300,7 @@ Crucially, the Ring says nothing about affection. A Ring is a bond, and bonds ex
 
 The tone is neutral and formal. Whether a Ring is good news depends entirely on what it is a commitment to, which is the neighbours' job to say.
 
-**Beside other cards.** Often the subject. As a modifier it binds or formalises its neighbour — Ring + Fox is an agreement with something dishonest in it, Ring + Coffin is a commitment ended. Read against the Heart: Heart + Ring is a loving commitment, Ring alone beside difficult cards may be a bond someone is stuck in.
+**Beside other cards.** Often the subject. As a modifier it binds or formalises its neighbour — Ring + Fox is an agreement with something self-serving in it, Ring + Coffin is a commitment ended. Read against the Heart: Heart + Ring is a loving commitment, Ring alone beside difficult cards may be a bond someone is stuck in.
 
 ---
 
@@ -310,7 +310,7 @@ The tone is neutral and formal. Whether a Ring is good news depends entirely on 
 
 Traditionally readers pay attention to whether the book in the image is open or closed, taking an open Book as knowledge available and a closed one as knowledge withheld.
 
-The tone is neutral and reserved. The Book does not say the secret is bad; it says there is something you have not been told.
+The tone is neutral and reserved. The Book does not say the secret is unwelcome; it says there is something you have not been told.
 
 **Beside other cards.** Usually the modifier, making its neighbour hidden or academic. Book + Heart is a secret affection. Book + Fox is deception concealed. Distinguish from Clouds: Clouds is confusion, Book is information deliberately not shared.
 
@@ -438,11 +438,12 @@ It is also, importantly, finite. A Cross is borne and then it is over, and readi
 
 Recurring distinctions worth keeping consistent as you edit, since beginners confuse them constantly:
 
-- **Rider / Letter / Birds** — arrival, written, spoken.
-- **Fox / Snake / Book / Clouds** — self-interest, entanglement, withheld information, plain confusion.
-- **Scythe / Coffin** — the cut, and the ending already made.
-- **Bear / Fish** — money held, money moving.
-- **Heart / Ring** — feeling, and the bond.
-- **Star / Sun / Moon** — direction, success, feeling and recognition.
-- **Mountain / Anchor** — what blocks, and what holds.
-- **Child / Lily** — the new, and the mature.
+* **Rider / Letter / Birds** — arrival, written, spoken.
+* **Fox / Snake / Book / Clouds** — self-interest, entanglement, withheld information, plain confusion.
+* **Scythe / Coffin** — the cut, and the ending already made.
+* **Bear / Fish** — money held, money moving.
+* **Heart / Ring** — feeling, and the bond.
+* **Star / Sun / Moon** — direction, success, feeling and recognition.
+* **Mountain / Anchor** — what blocks, and what holds.
+* **Child / Lily** — the new, and the mature.
+

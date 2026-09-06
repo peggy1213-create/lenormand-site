@@ -1,15 +1,16 @@
-// Converts docs/content-drafts/*.md into src/content/deck/*.en.ts.
+// Converts docs/content-drafts/*.md into src/content/deck/*.{locale}.ts.
 // Usage: node scripts/convert-deck-content.mjs
 //
-// Meanings draft: docs/content-drafts/card-meanings-draft.md
-//   "## N. Name" headings, each followed by a "**Meaning.**" paragraph
-//   block and a "**Beside other cards.**" paragraph block, separated by
-//   "---" rules.
-// Pairs draft: docs/content-drafts/card-pairs-draft.md
+// Meanings draft (per locale): docs/content-drafts/card-meanings-draft[.locale].md
+//   "## N. Name" headings, each followed by a meaning-marker paragraph
+//   block and a beside-marker paragraph block, separated by "---" rules.
+//   English markers: "**Meaning.**" / "**Beside other cards.**"
+//   Traditional Chinese markers: "**牌義：**" / "**與其他牌相鄰時：**"
+// Pairs draft (per locale): docs/content-drafts/card-pairs-draft[.locale].md
 //   "## N. Name" headings (the leading/subject card), each followed by
 //   "**First + Second** — text" lines.
 //
-// Never hand-edit the generated .en.ts files — re-run this script instead.
+// Never hand-edit the generated .ts files — re-run this script instead.
 
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -17,6 +18,43 @@ import path from "node:path";
 const ROOT = path.resolve(import.meta.dirname, "..");
 const DRAFTS_DIR = path.join(ROOT, "docs", "content-drafts");
 const CONTENT_DIR = path.join(ROOT, "src", "content", "deck");
+const MESSAGES_DIR = path.join(ROOT, "messages");
+
+const LOCALES = [
+  {
+    locale: "en",
+    meaningsDraft: "card-meanings-draft.md",
+    pairsDraft: "card-pairs-draft.md",
+    meaningsOut: "card-meanings.en.ts",
+    pairsOut: "card-pairs.en.ts",
+    meaningMarker: "**Meaning.**",
+    besideMarker: "**Beside other cards.**",
+    checkHeadingName(entry, slug) {
+      if (!entry.name.toLowerCase().startsWith(slug.slice(0, 4))) {
+        console.warn(
+          `  warning: draft heading "${entry.name}" (id ${entry.id}) looks different from cards.ts slug "${slug}" — check for a naming mismatch.`,
+        );
+      }
+    },
+  },
+  {
+    locale: "zh-TW",
+    meaningsDraft: "card-meanings-draft.zh-TW.md",
+    pairsDraft: "card-pairs-draft.zh-TW.md",
+    meaningsOut: "card-meanings.zh-TW.ts",
+    pairsOut: "card-pairs.zh-TW.ts",
+    meaningMarker: "**牌義：**",
+    besideMarker: "**與其他牌相鄰時：**",
+    checkHeadingName(entry, slug, messages) {
+      const expected = messages?.cards?.[slug]?.name;
+      if (expected && entry.name !== expected) {
+        console.warn(
+          `  warning: draft heading "${entry.name}" (id ${entry.id}) does not match messages/zh-TW.json name "${expected}" for slug "${slug}".`,
+        );
+      }
+    },
+  },
+];
 
 function fail(message) {
   console.error(`\nERROR: ${message}\n`);
@@ -33,7 +71,7 @@ async function readIfExists(filePath) {
 }
 
 // Parses src/data/cards.ts with a regex (no TS execution, no new
-// dependency) to get an id -> { slug, name } map for cross-checking.
+// dependency) to get an id -> slug map for cross-checking.
 async function loadCards() {
   const src = await readFile(path.join(ROOT, "src", "data", "cards.ts"), "utf8");
   const re = /card\((\d+),\s*"([a-z]+)"/g;
@@ -46,6 +84,11 @@ async function loadCards() {
     fail(`Expected 36 cards in src/data/cards.ts, found ${byId.size}.`);
   }
   return byId;
+}
+
+async function loadMessages(locale) {
+  const raw = await readIfExists(path.join(MESSAGES_DIR, `${locale}.json`));
+  return raw ? JSON.parse(raw) : null;
 }
 
 // Strips markdown emphasis markers (the drafts use *italic* / **bold**
@@ -81,19 +124,18 @@ function splitEntries(markdown) {
   return entries;
 }
 
-function parseMeaningsDraft(markdown, cardsById) {
+function parseMeaningsDraft(markdown, cardsById, config, messages) {
   const entries = splitEntries(markdown);
   const meanings = [];
   const seenIds = new Set();
 
   for (const entry of entries) {
     const body = entry.lines.join("\n");
-    const meaningMarker = "**Meaning.**";
-    const besideMarker = "**Beside other cards.**";
+    const { meaningMarker, besideMarker } = config;
     const meaningStart = body.indexOf(meaningMarker);
     const besideStart = body.indexOf(besideMarker);
     if (meaningStart === -1 || besideStart === -1) {
-      fail(`Card ${entry.id} (${entry.name}): missing "Meaning." or "Beside other cards." block.`);
+      fail(`Card ${entry.id} (${entry.name}): missing "${meaningMarker}" or "${besideMarker}" block.`);
     }
 
     const meaningBlock = body.slice(meaningStart + meaningMarker.length, besideStart);
@@ -104,8 +146,8 @@ function parseMeaningsDraft(markdown, cardsById) {
 
     const meaning = normalizeParagraphs(meaningBlock);
     const beside = normalizeParagraphs(besideBlock);
-    if (!meaning) fail(`Card ${entry.id} (${entry.name}): empty Meaning text.`);
-    if (!beside) fail(`Card ${entry.id} (${entry.name}): empty Beside other cards text.`);
+    if (!meaning) fail(`Card ${entry.id} (${entry.name}): empty meaning text.`);
+    if (!beside) fail(`Card ${entry.id} (${entry.name}): empty beside text.`);
 
     if (seenIds.has(entry.id)) fail(`Duplicate card id ${entry.id} in meanings draft.`);
     seenIds.add(entry.id);
@@ -114,11 +156,7 @@ function parseMeaningsDraft(markdown, cardsById) {
       fail(`Card id ${entry.id} (${entry.name}) does not exist in src/data/cards.ts.`);
     }
     const slug = cardsById.get(entry.id);
-    if (!entry.name.toLowerCase().startsWith(slug.slice(0, 4))) {
-      console.warn(
-        `  warning: draft heading "${entry.name}" (id ${entry.id}) looks different from cards.ts slug "${slug}" — check for a naming mismatch.`,
-      );
-    }
+    config.checkHeadingName(entry, slug, messages);
 
     meanings.push({ id: entry.id, meaning, beside });
   }
@@ -138,7 +176,7 @@ function parseMeaningsDraft(markdown, cardsById) {
   return meanings;
 }
 
-function renderMeaningsFile(meanings) {
+function renderMeaningsFile(meanings, config) {
   const entries = meanings
     .map(
       (m) =>
@@ -146,7 +184,7 @@ function renderMeaningsFile(meanings) {
     )
     .join("\n");
   return `// GENERATED by scripts/convert-deck-content.mjs from
-// docs/content-drafts/card-meanings-draft.md — do not hand-edit.
+// docs/content-drafts/${config.meaningsDraft} — do not hand-edit.
 // Re-run the script to regenerate after the draft changes.
 import type { CardMeaning } from "./types";
 
@@ -216,7 +254,7 @@ function parsePairsDraft(markdown, cardsById) {
   return pairs;
 }
 
-function renderPairsFile(pairs) {
+function renderPairsFile(pairs, config) {
   const entries = pairs
     .map(
       (p) =>
@@ -224,7 +262,7 @@ function renderPairsFile(pairs) {
     )
     .join("\n");
   return `// GENERATED by scripts/convert-deck-content.mjs from
-// docs/content-drafts/card-pairs-draft.md — do not hand-edit.
+// docs/content-drafts/${config.pairsDraft} — do not hand-edit.
 // Re-run the script to regenerate after the draft changes.
 import type { CardPair } from "./types";
 
@@ -237,31 +275,26 @@ ${entries}
 async function main() {
   const cardsById = await loadCards();
 
-  const meaningsDraft = await readIfExists(
-    path.join(DRAFTS_DIR, "card-meanings-draft.md"),
-  );
-  if (meaningsDraft) {
-    const meanings = parseMeaningsDraft(meaningsDraft, cardsById);
-    await writeFile(
-      path.join(CONTENT_DIR, "card-meanings.en.ts"),
-      renderMeaningsFile(meanings),
-    );
-    console.log(`card-meanings.en.ts: wrote ${meanings.length} meanings (ids 1-${meanings.length}).`);
-  } else {
-    console.log(
-      `Skipping meanings: ${path.relative(ROOT, path.join(DRAFTS_DIR, "card-meanings-draft.md"))} not found.`,
-    );
-  }
+  for (const config of LOCALES) {
+    const messages = await loadMessages(config.locale);
 
-  const pairsDraft = await readIfExists(path.join(DRAFTS_DIR, "card-pairs-draft.md"));
-  if (pairsDraft) {
-    const pairs = parsePairsDraft(pairsDraft, cardsById);
-    await writeFile(path.join(CONTENT_DIR, "card-pairs.en.ts"), renderPairsFile(pairs));
-    console.log(`card-pairs.en.ts: wrote ${pairs.length} pairs (36 cards x 5).`);
-  } else {
-    console.log(
-      `Skipping pairs: ${path.relative(ROOT, path.join(DRAFTS_DIR, "card-pairs-draft.md"))} not found.`,
-    );
+    const meaningsDraft = await readIfExists(path.join(DRAFTS_DIR, config.meaningsDraft));
+    if (meaningsDraft) {
+      const meanings = parseMeaningsDraft(meaningsDraft, cardsById, config, messages);
+      await writeFile(path.join(CONTENT_DIR, config.meaningsOut), renderMeaningsFile(meanings, config));
+      console.log(`${config.meaningsOut}: wrote ${meanings.length} meanings (ids 1-${meanings.length}).`);
+    } else {
+      console.log(`Skipping ${config.locale} meanings: ${path.join("docs", "content-drafts", config.meaningsDraft)} not found.`);
+    }
+
+    const pairsDraft = await readIfExists(path.join(DRAFTS_DIR, config.pairsDraft));
+    if (pairsDraft) {
+      const pairs = parsePairsDraft(pairsDraft, cardsById);
+      await writeFile(path.join(CONTENT_DIR, config.pairsOut), renderPairsFile(pairs, config));
+      console.log(`${config.pairsOut}: wrote ${pairs.length} pairs (36 cards x 5).`);
+    } else {
+      console.log(`Skipping ${config.locale} pairs: ${path.join("docs", "content-drafts", config.pairsDraft)} not found.`);
+    }
   }
 }
 

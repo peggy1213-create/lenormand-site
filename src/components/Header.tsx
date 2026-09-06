@@ -30,13 +30,19 @@ export default function Header() {
     setMenuOpen(false);
   }, [pathname]);
 
-  const navItems = [
+  const navItems: { href: string; label: string; activePrefixes?: string[] }[] = [
     { href: "/spreads", label: t("home") },
     { href: "/history", label: t("history") },
     { href: "/settings", label: t("settings") },
-    { href: "/learn/what-is-lenormand", label: t("learning") },
+    { href: "/learning", label: t("learning"), activePrefixes: ["/learning", "/learn", "/deck"] },
     { href: "/about", label: t("about") },
   ];
+
+  function isActive(item: (typeof navItems)[number]) {
+    return (item.activePrefixes ?? [item.href]).some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    );
+  }
 
   return (
     <header>
@@ -96,7 +102,7 @@ export default function Header() {
 
         <nav className={styles.nav}>
           {navItems.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const active = isActive(item);
             return active ? (
               <span key={item.href} className={styles.navActive}>
                 {item.label}
@@ -125,7 +131,7 @@ export default function Header() {
       {menuOpen && (
         <div id="mobile-nav-panel" className={styles.mobilePanel}>
           {navItems.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const active = isActive(item);
             return (
               <Link
                 key={item.href}

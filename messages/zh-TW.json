@@ -154,7 +154,11 @@
   },
   "learning": {
     "title": "學習",
-    "comingSoon": "即將推出"
+    "backToLearning": "學習",
+    "whatIsLenormandTitle": "什麼是雷諾曼",
+    "whatIsLenormandDescription": "認識雷諾曼卡牌與解讀方式的簡短介紹。",
+    "exploreDeckTitle": "探索牌卡",
+    "exploreDeckDescription": "瀏覽全部 36 張牌的牌義，以及它們如何組合。"
   },
   "learn": {
     "title": "什麼是雷諾曼？",
@@ -165,7 +169,6 @@
     "title": "牌卡指南",
     "meaningHeading": "牌義",
     "besideHeading": "與其他牌組合時",
-    "pairsHeading": "組合範例",
     "prevCard": "上一張牌",
     "nextCard": "下一張牌",
     "backToDeck": "回到牌卡指南",

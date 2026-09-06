@@ -17,6 +17,7 @@ const pages: PageDef[] = [
   { path: "/history", priority: 0.5, changeFrequency: "monthly" },
   { path: "/settings", priority: 0.5, changeFrequency: "monthly" },
   { path: "/about", priority: 0.5, changeFrequency: "monthly" },
+  { path: "/learning", priority: 0.6, changeFrequency: "monthly" },
   { path: "/learn/what-is-lenormand", priority: 0.6, changeFrequency: "monthly" },
   { path: "/deck", priority: 0.7, changeFrequency: "monthly" },
   ...CARDS.map((card): PageDef => ({

@@ -2,6 +2,22 @@
   padding: 60px 48px 80px;
 }
 
+.backToLearning {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-smallcaps);
+  letter-spacing: var(--tracking-wide);
+  font-size: 13px;
+  color: var(--text-subtle);
+  text-decoration: none;
+  margin-bottom: 28px;
+}
+
+.backToLearning:hover {
+  color: var(--text-strong);
+}
+
 @media (max-width: 640px) {
   .main {
     padding: 48px 20px 64px;

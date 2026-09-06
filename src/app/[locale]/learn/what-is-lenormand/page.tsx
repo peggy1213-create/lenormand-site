@@ -30,11 +30,15 @@ export default async function WhatIsLenormandPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("learn");
+  const tLearning = await getTranslations("learning");
   const content = getContent(locale as Locale);
   const hasContent = content.intro.length > 0 || content.sections.length > 0;
 
   return (
     <main className={styles.main} style={{ maxWidth: 720, margin: "0 auto" }}>
+      <Link href="/learning" className={styles.backToLearning}>
+        ← {tLearning("backToLearning")}
+      </Link>
       <div style={{ textAlign: "center", marginBottom: 40 }}>
         <h1
           style={{

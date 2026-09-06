@@ -154,7 +154,11 @@
   },
   "learning": {
     "title": "Learning",
-    "comingSoon": "Coming soon"
+    "backToLearning": "Learning",
+    "whatIsLenormandTitle": "What Is Lenormand",
+    "whatIsLenormandDescription": "A short introduction to the deck and how it's read.",
+    "exploreDeckTitle": "Explore the Deck",
+    "exploreDeckDescription": "Browse all 36 cards — their meaning and how they combine."
   },
   "learn": {
     "title": "What Is Lenormand?",
@@ -165,7 +169,6 @@
     "title": "Deck Reference",
     "meaningHeading": "Meaning",
     "besideHeading": "Beside other cards",
-    "pairsHeading": "In combination",
     "prevCard": "Previous card",
     "nextCard": "Next card",
     "backToDeck": "Back to the deck",

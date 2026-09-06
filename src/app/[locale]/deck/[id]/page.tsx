@@ -5,19 +5,13 @@ import OrnamentRule from "@/components/ds/OrnamentRule";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import { CARDS, getCardById } from "@/data/cards";
-import type { CardMeaning, CardPair } from "@/content/deck/types";
+import type { CardMeaning } from "@/content/deck/types";
 import { CARD_MEANINGS as EN_MEANINGS } from "@/content/deck/card-meanings.en";
 import { CARD_MEANINGS as ZH_TW_MEANINGS } from "@/content/deck/card-meanings.zh-TW";
-import { CARD_PAIRS as EN_PAIRS } from "@/content/deck/card-pairs.en";
-import { CARD_PAIRS as ZH_TW_PAIRS } from "@/content/deck/card-pairs.zh-TW";
 import styles from "./page.module.css";
 
 function getMeanings(locale: Locale): CardMeaning[] {
   return locale === "zh-TW" ? ZH_TW_MEANINGS : EN_MEANINGS;
-}
-
-function getPairs(locale: Locale): CardPair[] {
-  return locale === "zh-TW" ? ZH_TW_PAIRS : EN_PAIRS;
 }
 
 export function generateStaticParams() {
@@ -78,17 +72,18 @@ export default async function DeckCardPage({
   const card = getCardById(numericId);
   const t = await getTranslations("deck");
   const cardsT = await getTranslations("cards");
+  const tLearning = await getTranslations("learning");
 
   const meaning = getMeanings(locale as Locale).find((m) => m.id === card.id);
-  const pairs = getPairs(locale as Locale)
-    .filter((p) => p.first === card.id)
-    .slice(0, 5);
 
   const prevId = card.id === 1 ? CARDS.length : card.id - 1;
   const nextId = card.id === CARDS.length ? 1 : card.id + 1;
 
   return (
     <main className={styles.main} style={{ maxWidth: 720, margin: "0 auto" }}>
+      <Link href="/learning" className={styles.backToLearning}>
+        ← {tLearning("backToLearning")}
+      </Link>
       <div style={{ textAlign: "center", marginBottom: 32 }}>
         <span className={styles.num}>{String(card.id).padStart(2, "0")}</span>
         <h1
@@ -127,33 +122,6 @@ export default async function DeckCardPage({
         <h2 className={styles.heading}>{t("besideHeading")}</h2>
         {meaning?.beside ? (
           <Paragraphs text={meaning.beside} />
-        ) : (
-          <p className={styles.pending}>{t("notWrittenYet")}</p>
-        )}
-      </section>
-
-      <section className={styles.section}>
-        <h2 className={styles.heading}>{t("pairsHeading")}</h2>
-        {pairs.length > 0 ? (
-          <ul className={styles.pairList}>
-            {pairs.map((pair) => {
-              const secondCard = getCardById(pair.second);
-              return (
-                <li key={`${pair.first}-${pair.second}`} className={styles.pairItem}>
-                  <div className={styles.pairNames}>
-                    <span className={styles.pairSubject}>{cardsT(`${card.slug}.name`)}</span>
-                    <span className={styles.pairArrow} aria-hidden="true">
-                      →
-                    </span>
-                    <Link href={`/deck/${secondCard.id}`} className={styles.pairModifier}>
-                      {cardsT(`${secondCard.slug}.name`)}
-                    </Link>
-                  </div>
-                  <p className={styles.paragraph}>{pair.text}</p>
-                </li>
-              );
-            })}
-          </ul>
         ) : (
           <p className={styles.pending}>{t("notWrittenYet")}</p>
         )}
