@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import OrnamentRule from "@/components/ds/OrnamentRule";
 import { Link } from "@/i18n/navigation";
+import { CARDS } from "@/data/cards";
 import styles from "./page.module.css";
 
 export async function generateMetadata({
@@ -10,34 +11,26 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "learning" });
+  const t = await getTranslations({ locale, namespace: "deck" });
   return { title: t("title") };
 }
 
-export default async function LearningPage({
+export default async function DeckIndexPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("learning");
-
-  const sections = [
-    {
-      href: "/learn/what-is-lenormand",
-      title: t("whatIsLenormandTitle"),
-      description: t("whatIsLenormandDescription"),
-    },
-    {
-      href: "/deck",
-      title: t("exploreDeckTitle"),
-      description: t("exploreDeckDescription"),
-    },
-  ] as const;
+  const t = await getTranslations("deck");
+  const cardsT = await getTranslations("cards");
+  const tLearning = await getTranslations("learning");
 
   return (
-    <main className={styles.main} style={{ maxWidth: 820, margin: "0 auto" }}>
+    <main className={styles.main} style={{ maxWidth: 980, margin: "0 auto" }}>
+      <Link href="/learning" className={styles.backToLearning}>
+        ← {tLearning("backToLearning")}
+      </Link>
       <div style={{ textAlign: "center", maxWidth: 620, margin: "0 auto 44px" }}>
         <h1
           style={{
@@ -56,11 +49,15 @@ export default async function LearningPage({
       </div>
 
       <div className={styles.grid}>
-        {sections.map((section) => (
-          <Link key={section.href} href={section.href} className={styles.card}>
-            <div className={styles.glowFrame} />
-            <h2 className={styles.cardTitle}>{section.title}</h2>
-            <p className={styles.cardDescription}>{section.description}</p>
+        {CARDS.map((card) => (
+          <Link key={card.id} href={`/deck/${card.id}`} className={styles.cell}>
+            <span
+              className={styles.image}
+              role="img"
+              aria-label={cardsT(`${card.slug}.name`)}
+              style={{ backgroundImage: `url('${card.image}')` }}
+            />
+            <span className={styles.name}>{cardsT(`${card.slug}.name`)}</span>
           </Link>
         ))}
       </div>
