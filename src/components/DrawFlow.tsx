@@ -682,7 +682,7 @@ export default function DrawFlow() {
               {stageHint}
             </div>
 
-            <div style={{ display: "flex", gap: 18, justifyContent: "center", marginTop: "clamp(10px, 2.2vh, 22px)", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 18, justifyContent: "center", alignItems: "flex-start", marginTop: "clamp(10px, 2.2vh, 22px)", flexWrap: "wrap" }}>
               <button
                 type="button"
                 onClick={layAction}
@@ -713,6 +713,7 @@ export default function DrawFlow() {
                     text={promptText}
                     label={t("copyPromptButton")}
                     copiedLabel={t("copiedToast")}
+                    pasteIntoLabel={t("pasteIntoLabel")}
                     fallbackTitle={t("copyFallbackTitle")}
                     fallbackHint={t("copyFallbackHint")}
                     selectAllLabel={t("selectAllButton")}
@@ -732,16 +733,8 @@ export default function DrawFlow() {
               <button type="button" onClick={back} style={pillButtonStyle(true, "ghost")}>
                 {t("backToSpreadsButton")}
               </button>
-            </div>
 
-            {done && currentReadingId && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: "clamp(10px, 2.2vh, 20px)",
-                }}
-              >
+              {done && currentReadingId && (
                 <TagEditor
                   key={currentReadingId}
                   readingId={currentReadingId}
@@ -749,8 +742,8 @@ export default function DrawFlow() {
                   tone="dark"
                   triggerLabel={t("addTagsButton")}
                 />
-              </div>
-            )}
+              )}
+            </div>
 
             {done && allShown && showApiPanel && (
               <ReadWithApiPanel prompt={promptText} readingId={currentReadingId} />

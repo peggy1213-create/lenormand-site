@@ -129,6 +129,7 @@
     "addTagsButton": "Add tags",
     "copyPromptButton": "Copy AI reading prompt",
     "copiedToast": "Prompt copied",
+    "pasteIntoLabel": "Paste into",
     "copyFallbackTitle": "Copy manually",
     "copyFallbackHint": "Clipboard access isn't available. Select all the text below and copy it manually.",
     "selectAllButton": "Select all",

@@ -935,6 +935,7 @@ export function Row({
             text={promptText}
             label={h("copyPromptButton")}
             copiedLabel={t("copiedToast")}
+            pasteIntoLabel={t("pasteIntoLabel")}
             fallbackTitle={t("copyFallbackTitle")}
             fallbackHint={t("copyFallbackHint")}
             selectAllLabel={t("selectAllButton")}
