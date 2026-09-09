@@ -155,25 +155,7 @@
   },
   "learning": {
     "title": "Learning",
-    "backToLearning": "Learning",
-    "whatIsLenormandTitle": "What Is Lenormand",
-    "whatIsLenormandDescription": "A short introduction to the deck and how it's read.",
-    "exploreDeckTitle": "Explore the Deck",
-    "exploreDeckDescription": "Browse all 36 cards — their meaning and how they combine."
-  },
-  "learn": {
-    "title": "What Is Lenormand?",
-    "contentPending": "This introduction is being written.",
-    "exploreDeckCta": "Explore the deck"
-  },
-  "deck": {
-    "title": "Deck Reference",
-    "meaningHeading": "Meaning",
-    "besideHeading": "Beside other cards",
-    "prevCard": "Previous card",
-    "nextCard": "Next card",
-    "backToDeck": "Back to the deck",
-    "notWrittenYet": "This passage hasn't been written yet."
+    "comingSoon": "Coming soon"
   },
   "history": {
     "title": "Your Readings",

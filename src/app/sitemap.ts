@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
-import { CARDS } from "@/data/cards";
-import { localizedUrl } from "@/lib/seo";
+
+const BASE_URL = "https://www.in-betweens.cc";
 
 type PageDef = {
   path: string;
@@ -17,15 +17,9 @@ const pages: PageDef[] = [
   { path: "/history", priority: 0.5, changeFrequency: "monthly" },
   { path: "/settings", priority: 0.5, changeFrequency: "monthly" },
   { path: "/about", priority: 0.5, changeFrequency: "monthly" },
-  { path: "/learning", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/learn/what-is-lenormand", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/deck", priority: 0.7, changeFrequency: "monthly" },
-  ...CARDS.map((card): PageDef => ({
-    path: `/deck/${card.id}`,
-    priority: 0.6,
-    changeFrequency: "monthly",
-  })),
 ];
+
+const localeUrl = (locale: string, path: string) => `${BASE_URL}/${locale}${path}`;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   // Single build-time timestamp; refreshes on each deploy.
@@ -33,13 +27,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return pages.flatMap((page) =>
     routing.locales.map((locale) => ({
-      url: localizedUrl(locale, page.path),
+      url: localeUrl(locale, page.path),
       lastModified,
       changeFrequency: page.changeFrequency,
       priority: page.priority,
       alternates: {
         languages: Object.fromEntries(
-          routing.locales.map((l) => [l, localizedUrl(l, page.path)]),
+          routing.locales.map((l) => [l, localeUrl(l, page.path)]),
         ),
       },
     })),
