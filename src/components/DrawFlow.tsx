@@ -705,6 +705,7 @@ export default function DrawFlow() {
                     gap: 18,
                     flexWrap: "wrap",
                     justifyContent: "center",
+                    alignItems: "flex-start",
                     opacity: allShown ? 1 : 0.45,
                     pointerEvents: allShown ? "auto" : "none",
                   }}
