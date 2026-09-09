@@ -129,6 +129,7 @@
     "addTagsButton": "加上標籤",
     "copyPromptButton": "複製 AI 解讀提示",
     "copiedToast": "已複製",
+    "pasteIntoLabel": "貼上到",
     "copyFallbackTitle": "手動複製",
     "copyFallbackHint": "無法使用剪貼簿功能，請手動全選以下文字並複製。",
     "selectAllButton": "全選",

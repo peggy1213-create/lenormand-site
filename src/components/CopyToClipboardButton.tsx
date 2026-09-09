@@ -1,21 +1,38 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import Button from "./ds/Button";
 
 const DEFAULT_BUTTON_STYLE: CSSProperties = {
+  cursor: "pointer",
+  padding: "12px 26px",
+  borderRadius: 8,
+  border: "1px solid rgba(231,199,137,.45)",
+  background: "transparent",
   color: "var(--gold-200)",
-  borderColor: "rgba(231,199,137,.45)",
+  fontFamily: "var(--font-smallcaps)",
+  textTransform: "uppercase",
+  letterSpacing: "var(--tracking-caps)",
+  fontSize: 12,
+  whiteSpace: "nowrap",
+  transition: "background var(--dur-med) var(--ease-out-soft)",
 };
 
-// Copies `text` to the clipboard with a brief "copied" confirmation; falls
-// back to a select-all modal if the Clipboard API is unavailable (old iOS
-// Safari in some contexts).
+const PASTE_TARGETS: ReadonlyArray<{ label: string; href: string }> = [
+  { label: "Claude", href: "https://claude.ai/new" },
+  { label: "ChatGPT", href: "https://chatgpt.com/" },
+  { label: "Gemini", href: "https://gemini.google.com/app" },
+];
+
+// Copies `text` to the clipboard, then surfaces one-click links to paste the
+// prompt into Claude, ChatGPT, or Gemini. Falls back to a select-all modal
+// when the Clipboard API is unavailable (old iOS Safari in some contexts).
 export default function CopyToClipboardButton({
   text,
   label,
   copiedLabel,
+  pasteIntoLabel,
   fallbackTitle,
   fallbackHint,
   selectAllLabel,
@@ -24,13 +41,16 @@ export default function CopyToClipboardButton({
   text: string;
   label: string;
   copiedLabel: string;
+  pasteIntoLabel: string;
   fallbackTitle: string;
   fallbackHint: string;
   selectAllLabel: string;
   buttonStyle?: CSSProperties;
 }) {
   const [copied, setCopied] = useState(false);
+  const [justCopied, setJustCopied] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
+  const popoverRef = useRef<HTMLSpanElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   async function handleClick() {
@@ -38,46 +58,81 @@ export default function CopyToClipboardButton({
       if (!navigator.clipboard) throw new Error("Clipboard API unavailable");
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
+      setJustCopied(true);
     } catch {
       setShowFallback(true);
     }
   }
 
+  useEffect(() => {
+    if (!justCopied) return;
+    const timer = window.setTimeout(() => setJustCopied(false), 2000);
+    return () => window.clearTimeout(timer);
+  }, [justCopied]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), 10000);
+    const onDocMouseDown = (e: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setCopied(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("mousedown", onDocMouseDown);
+    };
+  }, [copied]);
+
   return (
     <>
-      <span style={{ position: "relative", display: "inline-block" }}>
-        <Button variant="plain" onClick={handleClick} style={buttonStyle}>
-          {label}
-        </Button>
+      <span
+        ref={popoverRef}
+        style={{
+          display: "inline-flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <button type="button" onClick={handleClick} style={buttonStyle}>
+          {justCopied ? copiedLabel : label}
+        </button>
         {copied && (
           <span
             role="status"
             style={{
-              position: "absolute",
-              bottom: "100%",
-              left: "50%",
-              transform: "translateX(-50%)",
-              marginBottom: 8,
               display: "inline-flex",
               alignItems: "center",
-              gap: 8,
-              padding: "8px 16px",
-              borderRadius: 8,
-              background: "var(--surface-card)",
-              border: "1px solid var(--gold-400)",
-              boxShadow: "var(--shadow-md)",
-              color: "var(--ink-900)",
-              fontFamily: "var(--font-smallcaps)",
-              textTransform: "uppercase",
-              letterSpacing: "var(--tracking-wide)",
-              fontSize: 11,
+              gap: 6,
+              fontSize: 12,
               whiteSpace: "nowrap",
-              zIndex: 10,
             }}
           >
-            <span style={{ color: "var(--gold-300)" }}>✦</span>
-            {copiedLabel}
+            <span style={{ color: "var(--moss-100)" }}>{pasteIntoLabel}</span>
+            {PASTE_TARGETS.map((target, i) => (
+              <span key={target.label} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <a
+                  href={target.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setCopied(false)}
+                  style={{
+                    color: "var(--gold-200)",
+                    textDecoration: "underline",
+                    textUnderlineOffset: 2,
+                  }}
+                >
+                  {target.label}
+                </a>
+                {i < PASTE_TARGETS.length - 1 && (
+                  <span aria-hidden="true" style={{ color: "var(--moss-100)" }}>
+                    ·
+                  </span>
+                )}
+              </span>
+            ))}
           </span>
         )}
       </span>
