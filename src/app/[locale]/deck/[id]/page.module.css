@@ -34,10 +34,9 @@
 .image {
   display: block;
   width: 160px;
+  height: auto;
   aspect-ratio: 96 / 152;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  object-fit: cover;
   margin: 0 auto 36px;
   border-radius: 6px;
   border: 1px solid var(--border-soft);
