@@ -53,17 +53,17 @@ export const WHAT_IS_LENORMAND: WhatIsLenormandContent = {
       body: [
         {
           kind: "p",
-          lead: "Meanings are literal.",
+          lead: "Meanings are literal",
           text: "The cards describe things, situations, and people in fairly concrete terms. Fox is self-interest, or employment. Ring is an agreement. Coffin is an ending. There is no requirement to meditate on a card to reach its meaning, and no expectation that it will mean something different for each reader.",
         },
         {
           kind: "p",
-          lead: "Meaning is made between cards, not inside them.",
+          lead: "Meaning is made between cards, not inside them",
           text: "This is the largest single thing to absorb. A card on its own says very little. Clouds is confusion, but confusion about what? Fox is self-interest, but whose, and directed at what? The answer comes from the card next to it. Two cards make one statement, not two, and reading them as a list of separate meanings produces nothing useful.",
         },
         {
           kind: "p",
-          lead: "There are no reversals.",
+          lead: "There are no reversals",
           text: "A card that lands upside down is simply turned the right way up. The deck has no inverted meanings, and none are needed, because tone comes from the surrounding cards instead. A difficult card beside a bright one reads differently from the same card beside another difficult one.",
         },
         {
@@ -95,19 +95,19 @@ export const WHAT_IS_LENORMAND: WhatIsLenormandContent = {
           kind: "list",
           items: [
             {
-              lead: "Answers tend to be more concrete.",
+              lead: "Answers tend to be more concrete",
               text: "Lenormand is better suited to “what is happening here” than to “what does this mean for my inner life”.",
             },
             {
-              lead: "Meanings are more standardised.",
+              lead: "Meanings are more standardised",
               text: "Two experienced Lenormand readers will usually agree on what Ring plus Key says. Two Tarot readers might reasonably differ on the Hermit.",
             },
             {
-              lead: "Learning curve is shaped differently.",
+              lead: "Learning curve is shaped differently",
               text: "The 36 meanings are quick to learn and the combinations take a long time. Tarot is roughly the reverse.",
             },
             {
-              lead: "Intuition plays a different role.",
+              lead: "Intuition plays a different role",
               text: "In Lenormand it works within a fixed vocabulary rather than replacing it.",
             },
           ],
