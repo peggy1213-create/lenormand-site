@@ -4,6 +4,7 @@ import OrnamentRule from "@/components/ds/OrnamentRule";
 import { Link } from "@/i18n/navigation";
 import { CARDS } from "@/data/cards";
 import DeckViewer from "@/components/deck/DeckViewer";
+import { buildAlternates } from "@/lib/seo";
 import styles from "./page.module.css";
 
 export async function generateMetadata({
@@ -13,7 +14,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "deck" });
-  return { title: t("title") };
+  return { title: t("title"), alternates: buildAlternates(locale, "/deck") };
 }
 
 export default async function DeckIndexPage({
