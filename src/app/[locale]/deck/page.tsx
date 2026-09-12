@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import OrnamentRule from "@/components/ds/OrnamentRule";
 import { Link } from "@/i18n/navigation";
 import { CARDS } from "@/data/cards";
+import DeckViewer from "@/components/deck/DeckViewer";
 import styles from "./page.module.css";
 
 export async function generateMetadata({
@@ -23,7 +24,6 @@ export default async function DeckIndexPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("deck");
-  const cardsT = await getTranslations("cards");
   const tLearning = await getTranslations("learning");
 
   return (
@@ -48,19 +48,7 @@ export default async function DeckIndexPage({
         <OrnamentRule motif="✦" style={{ margin: "20px 0 0" }} />
       </div>
 
-      <div className={styles.grid}>
-        {CARDS.map((card) => (
-          <Link key={card.id} href={`/deck/${card.id}`} className={styles.cell}>
-            <span
-              className={styles.image}
-              role="img"
-              aria-label={cardsT(`${card.slug}.name`)}
-              style={{ backgroundImage: `url('${card.image}')` }}
-            />
-            <span className={styles.name}>{cardsT(`${card.slug}.name`)}</span>
-          </Link>
-        ))}
-      </div>
+      <DeckViewer cards={CARDS} />
     </main>
   );
 }
