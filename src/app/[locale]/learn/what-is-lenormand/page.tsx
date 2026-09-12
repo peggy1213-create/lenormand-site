@@ -6,6 +6,7 @@ import type { Locale } from "@/i18n/routing";
 import { WHAT_IS_LENORMAND as EN_CONTENT } from "@/content/learn/what-is-lenormand.en";
 import { WHAT_IS_LENORMAND as ZH_TW_CONTENT } from "@/content/learn/what-is-lenormand.zh-TW";
 import type { WhatIsLenormandContent } from "@/content/learn/what-is-lenormand.en";
+import { buildAlternates } from "@/lib/seo";
 import styles from "./page.module.css";
 
 function getContent(locale: Locale): WhatIsLenormandContent {
@@ -19,7 +20,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "learn" });
-  return { title: t("title") };
+  return {
+    title: t("title"),
+    alternates: buildAlternates(locale, "/learn/what-is-lenormand"),
+  };
 }
 
 export default async function WhatIsLenormandPage({

@@ -5,6 +5,7 @@ import { setRequestLocale, getTranslations, getMessages } from "next-intl/server
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { routing } from "@/i18n/routing";
+import { BASE_URL, buildAlternates } from "@/lib/seo";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -26,10 +27,25 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "site" });
+  const ogLocale = locale === "zh-TW" ? "zh_TW" : "en_US";
+  const alternateLocales = routing.locales
+    .filter((l) => l !== locale)
+    .map((l) => (l === "zh-TW" ? "zh_TW" : "en_US"));
   return {
+    metadataBase: new URL(BASE_URL),
     title: t("title"),
     description: t("tagline"),
     manifest: "/manifest.json",
+    alternates: buildAlternates(locale),
+    openGraph: {
+      title: t("title"),
+      description: t("tagline"),
+      url: `${BASE_URL}/${locale}`,
+      siteName: t("title"),
+      locale: ogLocale,
+      alternateLocale: alternateLocales,
+      type: "website",
+    },
     appleWebApp: {
       capable: true,
       statusBarStyle: "default",
