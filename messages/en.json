@@ -304,6 +304,10 @@
     "close": "Close",
     "entries": [
       {
+        "date": "2026-09-12",
+        "text": "Learn the deck a new way — the Deck Reference page has a Shuffle & Draw mode. Shuffle the cards, turn one at a time, and a running counter tracks which of the 36 you've already studied. Switch back to Spread any time to see your progress marked across the whole deck."
+      },
+      {
         "date": "2026-09-03",
         "text": "The site's official address is now https://www.in-betweens.cc/. The old https://in-betweens.vercel.app/ address still works for a while, but your earlier spread records aren't carried over to the new address — download them from History if you'd like to keep them."
       },
