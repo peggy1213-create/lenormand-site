@@ -75,11 +75,31 @@ export default async function WhatIsLenormandPage({
             {content.sections.map((section, i) => (
               <section key={i} style={{ marginTop: 8 }}>
                 <h2 className={styles.sectionHeading}>{section.heading}</h2>
-                {section.body.map((paragraph, j) => (
-                  <p key={j} className={styles.paragraph}>
-                    {paragraph}
-                  </p>
-                ))}
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {section.body.map((block, j) =>
+                    block.kind === "list" ? (
+                      <ul key={j} className={styles.list}>
+                        {block.items.map((item, k) => (
+                          <li key={k} className={styles.paragraph}>
+                            {item.lead ? (
+                              <strong className={styles.lead}>{item.lead}</strong>
+                            ) : null}
+                            {item.lead ? " " : ""}
+                            {item.text}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p key={j} className={styles.paragraph}>
+                        {block.lead ? (
+                          <strong className={styles.lead}>{block.lead}</strong>
+                        ) : null}
+                        {block.lead ? " " : ""}
+                        {block.text}
+                      </p>
+                    ),
+                  )}
+                </div>
               </section>
             ))}
           </div>
