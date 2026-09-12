@@ -173,7 +173,12 @@
     "prevCard": "上一張牌",
     "nextCard": "下一張牌",
     "backToDeck": "回到牌卡指南",
-    "notWrittenYet": "這段內容尚未撰寫。"
+    "notWrittenYet": "這段內容尚未撰寫。",
+    "seoTitle": "{name}（第 {number} 號）—— 雷諾曼牌義與組合",
+    "seoDescriptionFallback": "{name}：雷諾曼第 {number} 號牌的牌義與組合解讀。",
+    "imageAlt": "{name}——雷諾曼牌卡插圖",
+    "breadcrumbHome": "首頁",
+    "breadcrumbDeck": "牌卡指南"
   },
   "deckViewer": {
     "modeToggleAria": "選擇瀏覽牌組的方式",

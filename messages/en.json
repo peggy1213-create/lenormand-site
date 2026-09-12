@@ -173,7 +173,12 @@
     "prevCard": "Previous card",
     "nextCard": "Next card",
     "backToDeck": "Back to the deck",
-    "notWrittenYet": "This passage hasn't been written yet."
+    "notWrittenYet": "This passage hasn't been written yet.",
+    "seoTitle": "{name} ({number}) — Lenormand Card Meaning & Combinations",
+    "seoDescriptionFallback": "{name}: meaning and combinations of Lenormand card {number}.",
+    "imageAlt": "{name} — Lenormand card illustration",
+    "breadcrumbHome": "Home",
+    "breadcrumbDeck": "Deck"
   },
   "deckViewer": {
     "modeToggleAria": "Choose how to browse the deck",
