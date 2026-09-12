@@ -1,0 +1,446 @@
+/* ---------- Mode toggle ---------- */
+.toggle {
+  display: inline-flex;
+  align-self: center;
+  margin: 0 auto 32px;
+  padding: 4px;
+  border: 1px solid var(--gold-400);
+  border-radius: 999px;
+  background: var(--surface-card);
+  gap: 2px;
+}
+
+.toggleWrap {
+  display: flex;
+  justify-content: center;
+}
+
+.toggleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 auto 32px;
+}
+
+.toggleRow .toggle {
+  margin: 0;
+}
+
+.toggleButton {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 10px 22px;
+  min-height: 44px;
+  border-radius: 999px;
+  font-family: var(--font-smallcaps);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  font-size: 12px;
+  color: var(--text-subtle);
+  transition:
+    background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.toggleButton:hover {
+  color: var(--text-strong);
+}
+
+.toggleButton:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 2px;
+}
+
+.toggleButtonActive {
+  background: var(--gilt);
+  color: var(--ink-900);
+}
+
+.toggleButtonActive:hover {
+  color: var(--ink-900);
+}
+
+/* ---------- Spread grid ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 24px 16px;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+.cell:hover {
+  transform: translateY(-2px);
+}
+
+.cell:hover .cellImage {
+  border-color: var(--gold-400);
+  box-shadow: var(--shadow-md);
+}
+
+.cell:hover .cellName {
+  color: var(--text-link-hover);
+}
+
+.cellImage {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 96px;
+  aspect-ratio: 96 / 152;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 4px;
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+.cell[data-drawn="true"] .cellImage {
+  border-color: var(--gold-400);
+  box-shadow: 0 0 0 1px rgba(231, 199, 137, 0.35), var(--shadow-xs);
+}
+
+.cellDrawnBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gilt);
+  color: var(--ink-900);
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+  border: 1px solid var(--gold-400);
+  box-shadow: var(--shadow-xs);
+}
+
+.spreadLegendWrap {
+  display: flex;
+  justify-content: center;
+  margin: -8px 0 20px;
+}
+
+.spreadLegend {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-hair);
+  font-family: var(--font-smallcaps);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+
+.spreadLegendMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gilt);
+  color: var(--ink-900);
+  border: 1px solid var(--gold-400);
+  font-family: var(--font-serif);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cellName {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--text-strong);
+  text-align: center;
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+
+/* ---------- Shuffle mode stage ---------- */
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  min-height: 360px;
+  padding: 20px 0 8px;
+}
+
+.counters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
+  font-family: var(--font-smallcaps);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  font-size: 12px;
+  color: var(--text-subtle);
+}
+
+.counters strong {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+/* Deck stack — face-down cards */
+.deck {
+  position: relative;
+  width: 132px;
+  height: 208px;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  perspective: 1000px;
+}
+
+.deck:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 6px;
+  border-radius: 12px;
+}
+
+.deck[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.deckCard {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background-image: var(--card-back-url);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 1px solid var(--gold-400);
+  box-shadow: var(--shadow-md);
+  will-change: transform;
+}
+
+.deckHint {
+  font-family: var(--font-smallcaps);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  font-size: 12px;
+  color: var(--text-subtle);
+  min-height: 18px;
+  text-align: center;
+}
+
+.emptyHint {
+  color: var(--text-subtle);
+  font-family: var(--font-serif);
+  font-size: 14px;
+  text-align: center;
+  margin: 0;
+}
+
+/* Drawn card — face-up, flippable */
+.drawnWrap {
+  position: relative;
+  width: 132px;
+  height: 208px;
+  perspective: 1200px;
+}
+
+.drawnLink {
+  position: absolute;
+  inset: 0;
+  display: block;
+  text-decoration: none;
+  border-radius: 8px;
+  transform-style: preserve-3d;
+  transition: transform 0.6s var(--ease-out-soft);
+  transform: rotateY(180deg);
+}
+
+.drawnLink[data-face="back"] {
+  transform: rotateY(0deg);
+}
+
+.drawnLink:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 6px;
+}
+
+.drawnFace,
+.drawnBack {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  border: 1px solid var(--gold-400);
+  box-shadow: var(--shadow-md);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.drawnBack {
+  background-image: var(--card-back-url);
+}
+
+.drawnFace {
+  transform: rotateY(180deg);
+}
+
+.drawnCaption {
+  display: block;
+  text-align: center;
+  margin-top: 12px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  color: var(--text-strong);
+}
+
+.drawnNumber {
+  display: block;
+  font-family: var(--font-smallcaps);
+  letter-spacing: var(--tracking-caps);
+  font-size: 11px;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 12px 16px;
+  margin-top: 4px;
+}
+
+.actionButton {
+  appearance: none;
+  cursor: pointer;
+  min-height: 44px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--gold-400);
+  background: transparent;
+  color: var(--gold-200);
+  font-family: var(--font-smallcaps);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  font-size: 12px;
+  transition:
+    background var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+
+.actionButton:hover {
+  background: rgba(231, 199, 137, 0.12);
+  color: var(--text-strong);
+}
+
+.actionButton:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 3px;
+}
+
+.actionButton:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.actionButtonPrimary {
+  background: var(--gilt);
+  color: var(--ink-900);
+}
+
+.actionButtonPrimary:hover {
+  background: var(--gilt);
+  color: var(--ink-900);
+  filter: brightness(1.04);
+}
+
+.actionButtonGhost {
+  border-color: rgba(231, 199, 137, 0.35);
+  color: var(--text-subtle);
+}
+
+.actionColumn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.actionsHint {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-subtle);
+  text-align: center;
+}
+
+.confirmRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 12px 16px;
+  border: 1px dashed var(--gold-400);
+  border-radius: 10px;
+  background: var(--surface-card);
+}
+
+.confirmText {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--text-strong);
+  text-align: center;
+}
+
+.confirmButtons {
+  display: flex;
+  gap: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawnLink {
+    transition: opacity 0.2s linear;
+  }
+  .cell,
+  .cellImage,
+  .cellName,
+  .toggleButton,
+  .actionButton {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 20px 12px;
+  }
+}
