@@ -5,7 +5,7 @@ import { setRequestLocale, getTranslations, getMessages } from "next-intl/server
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { routing } from "@/i18n/routing";
-import { BASE_URL, buildAlternates } from "@/lib/seo";
+import { BASE_URL, buildAlternates, localizedUrl } from "@/lib/seo";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -42,7 +42,7 @@ export async function generateMetadata({
     openGraph: {
       title: t("title"),
       description: t("tagline"),
-      url: `${BASE_URL}/${locale}`,
+      url: localizedUrl(locale),
       siteName: t("title"),
       locale: ogLocale,
       alternateLocale: alternateLocales,
