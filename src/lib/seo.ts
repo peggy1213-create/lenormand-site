@@ -3,7 +3,8 @@ import { routing } from "@/i18n/routing";
 export const BASE_URL = "https://www.in-betweens.cc";
 
 export function localizedUrl(locale: string, path: string = ""): string {
-  return `${BASE_URL}/${locale}${path}`;
+  const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
+  return `${BASE_URL}${prefix}${path}`;
 }
 
 /**
