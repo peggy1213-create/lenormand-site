@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { track } from "@vercel/analytics";
+import posthog from "posthog-js";
 import type { Locale } from "@/i18n/routing";
 import { SPREADS } from "@/data/spreads";
 import { CARDS, CARD_BACK_IMAGE, type Card } from "@/data/cards";
@@ -197,6 +198,7 @@ export default function DrawFlow() {
     const skip = spreadAt.id === "daily";
     const locked = skip && dailyLocked;
     track("spread_selected", { spread: spreadAt.id, locale });
+    posthog.capture("spread_selected", { spread: spreadAt.id, locale });
     setSel(i);
     setOpen(true);
     setPhase(locked ? "locked" : skip ? "shuffle" : "question");
