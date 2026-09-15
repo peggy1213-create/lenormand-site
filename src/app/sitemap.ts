@@ -3,6 +3,8 @@ import { routing } from "@/i18n/routing";
 import { CARDS } from "@/data/cards";
 import { localizedUrl } from "@/lib/seo";
 
+const { defaultLocale } = routing;
+
 type PageDef = {
   path: string;
   priority: number;
@@ -38,9 +40,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: page.changeFrequency,
       priority: page.priority,
       alternates: {
-        languages: Object.fromEntries(
-          routing.locales.map((l) => [l, localizedUrl(l, page.path)]),
-        ),
+        languages: {
+          ...Object.fromEntries(
+            routing.locales.map((l) => [l, localizedUrl(l, page.path)]),
+          ),
+          "x-default": localizedUrl(defaultLocale, page.path),
+        },
       },
     })),
   );
