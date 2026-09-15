@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale, getTranslations, getMessages } from "next-intl/server";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { routing } from "@/i18n/routing";
@@ -112,6 +113,18 @@ export default async function LocaleLayout({
           <Analytics />
           <SpeedInsights />
         </PostHogProvider>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-0Q82SZMP7L"
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-0Q82SZMP7L');
+          `}
+        </Script>
       </body>
     </html>
   );
