@@ -10,6 +10,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import PostHogProvider from "@/components/PostHogProvider";
+import PostHogPageView from "@/components/PostHogPageView";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -96,17 +98,20 @@ export default async function LocaleLayout({
         </head>
       )}
       <body style={{ margin: 0 }}>
-        <NextIntlClientProvider messages={messages}>
-          <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-            <Header />
-            <div style={{ flex: 1 }}>{children}</div>
-            <Footer />
-            <LanguageSwitcher />
-          </div>
-        </NextIntlClientProvider>
-        <ServiceWorkerRegister />
-        <Analytics />
-        <SpeedInsights />
+        <PostHogProvider>
+          <NextIntlClientProvider messages={messages}>
+            <PostHogPageView />
+            <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+              <Header />
+              <div style={{ flex: 1 }}>{children}</div>
+              <Footer />
+              <LanguageSwitcher />
+            </div>
+          </NextIntlClientProvider>
+          <ServiceWorkerRegister />
+          <Analytics />
+          <SpeedInsights />
+        </PostHogProvider>
       </body>
     </html>
   );
