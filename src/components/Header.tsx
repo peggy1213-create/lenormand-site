@@ -33,7 +33,7 @@ export default function Header() {
   const navItems: { href: string; label: string; activePrefixes?: string[] }[] = [
     { href: "/spreads", label: t("home") },
     { href: "/history", label: t("history") },
-    { href: "/settings", label: t("settings") },
+    { href: "/aireading", label: t("settings") },
     { href: "/learning", label: t("learning"), activePrefixes: ["/learning", "/learn", "/deck"] },
     { href: "/about", label: t("about") },
   ];

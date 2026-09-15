@@ -17,7 +17,7 @@ const pages: PageDef[] = [
   { path: "", priority: 1.0, changeFrequency: "weekly" },
   { path: "/spreads", priority: 0.8, changeFrequency: "weekly" },
   { path: "/history", priority: 0.5, changeFrequency: "monthly" },
-  { path: "/settings", priority: 0.5, changeFrequency: "monthly" },
+  { path: "/aireading", priority: 0.5, changeFrequency: "monthly" },
   { path: "/about", priority: 0.5, changeFrequency: "monthly" },
   { path: "/learning", priority: 0.6, changeFrequency: "monthly" },
   { path: "/learn/what-is-lenormand", priority: 0.6, changeFrequency: "monthly" },
