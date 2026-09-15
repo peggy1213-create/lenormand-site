@@ -13,8 +13,11 @@ export function localizedUrl(locale: string, path: string = ""): string {
 export function buildAlternates(locale: string, path: string = "") {
   return {
     canonical: localizedUrl(locale, path),
-    languages: Object.fromEntries(
-      routing.locales.map((l) => [l, localizedUrl(l, path)]),
-    ),
+    languages: {
+      ...Object.fromEntries(
+        routing.locales.map((l) => [l, localizedUrl(l, path)]),
+      ),
+      "x-default": localizedUrl(routing.defaultLocale, path),
+    },
   };
 }
