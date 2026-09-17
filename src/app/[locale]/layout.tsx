@@ -13,6 +13,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import PostHogProvider from "@/components/PostHogProvider";
 import PostHogPageView from "@/components/PostHogPageView";
+import ClarityProvider from "@/components/ClarityProvider";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -110,6 +111,7 @@ export default async function LocaleLayout({
             </div>
           </NextIntlClientProvider>
           <ServiceWorkerRegister />
+          <ClarityProvider />
           <Analytics />
           <SpeedInsights />
         </PostHogProvider>
