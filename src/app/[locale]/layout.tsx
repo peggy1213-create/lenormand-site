@@ -3,8 +3,6 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale, getTranslations, getMessages } from "next-intl/server";
 import Script from "next/script";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { routing } from "@/i18n/routing";
 import { BASE_URL, buildAlternates, localizedUrl } from "@/lib/seo";
 import Header from "@/components/Header";
@@ -81,24 +79,30 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale}>
-      {locale === "zh-TW" && (
-        <head>
-          <link
-            rel="preload"
-            href="/fonts/SweiSpringCJKtc-Regular.woff2"
-            as="font"
-            type="font/woff2"
-            crossOrigin="anonymous"
-          />
-          <link
-            rel="preload"
-            href="/fonts/SweiSpringCJKtc-Bold.woff2"
-            as="font"
-            type="font/woff2"
-            crossOrigin="anonymous"
-          />
-        </head>
-      )}
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+SC:wght@400;500;600&family=Pinyon+Script&family=Alegreya+Sans:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        />
+        {locale === "zh-TW" && (
+          <>
+            <link
+              rel="preload"
+              href="/fonts/SweiSpringCJKtc-Regular.woff2"
+              as="font"
+              type="font/woff2"
+              crossOrigin="anonymous"
+            />
+            <link
+              rel="preload"
+              href="/fonts/SweiSpringCJKtc-Bold.woff2"
+              as="font"
+              type="font/woff2"
+              crossOrigin="anonymous"
+            />
+          </>
+        )}
+      </head>
       <body style={{ margin: 0 }}>
         <PostHogProvider>
           <NextIntlClientProvider messages={messages}>
@@ -112,8 +116,6 @@ export default async function LocaleLayout({
           </NextIntlClientProvider>
           <ServiceWorkerRegister />
           <ClarityProvider />
-          <Analytics />
-          <SpeedInsights />
         </PostHogProvider>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-0Q82SZMP7L"
