@@ -9,12 +9,7 @@ import { GoogleGenAI } from "@google/genai";
 // response. Do not add console.log/console.error calls that include any of
 // req.json(), the api key, the prompt, or raw provider error objects.
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// Extended thinking on Gemini can otherwise push a single response past 30–70s
-// (observed directly), which risks the Vercel serverless timeout on top of
-// being a slow reading. Gives the route more room than the 10s default.
-export const maxDuration = 60;
 
 type ApiProvider = "anthropic" | "openai" | "gemini";
 type ErrorCode = "invalid_key" | "rate_limited" | "network";

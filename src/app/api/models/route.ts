@@ -7,7 +7,6 @@ import { GoogleGenAI } from "@google/genai";
 // endpoint and returns only the resulting model IDs. Never log the request
 // body (it contains the user's API key) or raw provider error objects.
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type ApiProvider = "anthropic" | "openai" | "gemini";
