@@ -13,6 +13,18 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "close": "Close",
+    "modalTitle": "Welcome to In-Betweens",
+    "modalSubtitle": "Sign in to save your readings and unlock AI-powered interpretations.",
+    "signInWithGoogle": "Continue with Google",
+    "termsPrefix": "By continuing, you agree to our",
+    "termsOfService": "Terms of Service",
+    "termsAnd": "and",
+    "privacyPolicy": "Privacy Policy"
+  },
   "home": {
     "heading": "The Cards Are Waiting",
     "chooseSpreadCta": "Choose a spread",
