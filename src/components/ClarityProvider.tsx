@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import clarity from "@microsoft/clarity";
 
-const CLARITY_PROJECT_ID = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID;
+const CLARITY_PROJECT_ID = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID || "yjsb29p1lk";
 
 export default function ClarityProvider() {
   useEffect(() => {
