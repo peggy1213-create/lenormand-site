@@ -15,6 +15,8 @@
     "@google/genai": "^2.17.1",
     "@microsoft/clarity": "^1.0.2",
     "@opennextjs/cloudflare": "^1.20.6",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.116.0",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.39.0",
     "next": "^16.3.5",
