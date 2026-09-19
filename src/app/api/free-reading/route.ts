@@ -14,7 +14,7 @@ const AUTH_SPREADS: SpreadId[] = ["daily", "three", "five"];
 const MAX_DAILY_ANON = 1;
 const MAX_DAILY_AUTH = 2;
 const MAX_OUTPUT_TOKENS = 512;
-const MODEL = "@cf/meta/llama-3.1-8b-instruct";
+const MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 
 function todayKey(identifier: string): string {
   const d = new Date();
@@ -99,7 +99,8 @@ export async function POST(req: Request) {
     return new Response(result, {
       headers: { "Content-Type": "text/event-stream" },
     });
-  } catch {
+  } catch (e) {
+    console.error("free-reading AI error:", e);
     return jsonError("ai_error", 502);
   }
 }

@@ -168,7 +168,7 @@
     "freeReadingLimitReached": "今日的免費解讀次數已用完。明天再來，或使用你自己的 API 金鑰。",
     "freeReadingSpreadLocked": "免費 AI 解讀僅適用於每日抽牌。",
     "freeReadingError": "免費解讀暫時無法完成。請稍後再試，或複製上方的提示詞。",
-    "freeReadingPoweredBy": "由 Llama 3.1 透過 Cloudflare Workers AI 提供",
+    "freeReadingPoweredBy": "由 Llama 4 透過 Cloudflare Workers AI 提供",
     "freeReadingSignInHint": "登入即可在三張牌和五張牌牌陣享有免費 AI 解讀"
   },
   "learning": {

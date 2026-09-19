@@ -64,7 +64,8 @@ export async function streamFreeReading(
           if (data === "[DONE]") continue;
           try {
             const parsed = JSON.parse(data);
-            const content = parsed.response;
+            const content =
+              parsed.choices?.[0]?.delta?.content ?? parsed.response;
             if (content) onText(content);
           } catch {
             // non-JSON data line, skip
