@@ -17,6 +17,10 @@ function classifyError(err: unknown): ErrorCode {
     (err as { status?: number } | null)?.status ??
     (err as { response?: { status?: number } } | null)?.response?.status;
   if (status === 401 || status === 403) return "invalid_key";
+  if (status === 400) {
+    const msg = String((err as { message?: string } | null)?.message ?? "");
+    if (msg.includes("API_KEY_INVALID") || msg.includes("API key not valid")) return "invalid_key";
+  }
   if (status === 429) return "rate_limited";
   return "network";
 }
