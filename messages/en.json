@@ -168,7 +168,6 @@
     "freeReadingLimitReached": "You've used your free reading for today. Come back tomorrow, or use your own API key.",
     "freeReadingSpreadLocked": "Free AI reading is only available for the Daily Draw.",
     "freeReadingError": "The free reading couldn't be completed right now. Try again later, or copy the prompt above.",
-    "freeReadingPoweredBy": "Powered by Llama 4 via Cloudflare Workers AI",
     "freeReadingSignInHint": "Sign in for free AI readings on 3-card and 5-card spreads"
   },
   "learning": {

@@ -120,21 +120,6 @@ export default function FreeReadingPanel({
 
       {text.length > 0 && <MarkdownReading text={text} tone="onDark" />}
 
-      {state === "done" && (
-        <p
-          style={{
-            marginTop: 14,
-            fontFamily: "var(--font-smallcaps)",
-            textTransform: "uppercase",
-            letterSpacing: "var(--tracking-wide)",
-            fontSize: 11,
-            color: "var(--gold-300)",
-            textAlign: "right",
-          }}
-        >
-          {t("freeReadingPoweredBy")}
-        </p>
-      )}
     </div>
   );
 }

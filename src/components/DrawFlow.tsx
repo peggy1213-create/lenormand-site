@@ -80,6 +80,7 @@ const FREE_READING_SPREADS_ANON: SpreadId[] = ["daily"];
 const FREE_READING_SPREADS_AUTH: SpreadId[] = ["daily", "three", "five"];
 const FREE_LIMIT_ANON = 1;
 const FREE_LIMIT_AUTH = 2;
+const UNLIMITED_EMAILS = new Set(["peichun1213@gmail.com"]);
 
 export default function DrawFlow() {
   const locale = useLocale() as Locale;
@@ -110,8 +111,9 @@ export default function DrawFlow() {
 
   useEffect(() => {
     setApiConfigured(hasAnyProviderConfigured());
+    const isUnlimited = user?.email ? UNLIMITED_EMAILS.has(user.email) : false;
     const limit = user ? FREE_LIMIT_AUTH : FREE_LIMIT_ANON;
-    setFreeReadingAvailable(getLocalFreeReadingCount() < limit);
+    setFreeReadingAvailable(isUnlimited || getLocalFreeReadingCount() < limit);
   }, [open, user]);
   const questionHelpRef = useRef<HTMLDivElement | null>(null);
 
@@ -563,7 +565,10 @@ export default function DrawFlow() {
               >
                 <span
                   style={{
-                    display: "block",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
                     fontFamily: "var(--font-smallcaps)",
                     textTransform: "uppercase",
                     letterSpacing: "var(--tracking-caps)",
@@ -573,6 +578,14 @@ export default function DrawFlow() {
                   }}
                 >
                   {t("yourQuestionLabel")}
+                  {currentReadingId && (
+                    <TagEditor
+                      key={currentReadingId}
+                      readingId={currentReadingId}
+                      initialTags={[]}
+                      tone="dark"
+                    />
+                  )}
                 </span>
                 <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 20, lineHeight: 1.45, color: "var(--gold-200)" }}>
                   {question.trim()}
@@ -697,34 +710,81 @@ export default function DrawFlow() {
               {stageHint}
             </div>
 
-            <div style={{ display: "flex", gap: 18, justifyContent: "center", alignItems: "flex-start", marginTop: "clamp(10px, 2.2vh, 22px)", flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={layAction}
-                disabled={(choosing && !done) || questionMissing || phase === "locked"}
-                style={{
-                  ...pillButtonStyle(
-                    !questionMissing && (asking || done || allShown || (ready && !choosing)),
-                    "gilt",
-                  ),
-                  display: (choosing && !done) || phase === "locked" ? "none" : "inline-block",
-                }}
-              >
-                {layLabel}
-              </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, alignItems: "center", marginTop: "clamp(10px, 2.2vh, 22px)" }}>
+              {!done && (
+                <button
+                  type="button"
+                  onClick={layAction}
+                  disabled={(choosing && !done) || questionMissing || phase === "locked"}
+                  style={{
+                    ...pillButtonStyle(
+                      !questionMissing && (asking || done || allShown || (ready && !choosing)),
+                      "gilt",
+                    ),
+                    display: (choosing && !done) || phase === "locked" ? "none" : "inline-block",
+                  }}
+                >
+                  {layLabel}
+                </button>
+              )}
 
               {done && (
                 <div
                   style={{
                     display: "flex",
-                    gap: 18,
+                    gap: 10,
                     flexWrap: "wrap",
                     justifyContent: "center",
-                    alignItems: "flex-start",
-                    opacity: allShown ? 1 : 0.45,
-                    pointerEvents: allShown ? "auto" : "none",
+                    alignItems: "center",
                   }}
                 >
+                  {((user?.email && UNLIMITED_EMAILS.has(user.email)) || (user ? FREE_READING_SPREADS_AUTH : FREE_READING_SPREADS_ANON).includes(spread.id)) && freeReadingAvailable && !showFreePanel && !showApiPanel && (
+                    <button
+                      type="button"
+                      onClick={() => setShowFreePanel(true)}
+                      disabled={!allShown}
+                      style={{ ...pillButtonStyle(allShown, "gilt"), opacity: allShown ? 1 : 0.45 }}
+                    >
+                      {t("freeReadingButton")}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={layAction}
+                    style={pillButtonStyle(true, "gilt")}
+                  >
+                    {layLabel}
+                  </button>
+                  {apiConfigured && !showApiPanel && !showFreePanel && (
+                    <button
+                      type="button"
+                      onClick={() => setShowApiPanel(true)}
+                      disabled={!allShown}
+                      style={{ ...pillButtonStyle(allShown, "gilt"), opacity: allShown ? 1 : 0.45 }}
+                    >
+                      {t("readWithApiButton")}
+                    </button>
+                  )}
+                  {!user && (spread.id === "three" || spread.id === "five") && !showApiPanel && (
+                    <span
+                      style={{
+                        fontFamily: "var(--font-serif)",
+                        fontStyle: "italic",
+                        fontSize: 12,
+                        color: "var(--gold-300)",
+                        maxWidth: 200,
+                        textAlign: "center",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {t("freeReadingSignInHint")}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+                {done && (
                   <CopyToClipboardButton
                     text={promptText}
                     label={t("copyPromptButton")}
@@ -733,56 +793,14 @@ export default function DrawFlow() {
                     fallbackTitle={t("copyFallbackTitle")}
                     fallbackHint={t("copyFallbackHint")}
                     selectAllLabel={t("selectAllButton")}
+                    buttonStyle={pillButtonStyle(true, "ghost")}
                   />
-                  {(user ? FREE_READING_SPREADS_AUTH : FREE_READING_SPREADS_ANON).includes(spread.id) && freeReadingAvailable && !showFreePanel && !showApiPanel && (
-                    <button
-                      type="button"
-                      onClick={() => setShowFreePanel(true)}
-                      style={pillButtonStyle(true, "gilt")}
-                    >
-                      {t("freeReadingButton")}
-                    </button>
-                  )}
-                  {!user && (spread.id === "three" || spread.id === "five") && !showApiPanel && (
-                    <span
-                      style={{
-                        fontFamily: "var(--font-serif)",
-                        fontStyle: "italic",
-                        fontSize: 13,
-                        color: "var(--gold-300)",
-                        maxWidth: 220,
-                        textAlign: "center",
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {t("freeReadingSignInHint")}
-                    </span>
-                  )}
-                  {apiConfigured && !showApiPanel && !showFreePanel && (
-                    <button
-                      type="button"
-                      onClick={() => setShowApiPanel(true)}
-                      style={pillButtonStyle(true, "gilt")}
-                    >
-                      {t("readWithApiButton")}
-                    </button>
-                  )}
-                </div>
-              )}
+                )}
 
-              <button type="button" onClick={back} style={pillButtonStyle(true, "ghost")}>
-                {t("backToSpreadsButton")}
-              </button>
-
-              {done && currentReadingId && (
-                <TagEditor
-                  key={currentReadingId}
-                  readingId={currentReadingId}
-                  initialTags={[]}
-                  tone="dark"
-                  triggerLabel={t("addTagsButton")}
-                />
-              )}
+                <button type="button" onClick={back} style={pillButtonStyle(true, "ghost")}>
+                  {t("backToSpreadsButton")}
+                </button>
+              </div>
             </div>
 
             {done && allShown && showFreePanel && (

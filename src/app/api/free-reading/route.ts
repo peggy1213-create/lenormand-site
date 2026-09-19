@@ -11,6 +11,7 @@ type FreeReadingBody = {
 
 const ANON_SPREADS: SpreadId[] = ["daily"];
 const AUTH_SPREADS: SpreadId[] = ["daily", "three", "five"];
+const UNLIMITED_EMAILS = new Set(["peichun1213@gmail.com"]);
 const MAX_DAILY_ANON = 1;
 const MAX_DAILY_AUTH = 2;
 const MAX_OUTPUT_TOKENS = 512;
@@ -42,10 +43,10 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  const isUnlimited = user?.email ? UNLIMITED_EMAILS.has(user.email) : false;
   const allowedSpreads = user ? AUTH_SPREADS : ANON_SPREADS;
-  const dailyLimit = user ? MAX_DAILY_AUTH : MAX_DAILY_ANON;
 
-  if (!allowedSpreads.includes(spread)) {
+  if (!isUnlimited && !allowedSpreads.includes(spread)) {
     return jsonError("spread_not_allowed", 403);
   }
 
@@ -73,7 +74,8 @@ export async function POST(req: Request) {
       ?? req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
       ?? "unknown";
 
-  if (kv) {
+  if (kv && !isUnlimited) {
+    const dailyLimit = user ? MAX_DAILY_AUTH : MAX_DAILY_ANON;
     const key = todayKey(identifier);
     const raw = await kv.get(key);
     const used = raw ? parseInt(raw, 10) : 0;
@@ -89,7 +91,7 @@ export async function POST(req: Request) {
       stream: true,
     }) as unknown as ReadableStream;
 
-    if (kv) {
+    if (kv && !isUnlimited) {
       const key = todayKey(identifier);
       const raw = await kv.get(key);
       const used = raw ? parseInt(raw, 10) : 0;
