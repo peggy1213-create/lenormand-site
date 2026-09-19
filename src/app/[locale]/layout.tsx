@@ -5,7 +5,9 @@ import { setRequestLocale, getTranslations, getMessages } from "next-intl/server
 import Script from "next/script";
 import { routing } from "@/i18n/routing";
 import { BASE_URL, buildAlternates, localizedUrl } from "@/lib/seo";
+import { createClient } from "@/lib/supabase/server";
 import Header from "@/components/Header";
+import AuthProvider from "@/components/AuthProvider";
 import Footer from "@/components/Footer";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
@@ -76,6 +78,8 @@ export default async function LocaleLayout({
   }
   setRequestLocale(locale);
   const messages = await getMessages();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   return (
     <html lang={locale}>
@@ -106,13 +110,15 @@ export default async function LocaleLayout({
       <body style={{ margin: 0 }}>
         <PostHogProvider>
           <NextIntlClientProvider messages={messages}>
-            <PostHogPageView />
-            <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-              <Header />
-              <div style={{ flex: 1 }}>{children}</div>
-              <Footer />
-              <LanguageSwitcher />
-            </div>
+            <AuthProvider initialUser={user}>
+              <PostHogPageView />
+              <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+                <Header />
+                <div style={{ flex: 1 }}>{children}</div>
+                <Footer />
+                <LanguageSwitcher />
+              </div>
+            </AuthProvider>
           </NextIntlClientProvider>
           <ServiceWorkerRegister />
           <ClarityProvider />

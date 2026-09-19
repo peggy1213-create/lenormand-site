@@ -1,4 +1,16 @@
 {
+  "auth": {
+    "signIn": "登入",
+    "signOut": "登出",
+    "close": "關閉",
+    "modalTitle": "歡迎來到 In-Betweens",
+    "modalSubtitle": "登入以解鎖三張牌和五張牌的免費 AI 解讀功能。",
+    "signInWithGoogle": "使用 Google 繼續",
+    "termsPrefix": "繼續即表示您同意我們的",
+    "termsOfService": "服務條款",
+    "termsAnd": "和",
+    "privacyPolicy": "隱私權政策"
+  },
   "site": {
     "title": "In-Betweens",
     "tagline": "抽取雷諾曼卡牌，並保留個人抽牌紀錄 — 無需註冊。"
@@ -151,7 +163,12 @@
     "followUpSendButton": "提問",
     "followUpQuestionLabel": "你問了",
     "followUpRemaining": "還可追問 {count} / 3 次",
-    "followUpLimitReached": "這次解讀的三次追問機會已用完。"
+    "followUpLimitReached": "這次解讀的三次追問機會已用完。",
+    "freeReadingButton": "免費 AI 解讀",
+    "freeReadingLimitReached": "今日的免費解讀次數已用完。明天再來，或使用你自己的 API 金鑰。",
+    "freeReadingSpreadLocked": "免費 AI 解讀僅適用於每日抽牌。",
+    "freeReadingError": "免費解讀暫時無法完成。請稍後再試，或複製上方的提示詞。",
+    "freeReadingSignInHint": "登入即可在三張牌和五張牌牌陣享有免費 AI 解讀"
   },
   "learning": {
     "title": "學習",
