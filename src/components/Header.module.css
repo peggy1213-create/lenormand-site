@@ -93,6 +93,10 @@
   color: var(--ink-900);
 }
 
+.mobileAuth {
+  padding: 16px 20px;
+}
+
 @media (max-width: 720px) {
   .bar {
     padding: 16px 20px;

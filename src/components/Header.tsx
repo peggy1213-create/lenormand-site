@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
-import ContactMe from "@/components/ContactMe";
+import AuthButton from "@/components/AuthButton";
 import styles from "./Header.module.css";
 
 function MenuIcon({ open }: { open: boolean }) {
@@ -113,7 +113,7 @@ export default function Header() {
               </Link>
             );
           })}
-          <ContactMe />
+          <AuthButton />
         </nav>
 
         <button
@@ -142,6 +142,9 @@ export default function Header() {
               </Link>
             );
           })}
+          <div className={styles.mobileAuth}>
+            <AuthButton />
+          </div>
         </div>
       )}
     </header>

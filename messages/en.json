@@ -1,4 +1,16 @@
 {
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "close": "Close",
+    "modalTitle": "Welcome to In-Betweens",
+    "modalSubtitle": "Sign in to unlock free AI readings for 3-card and 5-card spreads.",
+    "signInWithGoogle": "Continue with Google",
+    "termsPrefix": "By continuing, you agree to our",
+    "termsOfService": "Terms of Service",
+    "termsAnd": "and",
+    "privacyPolicy": "Privacy Policy"
+  },
   "site": {
     "title": "In-Betweens",
     "tagline": "Draw Lenormand cards and keep a personal reading history — no account needed."
@@ -151,7 +163,13 @@
     "followUpSendButton": "Ask",
     "followUpQuestionLabel": "You asked",
     "followUpRemaining": "{count} of 3 follow-ups left",
-    "followUpLimitReached": "You've asked all three follow-ups for this reading."
+    "followUpLimitReached": "You've asked all three follow-ups for this reading.",
+    "freeReadingButton": "Free AI Reading",
+    "freeReadingLimitReached": "You've used your free reading for today. Come back tomorrow, or use your own API key.",
+    "freeReadingSpreadLocked": "Free AI reading is only available for the Daily Draw.",
+    "freeReadingError": "The free reading couldn't be completed right now. Try again later, or copy the prompt above.",
+    "freeReadingPoweredBy": "Powered by Llama 3.1 via Cloudflare Workers AI",
+    "freeReadingSignInHint": "Sign in for free AI readings on 3-card and 5-card spreads"
   },
   "learning": {
     "title": "Learning",

@@ -5,14 +5,17 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import posthog from "posthog-js";
 import type { Locale } from "@/i18n/routing";
-import { SPREADS } from "@/data/spreads";
+import { SPREADS, type SpreadId } from "@/data/spreads";
 import { CARDS, CARD_BACK_IMAGE, type Card } from "@/data/cards";
+import { useAuth } from "@/components/AuthProvider";
 import { shuffle } from "@/lib/shuffle";
 import { addReading, hasDrawnDailyToday } from "@/lib/storage";
 import { buildAIPrompt } from "@/lib/prompt";
 import { hasAnyProviderConfigured } from "@/lib/apiSettings";
+import { getLocalFreeReadingCount } from "@/lib/freeReadingClient";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import ReadWithApiPanel from "./ReadWithApiPanel";
+import FreeReadingPanel from "./FreeReadingPanel";
 import TagEditor from "./TagEditor";
 import styles from "./DrawFlow.module.css";
 
@@ -73,11 +76,17 @@ function pillButtonStyle(on: boolean, tone: "gilt" | "ghost"): CSSProperties {
   };
 }
 
+const FREE_READING_SPREADS_ANON: SpreadId[] = ["daily"];
+const FREE_READING_SPREADS_AUTH: SpreadId[] = ["daily", "three", "five"];
+const FREE_LIMIT_ANON = 1;
+const FREE_LIMIT_AUTH = 2;
+
 export default function DrawFlow() {
   const locale = useLocale() as Locale;
   const t = useTranslations("draw");
   const s = useTranslations("spread");
   const cardsT = useTranslations("cards");
+  const { user } = useAuth();
 
   const [sel, setSel] = useState(0);
   const [open, setOpen] = useState(false);
@@ -94,12 +103,16 @@ export default function DrawFlow() {
   const [deckScrollable, setDeckScrollable] = useState(false);
   const [questionHelpOpen, setQuestionHelpOpen] = useState(false);
   const [showApiPanel, setShowApiPanel] = useState(false);
+  const [showFreePanel, setShowFreePanel] = useState(false);
+  const [freeReadingAvailable, setFreeReadingAvailable] = useState(false);
   const [apiConfigured, setApiConfigured] = useState(false);
   const [currentReadingId, setCurrentReadingId] = useState<string | null>(null);
 
   useEffect(() => {
     setApiConfigured(hasAnyProviderConfigured());
-  }, [open]);
+    const limit = user ? FREE_LIMIT_AUTH : FREE_LIMIT_ANON;
+    setFreeReadingAvailable(getLocalFreeReadingCount() < limit);
+  }, [open, user]);
   const questionHelpRef = useRef<HTMLDivElement | null>(null);
 
   // Read on mount only (not during SSR): the lock depends on localStorage
@@ -207,6 +220,7 @@ export default function DrawFlow() {
     setChosen([]);
     setRevealed([]);
     setShowApiPanel(false);
+    setShowFreePanel(false);
     setCurrentReadingId(null);
   }
 
@@ -298,6 +312,7 @@ export default function DrawFlow() {
     setRevealed([]);
     setQuestion("");
     setShowApiPanel(false);
+    setShowFreePanel(false);
     setCurrentReadingId(null);
   }
 
@@ -719,7 +734,31 @@ export default function DrawFlow() {
                     fallbackHint={t("copyFallbackHint")}
                     selectAllLabel={t("selectAllButton")}
                   />
-                  {apiConfigured && !showApiPanel && (
+                  {(user ? FREE_READING_SPREADS_AUTH : FREE_READING_SPREADS_ANON).includes(spread.id) && freeReadingAvailable && !showFreePanel && !showApiPanel && (
+                    <button
+                      type="button"
+                      onClick={() => setShowFreePanel(true)}
+                      style={pillButtonStyle(true, "gilt")}
+                    >
+                      {t("freeReadingButton")}
+                    </button>
+                  )}
+                  {!user && (spread.id === "three" || spread.id === "five") && !showApiPanel && (
+                    <span
+                      style={{
+                        fontFamily: "var(--font-serif)",
+                        fontStyle: "italic",
+                        fontSize: 13,
+                        color: "var(--gold-300)",
+                        maxWidth: 220,
+                        textAlign: "center",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {t("freeReadingSignInHint")}
+                    </span>
+                  )}
+                  {apiConfigured && !showApiPanel && !showFreePanel && (
                     <button
                       type="button"
                       onClick={() => setShowApiPanel(true)}
@@ -745,6 +784,10 @@ export default function DrawFlow() {
                 />
               )}
             </div>
+
+            {done && allShown && showFreePanel && (
+              <FreeReadingPanel prompt={promptText} spread={spread.id} readingId={currentReadingId} />
+            )}
 
             {done && allShown && showApiPanel && (
               <ReadWithApiPanel prompt={promptText} readingId={currentReadingId} />
