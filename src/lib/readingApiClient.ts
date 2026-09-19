@@ -46,8 +46,8 @@ export async function streamReading(
   if (!res.ok || !res.body) {
     let code: ReadingApiErrorCode = "network";
     try {
-      const data = await res.json();
-      if (data?.error === "invalid_key" || data?.error === "rate_limited") code = data.error;
+      const data: Record<string, unknown> = await res.json();
+      if (data?.error === "invalid_key" || data?.error === "rate_limited") code = data.error as ReadingApiErrorCode;
     } catch {
       // fall through to generic network error
     }
@@ -177,8 +177,8 @@ export async function fetchProviderModels(
       signal,
     });
     if (!res.ok) return [];
-    const data = await res.json();
-    return Array.isArray(data?.models) ? data.models.filter((m: unknown) => typeof m === "string") : [];
+    const data: Record<string, unknown> = await res.json();
+    return Array.isArray(data?.models) ? (data.models as string[]).filter((m: unknown) => typeof m === "string") : [];
   } catch {
     return [];
   }
