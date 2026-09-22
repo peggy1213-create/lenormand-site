@@ -8,6 +8,7 @@ import { BASE_URL, buildAlternates, localizedUrl } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 import Header from "@/components/Header";
 import AuthProvider from "@/components/AuthProvider";
+import ReadingsProvider from "@/components/ReadingsProvider";
 import Footer from "@/components/Footer";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
@@ -111,13 +112,15 @@ export default async function LocaleLayout({
         <PostHogProvider>
           <NextIntlClientProvider messages={messages}>
             <AuthProvider initialUser={user}>
-              <PostHogPageView />
-              <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-                <Header />
-                <div style={{ flex: 1 }}>{children}</div>
-                <Footer />
-                <LanguageSwitcher />
-              </div>
+              <ReadingsProvider user={user}>
+                <PostHogPageView />
+                <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+                  <Header />
+                  <div style={{ flex: 1 }}>{children}</div>
+                  <Footer />
+                  <LanguageSwitcher />
+                </div>
+              </ReadingsProvider>
             </AuthProvider>
           </NextIntlClientProvider>
           <ServiceWorkerRegister />

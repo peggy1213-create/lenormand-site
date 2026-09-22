@@ -5,7 +5,8 @@ import { useTranslations, useLocale } from "next-intl";
 import MarkdownReading from "./MarkdownReading";
 import { streamReading, type ChatMessage, type ReadingApiErrorCode } from "@/lib/readingApiClient";
 import { getActiveConfig, DEFAULT_MODELS, type ApiProvider } from "@/lib/apiSettings";
-import { updateReadingApiText, updateReadingApiFollowUps, type ApiFollowUp } from "@/lib/storage";
+import type { ApiFollowUp } from "@/lib/storage";
+import { useReadings } from "@/components/ReadingsProvider";
 import posthog from "posthog-js";
 
 type PanelState = "streaming" | "done" | "error";
@@ -48,6 +49,7 @@ export default function ReadWithApiPanel({
 }) {
   const t = useTranslations("draw");
   const locale = useLocale();
+  const { updateApiText, updateApiFollowUps } = useReadings();
   const [text, setText] = useState("");
   const [state, setState] = useState<PanelState>("streaming");
   const [tokenCount, setTokenCount] = useState<number | null>(null);
@@ -119,7 +121,7 @@ export default function ReadWithApiPanel({
         });
         setState("done");
         readingTextRef.current = fullText;
-        if (readingId) updateReadingApiText(readingId, fullText);
+        if (readingId) updateApiText(readingId, fullText);
       } else {
         setErrorCode(result.error);
         setState("error");
@@ -192,7 +194,7 @@ export default function ReadWithApiPanel({
       setPendingQuestion("");
       setFollowUpText("");
       setFollowUpState("idle");
-      if (readingId) updateReadingApiFollowUps(readingId, next);
+      if (readingId) updateApiFollowUps(readingId, next);
     } else {
       setFollowUpErrorCode(result.ok ? "network" : result.error);
       setFollowUpText("");
