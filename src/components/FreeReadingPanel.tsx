@@ -9,7 +9,7 @@ import {
   incrementLocalFreeReadingCount,
   type FreeReadingErrorCode,
 } from "@/lib/freeReadingClient";
-import { updateReadingApiText } from "@/lib/storage";
+import { useReadings } from "@/components/ReadingsProvider";
 import posthog from "posthog-js";
 
 type PanelState = "streaming" | "done" | "error";
@@ -30,6 +30,7 @@ export default function FreeReadingPanel({
   readingId: string | null;
 }) {
   const t = useTranslations("draw");
+  const { updateApiText } = useReadings();
   const [text, setText] = useState("");
   const [state, setState] = useState<PanelState>("streaming");
   const [errorCode, setErrorCode] = useState<FreeReadingErrorCode | null>(null);
@@ -56,7 +57,7 @@ export default function FreeReadingPanel({
         posthog.capture("free_ai_reading_completed", { spread });
         setState("done");
         incrementLocalFreeReadingCount();
-        if (readingId) updateReadingApiText(readingId, fullText);
+        if (readingId) updateApiText(readingId, fullText);
       } else {
         setErrorCode(result.error);
         setState("error");

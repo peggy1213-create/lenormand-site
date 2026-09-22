@@ -5,13 +5,10 @@ import type { CSSProperties } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
-  getHistory,
   isStoragePersistable,
-  updateReadingNote,
-  deleteReadings,
-  getAllTags,
   type Reading,
 } from "@/lib/storage";
+import { useReadings } from "@/components/ReadingsProvider";
 import { getCardById } from "@/data/cards";
 import { getSpread } from "@/data/spreads";
 import { buildAIPrompt } from "@/lib/prompt";
@@ -229,7 +226,17 @@ export default function HistoryList() {
   const s = useTranslations("spread");
   const cardsT = useTranslations("cards");
 
-  const [readings, setReadings] = useState<Reading[] | null>(null);
+  const {
+    readings: allReadings,
+    loading: readingsLoading,
+    updateNote,
+    removeReadings,
+    getAllTags,
+    refresh,
+  } = useReadings();
+
+  const readings = readingsLoading ? null : allReadings;
+
   const [showNotice, setShowNotice] = useState(false);
   const [persistable, setPersistable] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -238,21 +245,6 @@ export default function HistoryList() {
   const [tagFilter, setTagFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-
-  function refresh() {
-    const list = [...getHistory()].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-    setReadings(list);
-    setSelectedIds((prev) => {
-      const ids = new Set(list.map((r) => r.id));
-      const next = new Set<string>();
-      prev.forEach((id) => {
-        if (ids.has(id)) next.add(id);
-      });
-      return next;
-    });
-  }
 
   function toggleSelected(id: string) {
     setSelectedIds((prev) => {
@@ -283,13 +275,11 @@ export default function HistoryList() {
   }
 
   function handleBulkDelete() {
-    deleteReadings(Array.from(selectedIds));
+    removeReadings(Array.from(selectedIds));
     selectNone();
-    refresh();
   }
 
   useEffect(() => {
-    refresh();
     setPersistable(isStoragePersistable());
     try {
       const seen = window.localStorage.getItem(NOTICE_SEEN_KEY);
@@ -305,6 +295,16 @@ export default function HistoryList() {
   const dateFormatter = makeReadingDateFormatter(locale);
 
   const allTags = getAllTags();
+  // Keep selectedIds in sync when readings change (e.g. after Supabase sync)
+  useEffect(() => {
+    if (!readings) return;
+    setSelectedIds((prev) => {
+      const ids = new Set(readings.map((r) => r.id));
+      const next = new Set<string>();
+      prev.forEach((id) => { if (ids.has(id)) next.add(id); });
+      return next.size === prev.size ? prev : next;
+    });
+  }, [readings]);
   const filteredReadings = (readings ?? []).filter((r) => {
     if (tagFilter === DAILY_TAG_VALUE) {
       if (r.spread !== "daily") return false;
@@ -731,6 +731,7 @@ export function Row({
   const s = useTranslations("spread");
   const cardsT = useTranslations("cards");
   const siteT = useTranslations("site");
+  const { updateNote } = useReadings();
 
   const [open, setOpen] = useState(false);
   const [expandedPosition, setExpandedPosition] = useState<number | null>(null);
@@ -780,7 +781,7 @@ export function Row({
   });
 
   function handleSaveNote() {
-    updateReadingNote(reading.id, note);
+    updateNote(reading.id, note);
     setNoteSaved(true);
     onChanged();
     setTimeout(() => setNoteSaved(false), 2000);

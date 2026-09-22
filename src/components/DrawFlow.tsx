@@ -9,7 +9,7 @@ import { SPREADS, type SpreadId } from "@/data/spreads";
 import { CARDS, CARD_BACK_IMAGE, type Card } from "@/data/cards";
 import { useAuth } from "@/components/AuthProvider";
 import { shuffle } from "@/lib/shuffle";
-import { addReading, hasDrawnDailyToday } from "@/lib/storage";
+import { useReadings } from "@/components/ReadingsProvider";
 import { buildAIPrompt } from "@/lib/prompt";
 import { hasAnyProviderConfigured } from "@/lib/apiSettings";
 import { getLocalFreeReadingCount } from "@/lib/freeReadingClient";
@@ -88,6 +88,7 @@ export default function DrawFlow() {
   const s = useTranslations("spread");
   const cardsT = useTranslations("cards");
   const { user } = useAuth();
+  const { addReading, hasDrawnDailyToday } = useReadings();
 
   const [sel, setSel] = useState(0);
   const [open, setOpen] = useState(false);
