@@ -69,21 +69,6 @@ async function sha256Hex(input: string): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function verifyTurnstile(token: string, secret: string, ip: string): Promise<boolean> {
-  try {
-    const body = new URLSearchParams({ secret, response: token });
-    if (ip) body.set("remoteip", ip);
-    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      body,
-    });
-    const data = (await res.json()) as { success?: boolean };
-    return data.success === true;
-  } catch {
-    return false;
-  }
-}
-
 function intVar(value: unknown, fallback: number): number {
   const n = typeof value === "string" ? parseInt(value, 10) : typeof value === "number" ? value : NaN;
   return Number.isFinite(n) && n > 0 ? n : fallback;
@@ -164,12 +149,11 @@ interface FreeEnv {
   FREE_AUTH_DAILY_CAP?: string;
   FREE_IP_DAILY_CAP?: string;
   FREE_GLOBAL_DAILY_CAP?: string;
-  TURNSTILE_SECRET_KEY?: string;
   ANON_HASH_SALT?: string;
 }
 
 export async function POST(req: Request) {
-  let body: { prompt?: string; messages?: ChatMessage[]; turnstileToken?: string; maxOutputTokens?: number };
+  let body: { prompt?: string; messages?: ChatMessage[]; maxOutputTokens?: number };
   try {
     body = await req.json();
   } catch {
@@ -185,8 +169,7 @@ export async function POST(req: Request) {
   const ip = req.headers.get("cf-connecting-ip") ?? "";
 
   // 1. Who is this? Sign-in exists on dev only. Signed-in users get a higher
-  // daily cap and skip Turnstile (their account is the gate); anonymous users
-  // get the lower cap and must pass Turnstile. In production there is no
+  // daily cap; anonymous users get the lower cap. In production there is no
   // sign-in, so everyone is anonymous here.
   let userId: string | null = null;
   let userEmail: string | null = null;
@@ -201,15 +184,8 @@ export async function POST(req: Request) {
   const signedIn = !!userId;
   const isUnlimited = userEmail ? UNLIMITED_EMAILS.has(userEmail) : false;
 
-  // 2. Turnstile — anonymous only.
-  if (!signedIn) {
-    const secret = env.TURNSTILE_SECRET_KEY;
-    if (!secret || !body.turnstileToken || !(await verifyTurnstile(body.turnstileToken, secret, ip))) {
-      return jsonError("captcha", 403);
-    }
-  }
-
-  // 3. Identity + limits. Signed-in usage is keyed by user id (shared across
+  // 2. Identity + limits. (No bot check — anonymous abuse is bounded by the
+  // per-cookie, per-IP, and global daily caps below.) Signed-in usage is keyed by user id (shared across
   // that person's devices); anonymous usage by the per-visitor cookie, with an
   // IP backstop. Both tiers share one daily table and the global ceiling.
   const cap = signedIn ? intVar(env.FREE_AUTH_DAILY_CAP, 3) : intVar(env.FREE_USER_DAILY_CAP, 2);
