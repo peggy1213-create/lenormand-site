@@ -270,7 +270,7 @@ export async function POST(req: Request) {
     typeof body.maxOutputTokens === "number" && body.maxOutputTokens > 0
       ? Math.min(body.maxOutputTokens, MAX_OUTPUT_TOKENS)
       : MAX_OUTPUT_TOKENS;
-  const model = env.FREE_MODEL || "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+  const model = env.FREE_MODEL || "@cf/meta/llama-4-scout-17b-16e-instruct";
 
   let aiStream: ReadableStream<Uint8Array>;
   try {
