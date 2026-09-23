@@ -1,10 +1,37 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "lenormand-site",
-  "main": ".open-next/worker.js",
-  "compatibility_date": "2025-09-01",
-  "compatibility_flags": ["nodejs_compat"],
-  "assets": {
-    "directory": ".open-next/assets"
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "lenormand-site",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2025-09-01",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"assets": {
+		"directory": ".open-next/assets"
+	},
+	// Workers AI, used for the free (no-key) reading tier in
+	// src/app/api/reading/free/route.ts.
+	"ai": {
+		"binding": "AI"
+	},
+	// D1 holds the free-tier usage counters (per anonymous visitor, per IP, and
+	// a global daily total). Run `npx wrangler d1 create lenormand-free`, paste
+	// the returned database_id below, then apply migrations/ (see README).
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "lenormand-free",
+			"database_id": "75c06dc2-805c-4ab3-aa53-2527b63e160e"
+		}
+	],
+	// Non-secret tuning for the free tier. TURNSTILE_SECRET_KEY and
+	// ANON_HASH_SALT are secrets — set them with `npx wrangler secret put`,
+	// never here. The Turnstile *site* key is public and is read at build time
+	// from NEXT_PUBLIC_TURNSTILE_SITE_KEY.
+	"vars": {
+		"FREE_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+		"FREE_USER_DAILY_CAP": "2",
+		"FREE_IP_DAILY_CAP": "8",
+		"FREE_GLOBAL_DAILY_CAP": "200"
+	}
 }
