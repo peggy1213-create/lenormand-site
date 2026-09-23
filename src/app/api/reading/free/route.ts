@@ -63,21 +63,6 @@ async function sha256Hex(input: string): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function verifyTurnstile(token: string, secret: string, ip: string): Promise<boolean> {
-  try {
-    const body = new URLSearchParams({ secret, response: token });
-    if (ip) body.set("remoteip", ip);
-    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      body,
-    });
-    const data = (await res.json()) as { success?: boolean };
-    return data.success === true;
-  } catch {
-    return false;
-  }
-}
-
 function intVar(value: unknown, fallback: number): number {
   const n = typeof value === "string" ? parseInt(value, 10) : typeof value === "number" ? value : NaN;
   return Number.isFinite(n) && n > 0 ? n : fallback;
@@ -157,12 +142,11 @@ interface FreeEnv {
   FREE_USER_DAILY_CAP?: string;
   FREE_IP_DAILY_CAP?: string;
   FREE_GLOBAL_DAILY_CAP?: string;
-  TURNSTILE_SECRET_KEY?: string;
   ANON_HASH_SALT?: string;
 }
 
 export async function POST(req: Request) {
-  let body: { prompt?: string; messages?: ChatMessage[]; turnstileToken?: string; maxOutputTokens?: number };
+  let body: { prompt?: string; messages?: ChatMessage[]; maxOutputTokens?: number };
   try {
     body = await req.json();
   } catch {
@@ -177,13 +161,8 @@ export async function POST(req: Request) {
 
   const ip = req.headers.get("cf-connecting-ip") ?? "";
 
-  // 1. Turnstile — proves a human is driving this, before we spend anything.
-  const secret = env.TURNSTILE_SECRET_KEY;
-  if (!secret || !body.turnstileToken || !(await verifyTurnstile(body.turnstileToken, secret, ip))) {
-    return jsonError("captcha", 403);
-  }
-
-  // 2. Identity + limits.
+  // Identity + limits. (No bot check — anonymous abuse is bounded by the
+  // per-cookie, per-IP, and global daily caps below.)
   const userCap = intVar(env.FREE_USER_DAILY_CAP, 2);
   const ipCap = intVar(env.FREE_IP_DAILY_CAP, 8);
   const globalCap = intVar(env.FREE_GLOBAL_DAILY_CAP, 200);

@@ -55,16 +55,14 @@ export default function ReadWithApiPanel({
   prompt,
   readingId,
   mode = "byo",
-  getToken,
   onRemaining,
 }: {
   prompt: string;
   readingId: string | null;
   // "byo" streams through the querent's own key; "free" runs the no-key
-  // Workers AI tier, which needs a fresh Turnstile token per call (getToken)
-  // and reports remaining daily uses back to the parent (onRemaining).
+  // Workers AI tier and reports remaining daily uses back to the parent
+  // (onRemaining).
   mode?: "byo" | "free";
-  getToken?: () => Promise<string | null>;
   onRemaining?: (remaining: number | null) => void;
 }) {
   const t = useTranslations("draw");
@@ -121,19 +119,7 @@ export default function ReadWithApiPanel({
 
     if (mode === "free") {
       (async () => {
-        const token = getToken ? await getToken() : null;
-        if (cancelled) return;
-        if (!token) {
-          setErrorCode("captcha");
-          setState("error");
-          return;
-        }
-        const result = await streamFreeReading(
-          { turnstileToken: token, prompt },
-          onChunk,
-          controller.signal,
-          onRemaining,
-        );
+        const result = await streamFreeReading({ prompt }, onChunk, controller.signal, onRemaining);
         if (cancelled) return;
         if (result.ok) {
           posthog.capture("ai_reading_completed", { provider: "workers-ai", tier: "free" });
@@ -226,22 +212,12 @@ export default function ReadWithApiPanel({
       setFollowUpText((prev) => prev + chunk);
     };
 
-    // Follow-ups count against the free daily cap too, so each needs its own
-    // fresh Turnstile token; the BYO path just replays the thread on the key.
+    // Follow-ups count against the free daily cap too; the BYO path just
+    // replays the thread on the key.
     let result: { ok: true } | { ok: false; error: FreeReadingErrorCode };
     if (mode === "free") {
-      const token = getToken ? await getToken() : null;
-      if (!token) {
-        result = { ok: false, error: "captcha" };
-      } else {
-        const r = await streamFreeReading(
-          { turnstileToken: token, messages },
-          onChunk,
-          controller.signal,
-          onRemaining,
-        );
-        result = r.ok ? { ok: true } : { ok: false, error: r.error };
-      }
+      const r = await streamFreeReading({ messages }, onChunk, controller.signal, onRemaining);
+      result = r.ok ? { ok: true } : { ok: false, error: r.error };
     } else {
       const r = await streamReading(
         { provider: config!.provider, model: config!.model, apiKey: config!.apiKey, messages },

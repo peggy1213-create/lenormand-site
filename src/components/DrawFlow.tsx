@@ -13,13 +13,12 @@ import { buildAIPrompt } from "@/lib/prompt";
 import { hasAnyProviderConfigured } from "@/lib/apiSettings";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import ReadWithApiPanel from "./ReadWithApiPanel";
-import TurnstileWidget, { type TurnstileHandle } from "./TurnstileWidget";
 import TagEditor from "./TagEditor";
 import styles from "./DrawFlow.module.css";
 
-// Free (no-key) Workers AI readings are offered only when a Turnstile site key
-// is configured at build time.
-const FREE_ENABLED = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+// Free (no-key) Workers AI readings are always offered; anonymous abuse is
+// bounded by the per-cookie, per-IP, and global daily caps on the server.
+const FREE_ENABLED = true;
 // Mirrors FREE_USER_DAILY_CAP in wrangler.jsonc — used only for the initial
 // "N left" hint; the server is the real authority and reports the true
 // remaining count back after each free reading.
@@ -162,7 +161,6 @@ export default function DrawFlow() {
   const [apiConfigured, setApiConfigured] = useState(false);
   const [freeRemaining, setFreeRemaining] = useState<number | null>(null);
   const [currentReadingId, setCurrentReadingId] = useState<string | null>(null);
-  const turnstileRef = useRef<TurnstileHandle | null>(null);
 
   useEffect(() => {
     setApiConfigured(hasAnyProviderConfigured());
@@ -880,21 +878,11 @@ export default function DrawFlow() {
               </p>
             )}
 
-            {/* Mounted once the reading is laid so a Turnstile token can be
-                minted before the querent clicks "Read free"; interaction-only,
-                so it's usually invisible. */}
-            {done && allShown && FREE_ENABLED && !apiConfigured && <TurnstileWidget ref={turnstileRef} />}
-
             {done && allShown && showApiPanel && (
               <ReadWithApiPanel
                 prompt={promptText}
                 readingId={currentReadingId}
                 mode={apiPanelMode}
-                getToken={
-                  apiPanelMode === "free"
-                    ? () => turnstileRef.current?.consume() ?? Promise.resolve(null)
-                    : undefined
-                }
                 onRemaining={apiPanelMode === "free" ? handleFreeRemaining : undefined}
               />
             )}
