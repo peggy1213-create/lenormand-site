@@ -153,6 +153,68 @@ Write in flowing prose, not bullet points. Let the reading feel like one continu
 Language: Respond in ${lang}.`;
 }
 
+function grandPromptText(
+  messages: Messages,
+  cards: Array<{ cardId: number }>,
+  question: string | undefined,
+  locale: Locale,
+): string {
+  const c = cards.map((card) => cardText(messages, card.cardId));
+  const nm = (i: number) => (c[i] ? c[i].name : "");
+  const q = (question ?? "").trim();
+  const lang = langLabel(locale);
+  const houseName = (i: number) => cardText(messages, i + 1).name;
+
+  const rows = [0, 1, 2, 3]
+    .map((r) => {
+      const cells = Array.from({ length: 9 }, (_, col) => {
+        const i = r * 9 + col;
+        return `${nm(i)} (House ${i + 1}: ${houseName(i)})`;
+      });
+      return `Row ${r + 1}: ${cells.join(" · ")}`;
+    })
+    .join("\n");
+
+  const locate = (cardId: number) => {
+    const i = cards.findIndex((card) => card.cardId === cardId);
+    if (i < 0) return "not in the tableau";
+    return `row ${Math.floor(i / 9) + 1}, column ${(i % 9) + 1} (House ${i + 1}: ${houseName(i)})`;
+  };
+
+  return `You are reading a Grand Tableau — all 36 Lenormand cards laid in four rows of nine — for a querent.
+
+The querent's question: ${q || "none given — give a broad overview of the querent's current situation"}
+
+The tableau, left to right, top to bottom. Each position is also a house, named after the card whose number matches it:
+${rows}
+
+Significators:
+- ${cardText(messages, 28).name} (28) sits at ${locate(28)}
+- ${cardText(messages, 29).name} (29) sits at ${locate(29)}
+
+The querent's gender is not given. If the question makes it clear which significator stands for the querent, use it; otherwise read from the ${cardText(messages, 29).name} and the ${cardText(messages, 28).name} both, and say which one you are reading from.
+
+Work through the tableau in this order:
+
+1. **The significator.** Find the querent's card. Read the cards immediately around it (above, below, left, right, and the diagonals) as what is closest to the querent right now. Cards to the left speak to what is passing; cards to the right to what is approaching; cards above to what is on the querent's mind; cards below to what is under their control or underfoot.
+
+2. **The lines through the significator.** Read the full row and the full column that cross the significator as the main threads of the situation.
+
+3. **Topic cards.** Pick the cards that belong to the querent's question — for example the Heart and Rings for love, the Fox and Anchor for work, the Fish for money, the Tree for health — and note how near to or far from the significator they fall. Near means present and immediate; far means distant or less pressing.
+
+4. **Houses.** For the cards that matter most, read the card together with the house it lands in: the card describes what is happening, the house names the area of life where it happens.
+
+5. **The corners and the final line.** The four corners frame the whole situation. The last cards of the bottom row suggest where the matter is heading.
+
+Draw on your knowledge of Lenormand card meanings and traditional combinations. Read cards as they join — each card modifies its neighbours. You do not need to comment on all 36 cards; follow what is relevant to the question and let the rest be background.
+
+Do not use the language of fortune-telling. Do not speak of luck, fate, destiny, or good and bad outcomes. Do not tell the querent what will happen or what they should do. Offer the reading as a mirror for reflection: what the cards illuminate about the situation, and what the querent might sit with.
+
+Write in flowing prose with short headed sections, not a card-by-card checklist.
+
+Language: Respond in ${lang}.`;
+}
+
 export function buildAIPrompt(input: {
   spread: SpreadId;
   cards: Array<{ cardId: number }>; // in position order
@@ -168,6 +230,9 @@ export function buildAIPrompt(input: {
   }
   if (input.spread === "nine") {
     return ninePromptText(messages, input.cards, input.question, input.locale);
+  }
+  if (input.spread === "grand") {
+    return grandPromptText(messages, input.cards, input.question, input.locale);
   }
   return fivePromptText(messages, input.cards, input.question, input.locale);
 }

@@ -55,3 +55,18 @@
     aspect-ratio: 124 / 194;
   }
 }
+
+/* Grand Tableau: 36 cards in four rows of nine, scrolling sideways on
+   narrow screens instead of shrinking the cards past recognition. */
+.cardsTableau {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(56px, 1fr));
+  gap: 12px 8px;
+  overflow-x: auto;
+}
+
+.cardsTableau .cardImage {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 124 / 194;
+}
