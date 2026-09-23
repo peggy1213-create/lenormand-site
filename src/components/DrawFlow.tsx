@@ -13,8 +13,51 @@ import { buildAIPrompt } from "@/lib/prompt";
 import { hasAnyProviderConfigured } from "@/lib/apiSettings";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import ReadWithApiPanel from "./ReadWithApiPanel";
+import TurnstileWidget, { type TurnstileHandle } from "./TurnstileWidget";
 import TagEditor from "./TagEditor";
 import styles from "./DrawFlow.module.css";
+
+// Free (no-key) Workers AI readings are offered only when a Turnstile site key
+// is configured at build time.
+const FREE_ENABLED = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+// Mirrors FREE_USER_DAILY_CAP in wrangler.jsonc — used only for the initial
+// "N left" hint; the server is the real authority and reports the true
+// remaining count back after each free reading.
+const FREE_DAILY_CAP = 2;
+const FREE_STORE_KEY = "lenormand.freeReadings";
+
+function todayUtc(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Best-effort, display-only mirror of the free-readings-left count, scoped to
+// the current UTC day so it resets in step with the server counters. Never
+// trusted for enforcement — clearing it just shows the optimistic cap until
+// the next server response corrects it.
+function readFreeRemaining(): number {
+  if (typeof window === "undefined") return FREE_DAILY_CAP;
+  try {
+    const raw = window.localStorage.getItem(FREE_STORE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.day === todayUtc() && typeof parsed.remaining === "number") {
+        return parsed.remaining;
+      }
+    }
+  } catch {
+    // private mode / quota — fall through to the optimistic default
+  }
+  return FREE_DAILY_CAP;
+}
+
+function writeFreeRemaining(remaining: number): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(FREE_STORE_KEY, JSON.stringify({ day: todayUtc(), remaining }));
+  } catch {
+    // private mode / quota — nothing to do
+  }
+}
 
 type ScatterCard = { id: number; x: number; y: number; rot: number };
 type Phase = "question" | "shuffle" | "choose" | "locked";
@@ -115,12 +158,22 @@ export default function DrawFlow() {
   const [deckScrollable, setDeckScrollable] = useState(false);
   const [questionHelpOpen, setQuestionHelpOpen] = useState(false);
   const [showApiPanel, setShowApiPanel] = useState(false);
+  const [apiPanelMode, setApiPanelMode] = useState<"byo" | "free">("byo");
   const [apiConfigured, setApiConfigured] = useState(false);
+  const [freeRemaining, setFreeRemaining] = useState<number | null>(null);
   const [currentReadingId, setCurrentReadingId] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileHandle | null>(null);
 
   useEffect(() => {
     setApiConfigured(hasAnyProviderConfigured());
+    setFreeRemaining(readFreeRemaining());
   }, [open]);
+
+  function handleFreeRemaining(remaining: number | null) {
+    if (remaining === null) return;
+    setFreeRemaining(remaining);
+    writeFreeRemaining(remaining);
+  }
   const questionHelpRef = useRef<HTMLDivElement | null>(null);
 
   // Read on mount only (not during SSR): the lock depends on localStorage
@@ -767,10 +820,27 @@ export default function DrawFlow() {
                   {apiConfigured && !showApiPanel && (
                     <button
                       type="button"
-                      onClick={() => setShowApiPanel(true)}
+                      onClick={() => {
+                        setApiPanelMode("byo");
+                        setShowApiPanel(true);
+                      }}
                       style={pillButtonStyle(true, "gilt")}
                     >
                       {t("readWithApiButton")}
+                    </button>
+                  )}
+                  {!apiConfigured && FREE_ENABLED && !showApiPanel && freeRemaining !== 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setApiPanelMode("free");
+                        setShowApiPanel(true);
+                      }}
+                      style={pillButtonStyle(true, "gilt")}
+                    >
+                      {freeRemaining === null
+                        ? t("readFreeButton")
+                        : t("readFreeButtonCount", { count: freeRemaining })}
                     </button>
                   )}
                 </div>
@@ -791,8 +861,42 @@ export default function DrawFlow() {
               )}
             </div>
 
+            {/* Out of free readings for the day: the free button is gone, so
+                explain why and point to tomorrow or the copy-prompt fallback. */}
+            {done && allShown && FREE_ENABLED && !apiConfigured && freeRemaining === 0 && !showApiPanel && (
+              <p
+                style={{
+                  maxWidth: 560,
+                  margin: "clamp(12px, 2.5vh, 22px) auto 0",
+                  fontFamily: "var(--font-serif)",
+                  fontStyle: "italic",
+                  fontSize: 15,
+                  lineHeight: 1.5,
+                  color: "var(--gold-200)",
+                  textAlign: "center",
+                }}
+              >
+                {t("freeExhaustedNote")}
+              </p>
+            )}
+
+            {/* Mounted once the reading is laid so a Turnstile token can be
+                minted before the querent clicks "Read free"; interaction-only,
+                so it's usually invisible. */}
+            {done && allShown && FREE_ENABLED && !apiConfigured && <TurnstileWidget ref={turnstileRef} />}
+
             {done && allShown && showApiPanel && (
-              <ReadWithApiPanel prompt={promptText} readingId={currentReadingId} />
+              <ReadWithApiPanel
+                prompt={promptText}
+                readingId={currentReadingId}
+                mode={apiPanelMode}
+                getToken={
+                  apiPanelMode === "free"
+                    ? () => turnstileRef.current?.consume() ?? Promise.resolve(null)
+                    : undefined
+                }
+                onRemaining={apiPanelMode === "free" ? handleFreeRemaining : undefined}
+              />
             )}
           </div>
         </div>
