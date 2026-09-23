@@ -17,21 +17,19 @@ function errorMessageKey(code: FreeReadingErrorCode | null): string {
 }
 
 // Streams a free (no-key) reading from the unified Workers AI tier
-// (src/app/api/reading/free/route.ts). Anonymous visitors need a fresh
-// Turnstile token (via getToken); signed-in users skip it and get the higher
-// daily cap — the server decides which applies. Remaining daily uses are
-// reported back through onRemaining the moment the response header arrives.
+// (src/app/api/reading/free/route.ts). Signed-in users get the higher daily
+// cap; anonymous users the lower one — the server decides which applies from
+// their session. Remaining daily uses are reported back through onRemaining
+// the moment the response header arrives.
 export default function FreeReadingPanel({
   prompt,
   readingId,
   signedIn,
-  getToken,
   onRemaining,
 }: {
   prompt: string;
   readingId: string | null;
   signedIn: boolean;
-  getToken: () => Promise<string | null>;
   onRemaining: (remaining: number | null) => void;
 }) {
   const t = useTranslations("draw");
@@ -49,20 +47,8 @@ export default function FreeReadingPanel({
     setErrorCode(null);
 
     (async () => {
-      // Anonymous visitors must clear Turnstile first; signed-in users skip it.
-      let token: string | null = null;
-      if (!signedIn) {
-        token = await getToken();
-        if (cancelled) return;
-        if (!token) {
-          setErrorCode("captcha");
-          setState("error");
-          return;
-        }
-      }
-
       const result = await streamFreeReading(
-        { turnstileToken: token ?? undefined, prompt },
+        { prompt },
         (chunk) => {
           if (cancelled) return;
           fullText += chunk;

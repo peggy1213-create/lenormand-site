@@ -15,7 +15,6 @@ import { hasAnyProviderConfigured } from "@/lib/apiSettings";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import ReadWithApiPanel from "./ReadWithApiPanel";
 import FreeReadingPanel from "./FreeReadingPanel";
-import TurnstileWidget, { type TurnstileHandle } from "./TurnstileWidget";
 import TagEditor from "./TagEditor";
 import styles from "./DrawFlow.module.css";
 
@@ -106,8 +105,9 @@ const UNLIMITED_EMAILS = new Set(["peichun1213@gmail.com"]);
 // In production the flag is unset, so we treat everyone as anonymous and never
 // show the sign-in affordances.
 const AUTH_ENABLED = process.env.NEXT_PUBLIC_ENABLE_AUTH === "true";
-// Free (no-key) readings need a Turnstile site key for the anonymous path.
-const FREE_ENABLED = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+// Free (no-key) readings are always offered; anonymous abuse is bounded by the
+// per-cookie, per-IP, and global daily caps on the server (no bot check).
+const FREE_ENABLED = true;
 
 const FREE_STORE_KEY = "lenormand.freeReadings";
 
@@ -170,7 +170,6 @@ export default function DrawFlow() {
   const [freeRemaining, setFreeRemaining] = useState<number | null>(null);
   const [apiConfigured, setApiConfigured] = useState(false);
   const [currentReadingId, setCurrentReadingId] = useState<string | null>(null);
-  const turnstileRef = useRef<TurnstileHandle | null>(null);
 
   // Sign-in only counts when auth is enabled (dev). In production the flag is
   // off, so everyone is treated as anonymous regardless of any stale session.
@@ -929,17 +928,11 @@ export default function DrawFlow() {
               </div>
             </div>
 
-            {/* Anonymous free readings need a Turnstile token; mount the widget
-                once the reading is laid so a token is ready. Signed-in users
-                skip it. Interaction-only, so usually invisible. */}
-            {done && allShown && FREE_ENABLED && !signedIn && <TurnstileWidget ref={turnstileRef} />}
-
             {done && allShown && showFreePanel && (
               <FreeReadingPanel
                 prompt={promptText}
                 readingId={currentReadingId}
                 signedIn={signedIn}
-                getToken={() => turnstileRef.current?.consume() ?? Promise.resolve(null)}
                 onRemaining={handleFreeRemaining}
               />
             )}
