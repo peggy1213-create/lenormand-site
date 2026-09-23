@@ -962,7 +962,7 @@ export function Row({
       </div>
 
       {open && (
-        <div className={styles.cardsRow}>
+        <div className={reading.cards.length > 9 ? `${styles.cardsRow} ${styles.cardsTableau}` : styles.cardsRow}>
           {reading.cards.map((c) => {
             const card = getCardById(c.cardId);
             const name = cardsT(`${card.slug}.name`);
