@@ -827,7 +827,7 @@ export default function DrawFlow() {
                       {t("readWithApiButton")}
                     </button>
                   )}
-                  {!apiConfigured && FREE_ENABLED && !showApiPanel && freeRemaining !== 0 && (
+                  {FREE_ENABLED && !showApiPanel && freeRemaining !== 0 && (
                     <button
                       type="button"
                       onClick={() => {
@@ -861,7 +861,7 @@ export default function DrawFlow() {
 
             {/* Out of free readings for the day: the free button is gone, so
                 explain why and point to tomorrow or the copy-prompt fallback. */}
-            {done && allShown && FREE_ENABLED && !apiConfigured && freeRemaining === 0 && !showApiPanel && (
+            {done && allShown && FREE_ENABLED && freeRemaining === 0 && !showApiPanel && (
               <p
                 style={{
                   maxWidth: 560,
