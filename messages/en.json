@@ -3,6 +3,40 @@
     "title": "In-Betweens",
     "tagline": "Draw Lenormand cards and keep a personal reading history — no account needed."
   },
+  "seo": {
+    "home": {
+      "title": "In-Betweens — Free AI Lenormand Card Readings Online",
+      "description": "Draw a Lenormand spread and get a free AI-powered reading instantly — no account, no API key required. Keep a private history of your readings."
+    },
+    "spreads": {
+      "title": "Draw a Lenormand Spread",
+      "description": "Pick a Lenormand spread, draw your cards, and get a free AI reading of the story they tell — one question at a time, no signup needed."
+    },
+    "aireading": {
+      "title": "Free AI Lenormand Reading",
+      "description": "Get free AI-powered Lenormand readings each day, or bring your own Anthropic, OpenAI, or Gemini API key. Your questions stay private in your browser."
+    },
+    "about": {
+      "title": "About",
+      "description": "About In-Betweens — a calm, account-free space for Lenormand card readings, with optional AI interpretation and a private personal reading history."
+    },
+    "history": {
+      "title": "Your Readings",
+      "description": "Revisit your saved Lenormand spreads, add reflections, and record how things unfolded — all stored privately in your own browser."
+    },
+    "learning": {
+      "title": "Learning Lenormand",
+      "description": "Learn to read Lenormand: what the deck is, what each of the 36 cards means, and how the cards combine into a reading."
+    },
+    "learn": {
+      "title": "What Is Lenormand?",
+      "description": "A short introduction to the Lenormand deck — where it comes from, how it differs from tarot, and how a reading is put together."
+    },
+    "deckIndex": {
+      "title": "Lenormand Deck Reference — All 36 Cards",
+      "description": "Browse all 36 Lenormand cards with their meanings and combinations — a complete, free reference to the deck."
+    }
+  },
   "nav": {
     "home": "Spreads",
     "history": "History",
