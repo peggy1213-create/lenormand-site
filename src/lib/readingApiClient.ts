@@ -127,8 +127,7 @@ async function consumeReadingStream(
 
 // Streams a free-tier reading from src/app/api/reading/free/route.ts. Same
 // shape as streamReading, but with no API key — the server uses Cloudflare
-// Workers AI and meters usage — and a Turnstile token proving a human is
-// driving it.
+// Workers AI and meters usage against the daily caps.
 //
 // The server counts the call and returns the visitor's remaining free uses in
 // the X-Free-Remaining header *before* generating, so `onRemaining` fires as
@@ -138,7 +137,6 @@ async function consumeReadingStream(
 // with 0 on a "limit"/"global_limit" rejection.
 export async function streamFreeReading(
   params: {
-    turnstileToken: string;
     prompt?: string;
     messages?: ChatMessage[];
     maxOutputTokens?: number;
