@@ -38,7 +38,10 @@ export async function generateMetadata({
     .map((l) => (l === "zh-TW" ? "zh_TW" : "en_US"));
   return {
     metadataBase: new URL(BASE_URL),
-    title: t("title"),
+    title: {
+      default: t("title"),
+      template: `%s · ${t("title")}`,
+    },
     description: t("tagline"),
     manifest: "/manifest.json",
     alternates: buildAlternates(locale),

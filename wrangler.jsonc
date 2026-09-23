@@ -29,7 +29,7 @@
 	// set them with `npx wrangler secret put`, never here. The Turnstile *site*
 	// key is public and read at build time from NEXT_PUBLIC_TURNSTILE_SITE_KEY.
 	"vars": {
-		"FREE_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+		"FREE_MODEL": "@cf/meta/llama-4-scout-17b-16e-instruct",
 		"FREE_USER_DAILY_CAP": "2",
 		"FREE_AUTH_DAILY_CAP": "3",
 		"FREE_IP_DAILY_CAP": "8",
