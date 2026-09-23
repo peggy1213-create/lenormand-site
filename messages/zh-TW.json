@@ -15,6 +15,40 @@
     "title": "In-Betweens",
     "tagline": "抽取雷諾曼卡牌，並保留個人抽牌紀錄 — 無需註冊。"
   },
+  "seo": {
+    "home": {
+      "title": "In-Betweens — 免費 AI 雷諾曼線上占卜抽牌",
+      "description": "抽一副雷諾曼牌陣，立即獲得免費 AI 解讀 — 無需註冊、免 API 金鑰。你的占卜紀錄私密保存在瀏覽器中。"
+    },
+    "spreads": {
+      "title": "抽一個雷諾曼牌陣",
+      "description": "選擇牌陣、抽牌，獲得免費 AI 解讀，讀出牌面串連的故事 — 一次一個問題，無需註冊。"
+    },
+    "aireading": {
+      "title": "免費 AI 雷諾曼解讀",
+      "description": "每日獲得免費 AI 雷諾曼解讀，或使用你自己的 Anthropic、OpenAI 或 Gemini API 金鑰。你的問題私密保存在瀏覽器中。"
+    },
+    "about": {
+      "title": "關於",
+      "description": "關於 In-Betweens — 一個平靜、免帳號的雷諾曼占卜空間，可選用 AI 解讀，並保有私密的個人抽牌紀錄。"
+    },
+    "history": {
+      "title": "你的占卜紀錄",
+      "description": "回顧你保存的雷諾曼牌陣，加入反思，記錄事情如何發展 — 全部私密儲存在你自己的瀏覽器中。"
+    },
+    "learning": {
+      "title": "學習雷諾曼",
+      "description": "學習如何解讀雷諾曼：認識這副牌、36 張牌各自的含義，以及牌與牌如何組合成一次解讀。"
+    },
+    "learn": {
+      "title": "什麼是雷諾曼？",
+      "description": "簡短介紹雷諾曼牌組 — 它的由來、與塔羅牌的差異，以及一次解讀是如何構成的。"
+    },
+    "deckIndex": {
+      "title": "雷諾曼牌組參考 — 全部 36 張牌",
+      "description": "瀏覽全部 36 張雷諾曼牌的含義與組合 — 完整且免費的牌組參考。"
+    }
+  },
   "nav": {
     "home": "牌陣",
     "history": "紀錄",

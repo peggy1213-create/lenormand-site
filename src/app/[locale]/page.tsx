@@ -5,7 +5,7 @@ import Button from "@/components/ds/Button";
 import OrnamentRule from "@/components/ds/OrnamentRule";
 import HomeDeckTeaser from "@/components/HomeDeckTeaser";
 import PresentMoment from "@/components/PresentMoment";
-import { buildAlternates } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo";
 import styles from "./page.module.css";
 
 export async function generateMetadata({
@@ -14,7 +14,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  return { alternates: buildAlternates(locale) };
+  return buildPageMetadata(locale, "", "home", { absoluteTitle: true });
 }
 
 export default async function HomePage({
