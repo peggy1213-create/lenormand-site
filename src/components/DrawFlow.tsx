@@ -5,7 +5,7 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import posthog from "posthog-js";
 import type { Locale } from "@/i18n/routing";
-import { SPREADS, type SpreadId } from "@/data/spreads";
+import { SPREADS, type Spread, type SpreadId } from "@/data/spreads";
 import { CARDS, CARD_BACK_IMAGE, type Card } from "@/data/cards";
 import { useAuth } from "@/components/AuthProvider";
 import { shuffle } from "@/lib/shuffle";
@@ -23,6 +23,7 @@ type ScatterCard = { id: number; x: number; y: number; rot: number };
 type Phase = "question" | "shuffle" | "choose" | "locked";
 
 const FIELD_W = 820;
+const TABLEAU_MAX_W = 1080;
 const FIELD_H = 260;
 const DECK_CARD_MIN_W = 46;
 const DECK_CARD_MAX_W = 96;
@@ -74,6 +75,25 @@ function pillButtonStyle(on: boolean, tone: "gilt" | "ghost"): CSSProperties {
     whiteSpace: "nowrap",
     transition: "background var(--dur-med) var(--ease-out-soft)",
   };
+}
+
+// Anchor card highlighted in each spread's picker glyph, if the spread reads
+// from a centre card.
+const GLYPH_ANCHOR: Partial<Record<SpreadId, number>> = { five: 2, nine: 4 };
+
+function SpreadGlyph({ spread }: { spread: Spread }) {
+  const anchor = GLYPH_ANCHOR[spread.id];
+  return (
+    <div
+      aria-hidden
+      className={styles.glyph}
+      style={{ gridTemplateColumns: `repeat(${spread.columns ?? spread.cardCount}, var(--glyph-w))` }}
+    >
+      {Array.from({ length: spread.cardCount }, (_, i) => (
+        <span key={i} className={i === anchor ? `${styles.glyphCard} ${styles.glyphAnchor}` : styles.glyphCard} />
+      ))}
+    </div>
+  );
 }
 
 const FREE_READING_SPREADS_ANON: SpreadId[] = ["daily"];
@@ -181,6 +201,9 @@ export default function DrawFlow() {
 
   const spread = SPREADS[sel];
   const need = spread.cardCount;
+  // A spread that uses the whole deck (the Grand Tableau) skips picking
+  // from the fan: every card is laid straight into the tableau.
+  const layAll = need >= CARDS.length;
   const asking = phase === "question";
   const choosing = phase === "choose";
   const done = choosing && chosen.length >= need;
@@ -209,6 +232,7 @@ export default function DrawFlow() {
 
   function openSpread(i: number) {
     const spreadAt = SPREADS[i];
+    if (spreadAt.comingSoon) return;
     const skip = spreadAt.id === "daily";
     const locked = skip && dailyLocked;
     posthog.capture("spread_selected", { spread: spreadAt.id, locale });
@@ -278,15 +302,20 @@ export default function DrawFlow() {
   }
 
   function lay() {
-    setDeckOrder(shuffle(CARDS));
-    setChosen([]);
+    const order = shuffle(CARDS);
+    setDeckOrder(order);
     setRevealed([]);
     setPhase("choose");
+    if (layAll) commitChosen(order.map((_, i) => i), order);
+    else setChosen([]);
   }
 
   function choose(i: number, order: Card[]) {
     if (chosen.length >= need || chosen.includes(i)) return;
-    const next = [...chosen, i];
+    commitChosen([...chosen, i], order);
+  }
+
+  function commitChosen(next: number[], order: Card[]) {
     setChosen(next);
     if (next.length >= need) {
       const reading = addReading({
@@ -390,59 +419,57 @@ export default function DrawFlow() {
       <div className={styles.spreadGrid}>
         {SPREADS.map((sp, i) => {
           const lockedCard = sp.id === "daily" && dailyLocked;
+          const featured = sp.cardCount >= CARDS.length;
+          const unavailable = sp.comingSoon === true;
           return (
-            <div
+            <button
               key={sp.id}
-              className={styles.spreadCard}
+              type="button"
+              className={[styles.spreadCard, featured && styles.spreadCardFeatured, unavailable && styles.spreadCardUnavailable]
+                .filter(Boolean)
+                .join(" ")}
               onClick={() => openSpread(i)}
+              disabled={unavailable}
+              aria-disabled={unavailable}
               style={{ opacity: lockedCard ? 0.6 : 1 }}
             >
               <div className={styles.glowFrame} />
-              <h2
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 600,
-                  fontSize: 22,
-                  letterSpacing: "0.14em",
-                  textTransform: "uppercase",
-                  color: "var(--ink-900)",
-                  margin: "0 0 10px",
-                }}
-              >
-                {s(`${sp.id}.name`)}
-              </h2>
-              <p
-                style={{
-                  fontSize: 17,
-                  lineHeight: 1.5,
-                  color: "var(--text-muted)",
-                  margin: "0 0 20px",
-                  flex: 1,
-                }}
-              >
-                {s(`${sp.id}.description`)}
-              </p>
-              {lockedCard && (
-                <div
-                  style={{
-                    fontFamily: "var(--font-smallcaps)",
-                    textTransform: "uppercase",
-                    letterSpacing: "var(--tracking-wide)",
-                    fontSize: 11,
-                    color: "var(--gold-300)",
-                  }}
-                >
-                  {t("dailyLockedBadge")}
+              <div className={styles.glyphWrap}>
+                <SpreadGlyph spread={sp} />
+              </div>
+              <div className={styles.spreadBody}>
+                {(featured || unavailable) && (
+                  <div className={styles.spreadEyebrowRow}>
+                    {featured && <span className={styles.spreadEyebrow}>{t("fullDeckEyebrow")}</span>}
+                    {unavailable && <span className={styles.comingSoonBadge}>{t("comingSoonLabel")}</span>}
+                  </div>
+                )}
+                <h2 className={styles.spreadName}>{s(`${sp.id}.name`)}</h2>
+                <p className={styles.spreadDescription}>{s(`${sp.id}.description`)}</p>
+                <div className={styles.spreadMeta}>
+                  {lockedCard ? (
+                    <span className={styles.spreadMetaLocked}>{t("dailyLockedBadge")}</span>
+                  ) : (
+                    <>
+                      <span>{t("cardCountLabel", { count: sp.cardCount })}</span>
+                      {sp.id === "daily" && (
+                        <>
+                          <span aria-hidden className={styles.spreadMetaDot}>✦</span>
+                          <span>{t("onceADayLabel")}</span>
+                        </>
+                      )}
+                    </>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            </button>
           );
         })}
       </div>
 
       {open && (
         <div className={styles.scrim}>
-          <div style={{ textAlign: "center", width: "100%", maxWidth: 880 }}>
+          <div style={{ textAlign: "center", width: "100%", maxWidth: layAll && choosing ? TABLEAU_MAX_W : 880 }}>
             <div
               style={{
                 fontFamily: "var(--font-smallcaps)",
@@ -598,21 +625,30 @@ export default function DrawFlow() {
               // vertical space with it, so it gets a smaller reserved size;
               // once selection is done the fan disappears and there's room
               // to grow the cards for the reveal moment.
-              const chosenW = done
-                ? "clamp(80px, min(27vw, 18vh), 168px)"
-                : "clamp(70px, min(24vw, 14vh), 148px)";
-              const chosenH = done
-                ? "clamp(126px, min(42.6vw, 28.4vh), 265px)"
-                : "clamp(110px, min(37.7vw, 22vh), 232px)";
-              const isGrid = spread.id === "nine";
+              // The tableau fills the row nine cards wide, scrolling sideways
+              // rather than shrinking below a legible size on phones.
+              const chosenW = layAll
+                ? `clamp(52px, calc((min(${TABLEAU_MAX_W}px, 100vw - 112px) - 64px) / 9), 104px)`
+                : done
+                  ? "clamp(80px, min(27vw, 18vh), 168px)"
+                  : "clamp(70px, min(24vw, 14vh), 148px)";
+              const chosenH = layAll
+                ? `calc(${chosenW} * ${DECK_CARD_ASPECT})`
+                : done
+                  ? "clamp(126px, min(42.6vw, 28.4vh), 265px)"
+                  : "clamp(110px, min(37.7vw, 22vh), 232px)";
+              const columns = spread.columns;
               return (
+              <div className={layAll ? styles.tableauScroller : undefined}>
               <div
                 style={
-                  isGrid
+                  columns
                     ? {
                         display: "grid",
-                        gridTemplateColumns: `repeat(3, ${chosenW})`,
-                        gap: 18,
+                        gridTemplateColumns: `repeat(${columns}, ${chosenW})`,
+                        gap: layAll ? "12px 8px" : 18,
+                        width: layAll ? "max-content" : undefined,
+                        margin: layAll ? "0 auto" : undefined,
                         justifyContent: "center",
                         alignItems: "center",
                         marginTop: "clamp(10px, 2.5vh, 22px)",
@@ -628,7 +664,7 @@ export default function DrawFlow() {
                       }
                 }
               >
-                {chosen.map((di) => {
+                {chosen.map((di, idx) => {
                   const shown = revealed.includes(di);
                   const card = deckOrder[di];
                   return (
@@ -636,7 +672,10 @@ export default function DrawFlow() {
                       key={di}
                       onClick={() => reveal(di)}
                       className={styles.chosenCard}
-                      style={{ cursor: shown ? "default" : "pointer" }}
+                      style={{
+                        cursor: shown ? "default" : "pointer",
+                        animationDelay: layAll ? `${idx * 18}ms` : undefined,
+                      }}
                     >
                       <div
                         style={cardBackStyle({
@@ -647,12 +686,14 @@ export default function DrawFlow() {
                       />
                       <div
                         style={{
-                          marginTop: 10,
-                          minHeight: 18,
+                          marginTop: layAll ? 5 : 10,
+                          minHeight: layAll ? 12 : 18,
+                          width: layAll ? chosenW : undefined,
                           fontFamily: "var(--font-smallcaps)",
                           textTransform: "uppercase",
-                          letterSpacing: "var(--tracking-wide)",
-                          fontSize: 11,
+                          letterSpacing: layAll ? "0.04em" : "var(--tracking-wide)",
+                          fontSize: layAll ? 9 : 11,
+                          lineHeight: layAll ? 1.25 : undefined,
                           color: "var(--gold-200)",
                         }}
                       >
@@ -661,6 +702,7 @@ export default function DrawFlow() {
                     </div>
                   );
                 })}
+              </div>
               </div>
               );
             })()}
@@ -784,7 +826,7 @@ export default function DrawFlow() {
               )}
 
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
-                {done && (
+                {done && !layAll && (
                   <CopyToClipboardButton
                     text={promptText}
                     label={t("copyPromptButton")}
