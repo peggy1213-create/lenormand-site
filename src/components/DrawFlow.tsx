@@ -12,10 +12,10 @@ import { shuffle } from "@/lib/shuffle";
 import { useReadings } from "@/components/ReadingsProvider";
 import { buildAIPrompt } from "@/lib/prompt";
 import { hasAnyProviderConfigured } from "@/lib/apiSettings";
-import { getLocalFreeReadingCount } from "@/lib/freeReadingClient";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import ReadWithApiPanel from "./ReadWithApiPanel";
 import FreeReadingPanel from "./FreeReadingPanel";
+import TurnstileWidget, { type TurnstileHandle } from "./TurnstileWidget";
 import TagEditor from "./TagEditor";
 import styles from "./DrawFlow.module.css";
 
@@ -96,11 +96,52 @@ function SpreadGlyph({ spread }: { spread: Spread }) {
   );
 }
 
-const FREE_READING_SPREADS_ANON: SpreadId[] = ["daily"];
+const FREE_READING_SPREADS_ANON: SpreadId[] = ["daily", "three", "five"];
 const FREE_READING_SPREADS_AUTH: SpreadId[] = ["daily", "three", "five"];
-const FREE_LIMIT_ANON = 1;
-const FREE_LIMIT_AUTH = 2;
+const FREE_LIMIT_ANON = 2;
+const FREE_LIMIT_AUTH = 3;
 const UNLIMITED_EMAILS = new Set(["peichun1213@gmail.com"]);
+
+// Sign-in exists on the dev site only (NEXT_PUBLIC_ENABLE_AUTH=true there).
+// In production the flag is unset, so we treat everyone as anonymous and never
+// show the sign-in affordances.
+const AUTH_ENABLED = process.env.NEXT_PUBLIC_ENABLE_AUTH === "true";
+// Free (no-key) readings need a Turnstile site key for the anonymous path.
+const FREE_ENABLED = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
+const FREE_STORE_KEY = "lenormand.freeReadings";
+
+function todayUtc(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Display-only mirror of free readings left today, scoped to the UTC day so it
+// resets in step with the server. The server is the real authority and
+// corrects this via the X-Free-Remaining header after each reading.
+function readFreeRemaining(defaultCap: number): number {
+  if (typeof window === "undefined") return defaultCap;
+  try {
+    const raw = window.localStorage.getItem(FREE_STORE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.day === todayUtc() && typeof parsed.remaining === "number") {
+        return parsed.remaining;
+      }
+    }
+  } catch {
+    // private mode / quota — fall through to the optimistic default
+  }
+  return defaultCap;
+}
+
+function writeFreeRemaining(remaining: number): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(FREE_STORE_KEY, JSON.stringify({ day: todayUtc(), remaining }));
+  } catch {
+    // private mode / quota — nothing to do
+  }
+}
 
 export default function DrawFlow() {
   const locale = useLocale() as Locale;
@@ -126,16 +167,28 @@ export default function DrawFlow() {
   const [questionHelpOpen, setQuestionHelpOpen] = useState(false);
   const [showApiPanel, setShowApiPanel] = useState(false);
   const [showFreePanel, setShowFreePanel] = useState(false);
-  const [freeReadingAvailable, setFreeReadingAvailable] = useState(false);
+  const [freeRemaining, setFreeRemaining] = useState<number | null>(null);
   const [apiConfigured, setApiConfigured] = useState(false);
   const [currentReadingId, setCurrentReadingId] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileHandle | null>(null);
+
+  // Sign-in only counts when auth is enabled (dev). In production the flag is
+  // off, so everyone is treated as anonymous regardless of any stale session.
+  const effectiveUser = AUTH_ENABLED ? user : null;
+  const signedIn = !!effectiveUser;
+  const isUnlimited = effectiveUser?.email ? UNLIMITED_EMAILS.has(effectiveUser.email) : false;
+  const freeCap = signedIn ? FREE_LIMIT_AUTH : FREE_LIMIT_ANON;
 
   useEffect(() => {
     setApiConfigured(hasAnyProviderConfigured());
-    const isUnlimited = user?.email ? UNLIMITED_EMAILS.has(user.email) : false;
-    const limit = user ? FREE_LIMIT_AUTH : FREE_LIMIT_ANON;
-    setFreeReadingAvailable(isUnlimited || getLocalFreeReadingCount() < limit);
-  }, [open, user]);
+    setFreeRemaining(isUnlimited ? freeCap : readFreeRemaining(freeCap));
+  }, [open, isUnlimited, freeCap]);
+
+  function handleFreeRemaining(remaining: number | null) {
+    if (remaining === null) return;
+    setFreeRemaining(remaining);
+    writeFreeRemaining(remaining);
+  }
   const questionHelpRef = useRef<HTMLDivElement | null>(null);
 
   // Read on mount only (not during SSR): the lock depends on localStorage
@@ -781,16 +834,22 @@ export default function DrawFlow() {
                     alignItems: "center",
                   }}
                 >
-                  {((user?.email && UNLIMITED_EMAILS.has(user.email)) || (user ? FREE_READING_SPREADS_AUTH : FREE_READING_SPREADS_ANON).includes(spread.id)) && freeReadingAvailable && !showFreePanel && !showApiPanel && (
-                    <button
-                      type="button"
-                      onClick={() => setShowFreePanel(true)}
-                      disabled={!allShown}
-                      style={{ ...pillButtonStyle(allShown, "gilt"), opacity: allShown ? 1 : 0.45 }}
-                    >
-                      {t("freeReadingButton")}
-                    </button>
-                  )}
+                  {(signedIn || FREE_ENABLED) &&
+                    (isUnlimited || (signedIn ? FREE_READING_SPREADS_AUTH : FREE_READING_SPREADS_ANON).includes(spread.id)) &&
+                    freeRemaining !== 0 &&
+                    !showFreePanel &&
+                    !showApiPanel && (
+                      <button
+                        type="button"
+                        onClick={() => setShowFreePanel(true)}
+                        disabled={!allShown}
+                        style={{ ...pillButtonStyle(allShown, "gilt"), opacity: allShown ? 1 : 0.45 }}
+                      >
+                        {freeRemaining === null || isUnlimited
+                          ? t("freeReadingButton")
+                          : t("freeReadingButtonCount", { count: freeRemaining })}
+                      </button>
+                    )}
                   <button
                     type="button"
                     onClick={layAction}
@@ -808,7 +867,7 @@ export default function DrawFlow() {
                       {t("readWithApiButton")}
                     </button>
                   )}
-                  {!user && (spread.id === "three" || spread.id === "five") && !showApiPanel && (
+                  {AUTH_ENABLED && !signedIn && (spread.id === "three" || spread.id === "five") && !showApiPanel && (
                     <span
                       style={{
                         fontFamily: "var(--font-serif)",
@@ -825,6 +884,30 @@ export default function DrawFlow() {
                   )}
                 </div>
               )}
+
+              {/* Out of free readings for the day: explain and point to the
+                  copy-prompt fallback (and, on dev, signing in for more). */}
+              {done &&
+                allShown &&
+                (signedIn || FREE_ENABLED) &&
+                freeRemaining === 0 &&
+                !showFreePanel &&
+                !showApiPanel && (
+                  <p
+                    style={{
+                      maxWidth: 560,
+                      margin: "clamp(8px, 2vh, 16px) auto 0",
+                      fontFamily: "var(--font-serif)",
+                      fontStyle: "italic",
+                      fontSize: 14,
+                      lineHeight: 1.5,
+                      color: "var(--gold-200)",
+                      textAlign: "center",
+                    }}
+                  >
+                    {t("freeExhaustedNote")}
+                  </p>
+                )}
 
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
                 {done && !layAll && (
@@ -846,8 +929,19 @@ export default function DrawFlow() {
               </div>
             </div>
 
+            {/* Anonymous free readings need a Turnstile token; mount the widget
+                once the reading is laid so a token is ready. Signed-in users
+                skip it. Interaction-only, so usually invisible. */}
+            {done && allShown && FREE_ENABLED && !signedIn && <TurnstileWidget ref={turnstileRef} />}
+
             {done && allShown && showFreePanel && (
-              <FreeReadingPanel prompt={promptText} spread={spread.id} readingId={currentReadingId} />
+              <FreeReadingPanel
+                prompt={promptText}
+                readingId={currentReadingId}
+                signedIn={signedIn}
+                getToken={() => turnstileRef.current?.consume() ?? Promise.resolve(null)}
+                onRemaining={handleFreeRemaining}
+              />
             )}
 
             {done && allShown && showApiPanel && (
