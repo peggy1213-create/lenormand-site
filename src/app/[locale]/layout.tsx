@@ -11,6 +11,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import PostHogProvider from "@/components/PostHogProvider";
 import PostHogPageView from "@/components/PostHogPageView";
+import GoogleAnalyticsPageView from "@/components/GoogleAnalyticsPageView";
 import ClarityProvider from "@/components/ClarityProvider";
 import "../globals.css";
 
@@ -129,9 +130,10 @@ export default async function LocaleLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-0Q82SZMP7L');
+            gtag('config', 'G-0Q82SZMP7L', { send_page_view: false });
           `}
         </Script>
+        <GoogleAnalyticsPageView />
       </body>
     </html>
   );
