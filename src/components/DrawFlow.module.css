@@ -9,6 +9,8 @@
   }
 }
 
+/* Four everyday spreads share a row; the Grand Tableau spans the full width
+   beneath them as a featured card. */
 .spreadGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -31,13 +33,18 @@
 }
 
 .spreadCard {
+  --glyph-w: 13px;
+  --glyph-gap: 4px;
   position: relative;
   cursor: pointer;
+  font: inherit;
+  color: inherit;
+  width: 100%;
   background: var(--surface-card);
   border: 1px solid var(--border-hair);
   border-radius: 8px;
   box-shadow: var(--shadow-md);
-  padding: 34px 26px 32px;
+  padding: 30px 24px 26px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -48,6 +55,223 @@
 .spreadCard:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
+}
+.spreadCard:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 3px;
+}
+
+.spreadCardFeatured {
+  --glyph-w: 20px;
+  --glyph-gap: 6px;
+  grid-column: 1 / -1;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 48px;
+  padding: 36px 48px;
+  text-align: left;
+  background:
+    radial-gradient(90% 140% at 100% 50%, rgba(231, 199, 137, 0.22), transparent 70%),
+    var(--surface-card);
+}
+
+@media (max-width: 760px) {
+  .spreadCardFeatured {
+    --glyph-w: 16px;
+    --glyph-gap: 5px;
+    flex-direction: column;
+    gap: 0;
+    padding: 30px 24px 26px;
+    text-align: center;
+  }
+}
+
+.glyphWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 76px;
+  margin-bottom: 22px;
+}
+
+.spreadCardFeatured .glyphWrap {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+}
+
+@media (max-width: 760px) {
+  .spreadCardFeatured .glyphWrap {
+    margin-bottom: 22px;
+  }
+}
+
+.glyph {
+  display: grid;
+  gap: var(--glyph-gap);
+}
+
+.glyphCard {
+  width: var(--glyph-w);
+  height: calc(var(--glyph-w) * 1.5);
+  border-radius: 2px;
+  border: 1px solid var(--gold-400);
+  background: var(--parchment-100);
+  transition:
+    background var(--dur-med) var(--ease-out-soft),
+    transform var(--dur-med) var(--ease-out-soft);
+}
+
+.glyphAnchor {
+  background: var(--gold-200);
+}
+
+.spreadCard:hover .glyphCard {
+  background: var(--gold-100);
+}
+.spreadCard:hover .glyphAnchor {
+  background: var(--gold-300);
+}
+
+.spreadBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.spreadEyebrowRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 760px) {
+  .spreadCardFeatured .spreadEyebrowRow {
+    justify-content: center;
+  }
+}
+
+.spreadEyebrow {
+  font-family: var(--font-smallcaps);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  font-size: 12px;
+  color: var(--gold-500);
+}
+
+.comingSoonBadge {
+  font-family: var(--font-smallcaps);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  font-size: 11px;
+  color: var(--ink-900);
+  background: var(--gold-100);
+  border: 1px solid var(--gold-400);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+/* Listed but not yet drawable: no lift, glow or pointer on hover. */
+.spreadCardUnavailable,
+.spreadCardUnavailable:hover {
+  cursor: default;
+  transform: none;
+  background: var(--surface-sunken);
+  box-shadow: var(--shadow-sm);
+}
+.spreadCard.spreadCardUnavailable:hover .glowFrame {
+  opacity: 0;
+}
+/* Grey out everything except the "Coming soon" badge, which stays gilt so
+   it reads as the reason. */
+.spreadCardUnavailable .glyphWrap,
+.spreadCardUnavailable .spreadEyebrow,
+.spreadCardUnavailable .spreadName,
+.spreadCardUnavailable .spreadDescription,
+.spreadCardUnavailable .spreadMeta {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+.spreadCardUnavailable:hover .glyphCard {
+  background: var(--parchment-100);
+}
+
+.spreadName {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-900);
+  margin: 0 0 10px;
+}
+
+.spreadCardFeatured .spreadName {
+  font-size: 28px;
+}
+
+.spreadDescription {
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 0 0 20px;
+  flex: 1;
+}
+
+.spreadCardFeatured .spreadDescription {
+  font-size: 18px;
+  max-width: 460px;
+}
+
+@media (max-width: 760px) {
+  .spreadCardFeatured .spreadDescription {
+    max-width: none;
+  }
+}
+
+.spreadMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-hair);
+  font-family: var(--font-smallcaps);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  font-size: 11px;
+  color: var(--gold-500);
+}
+
+.spreadCardFeatured .spreadMeta {
+  justify-content: flex-start;
+}
+
+@media (max-width: 760px) {
+  .spreadCardFeatured .spreadMeta {
+    justify-content: center;
+  }
+}
+
+.spreadMetaDot {
+  font-size: 8px;
+  color: var(--gold-400);
+}
+
+.spreadMetaLocked {
+  color: var(--gold-500);
+}
+
+.tableauScroller {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(231, 199, 137, 0.5) transparent;
+  padding-bottom: 6px;
 }
 
 .glowFrame {

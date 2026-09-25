@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import OrnamentRule from "@/components/ds/OrnamentRule";
 import { Link } from "@/i18n/navigation";
-import { buildAlternates } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo";
 import styles from "./page.module.css";
 
 export async function generateMetadata({
@@ -11,8 +11,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "cards" });
-  return { title: t("title"), alternates: buildAlternates(locale, "/cards") };
+  return buildPageMetadata(locale, "/cards", "cards");
 }
 
 export default async function LearningPage({
@@ -22,7 +21,7 @@ export default async function LearningPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("cards");
+  const t = await getTranslations("learning");
 
   const sections = [
     {

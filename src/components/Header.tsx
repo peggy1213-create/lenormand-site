@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Coffee } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import AuthButton from "@/components/AuthButton";
+import btn from "./ds/Button.module.css";
 import styles from "./Header.module.css";
+
+const COFFEE_URL = "https://buymeacoffee.com/unfoldingwithpeg";
 
 function MenuIcon({ open }: { open: boolean }) {
   return open ? (
@@ -113,6 +117,16 @@ export default function Header() {
               </Link>
             );
           })}
+          <a
+            href={COFFEE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={[btn.base, btn.sm, btn.ghost, styles.iconButton].join(" ")}
+            aria-label={t("coffee")}
+            title={t("coffee")}
+          >
+            <Coffee size={16} strokeWidth={1.75} aria-hidden="true" />
+          </a>
           <AuthButton />
         </nav>
 
@@ -142,6 +156,15 @@ export default function Header() {
               </Link>
             );
           })}
+          <a
+            href={COFFEE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${styles.mobileLink} ${styles.mobileCoffee}`}
+          >
+            <Coffee size={14} strokeWidth={1.75} aria-hidden="true" />
+            {t("coffee")}
+          </a>
           <div className={styles.mobileAuth}>
             <AuthButton />
           </div>

@@ -3,33 +3,37 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import MarkdownReading from "./MarkdownReading";
-import type { SpreadId } from "@/data/spreads";
-import {
-  streamFreeReading,
-  incrementLocalFreeReadingCount,
-  type FreeReadingErrorCode,
-} from "@/lib/freeReadingClient";
-import { updateReadingApiText } from "@/lib/storage";
+import { streamFreeReading, type FreeReadingErrorCode } from "@/lib/readingApiClient";
+import { useReadings } from "@/components/ReadingsProvider";
 import posthog from "posthog-js";
 
 type PanelState = "streaming" | "done" | "error";
 
 function errorMessageKey(code: FreeReadingErrorCode | null): string {
-  if (code === "daily_limit_reached") return "freeReadingLimitReached";
-  if (code === "spread_not_allowed") return "freeReadingSpreadLocked";
+  if (code === "captcha") return "freeErrorCaptcha";
+  if (code === "limit") return "freeErrorLimit";
+  if (code === "global_limit") return "freeErrorGlobalLimit";
   return "freeReadingError";
 }
 
+// Streams a free (no-key) reading from the unified Workers AI tier
+// (src/app/api/reading/free/route.ts). Signed-in users get the higher daily
+// cap; anonymous users the lower one — the server decides which applies from
+// their session. Remaining daily uses are reported back through onRemaining
+// the moment the response header arrives.
 export default function FreeReadingPanel({
   prompt,
-  spread,
   readingId,
+  signedIn,
+  onRemaining,
 }: {
   prompt: string;
-  spread: SpreadId;
   readingId: string | null;
+  signedIn: boolean;
+  onRemaining: (remaining: number | null) => void;
 }) {
   const t = useTranslations("draw");
+  const { updateApiText } = useReadings();
   const [text, setText] = useState("");
   const [state, setState] = useState<PanelState>("streaming");
   const [errorCode, setErrorCode] = useState<FreeReadingErrorCode | null>(null);
@@ -42,26 +46,27 @@ export default function FreeReadingPanel({
     setState("streaming");
     setErrorCode(null);
 
-    streamFreeReading(
-      { spread, prompt },
-      (chunk) => {
-        if (cancelled) return;
-        fullText += chunk;
-        setText((prev) => prev + chunk);
-      },
-      controller.signal,
-    ).then((result) => {
+    (async () => {
+      const result = await streamFreeReading(
+        { prompt },
+        (chunk) => {
+          if (cancelled) return;
+          fullText += chunk;
+          setText((prev) => prev + chunk);
+        },
+        controller.signal,
+        onRemaining,
+      );
       if (cancelled) return;
       if (result.ok) {
-        posthog.capture("free_ai_reading_completed", { spread });
+        posthog.capture("free_ai_reading_completed", { tier: signedIn ? "auth" : "anon" });
         setState("done");
-        incrementLocalFreeReadingCount();
-        if (readingId) updateReadingApiText(readingId, fullText);
+        if (readingId) updateApiText(readingId, fullText);
       } else {
         setErrorCode(result.error);
         setState("error");
       }
-    });
+    })();
 
     return () => {
       cancelled = true;
@@ -119,7 +124,6 @@ export default function FreeReadingPanel({
       )}
 
       {text.length > 0 && <MarkdownReading text={text} tone="onDark" />}
-
     </div>
   );
 }

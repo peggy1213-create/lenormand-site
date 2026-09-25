@@ -50,6 +50,16 @@
   border-bottom: 1px solid var(--gold-400);
 }
 
+.iconButton {
+  padding: 0 10px;
+}
+
+.mobileCoffee {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .menuToggle {
   display: none;
   align-items: center;

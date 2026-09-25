@@ -15,6 +15,40 @@
     "title": "In-Betweens",
     "tagline": "Draw Lenormand cards and keep a personal reading history — no account needed."
   },
+  "seo": {
+    "home": {
+      "title": "In-Betweens — Free AI Lenormand Card Readings Online",
+      "description": "Draw a Lenormand spread and get a free AI-powered reading instantly — no account, no API key required. Keep a private history of your readings."
+    },
+    "spreads": {
+      "title": "Draw a Lenormand Spread",
+      "description": "Pick a Lenormand spread, draw your cards, and get a free AI reading of the story they tell — one question at a time, no signup needed."
+    },
+    "aireading": {
+      "title": "Free AI Lenormand Reading",
+      "description": "Get free AI-powered Lenormand readings each day, or bring your own Anthropic, OpenAI, or Gemini API key. Your questions stay private in your browser."
+    },
+    "about": {
+      "title": "About",
+      "description": "About In-Betweens — a calm, account-free space for Lenormand card readings, with optional AI interpretation and a private personal reading history."
+    },
+    "history": {
+      "title": "Your Readings",
+      "description": "Revisit your saved Lenormand spreads, add reflections, and record how things unfolded — all stored privately in your own browser."
+    },
+    "cards": {
+      "title": "Learning Lenormand",
+      "description": "Learn to read Lenormand: what the deck is, what each of the 36 cards means, and how the cards combine into a reading."
+    },
+    "learn": {
+      "title": "What Is Lenormand?",
+      "description": "A short introduction to the Lenormand deck — where it comes from, how it differs from tarot, and how a reading is put together."
+    },
+    "deckIndex": {
+      "title": "Lenormand Deck Reference — All 36 Cards",
+      "description": "Browse all 36 Lenormand cards with their meanings and combinations — a complete, free reference to the deck."
+    }
+  },
   "nav": {
     "home": "Spreads",
     "history": "History",
@@ -23,7 +57,8 @@
     "about": "About",
     "language": "Language",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "coffee": "Buy me a coffee"
   },
   "home": {
     "heading": "The Cards Are Waiting",
@@ -97,6 +132,46 @@
       "pos7": "Card 7",
       "pos8": "Card 8",
       "pos9": "Card 9"
+    },
+    "grand": {
+      "name": "Grand Tableau",
+      "description": "All 36 cards laid in a 4 × 9 tableau — a sweeping view of every area of your life at once, read through houses, distance, and lines.",
+      "pos1": "House 1",
+      "pos2": "House 2",
+      "pos3": "House 3",
+      "pos4": "House 4",
+      "pos5": "House 5",
+      "pos6": "House 6",
+      "pos7": "House 7",
+      "pos8": "House 8",
+      "pos9": "House 9",
+      "pos10": "House 10",
+      "pos11": "House 11",
+      "pos12": "House 12",
+      "pos13": "House 13",
+      "pos14": "House 14",
+      "pos15": "House 15",
+      "pos16": "House 16",
+      "pos17": "House 17",
+      "pos18": "House 18",
+      "pos19": "House 19",
+      "pos20": "House 20",
+      "pos21": "House 21",
+      "pos22": "House 22",
+      "pos23": "House 23",
+      "pos24": "House 24",
+      "pos25": "House 25",
+      "pos26": "House 26",
+      "pos27": "House 27",
+      "pos28": "House 28",
+      "pos29": "House 29",
+      "pos30": "House 30",
+      "pos31": "House 31",
+      "pos32": "House 32",
+      "pos33": "House 33",
+      "pos34": "House 34",
+      "pos35": "House 35",
+      "pos36": "House 36"
     }
   },
   "draw": {
@@ -164,12 +239,21 @@
     "followUpRemaining": "{count} of 3 follow-ups left",
     "followUpLimitReached": "You've asked all three follow-ups for this reading.",
     "freeReadingButton": "Free AI Reading",
+    "freeReadingButtonCount": "Free AI Reading ({count} left today)",
     "freeReadingLimitReached": "You've used your free reading for today. Come back tomorrow, or use your own API key.",
     "freeReadingSpreadLocked": "Free AI reading is only available for the Daily Draw.",
     "freeReadingError": "The free reading couldn't be completed right now. Try again later, or copy the prompt above.",
-    "freeReadingSignInHint": "Sign in for free AI readings on 3-card and 5-card spreads"
+    "freeReadingSignInHint": "Sign in for free AI readings on 3-card and 5-card spreads",
+    "freeExhaustedNote": "You've used today's free readings. Come back tomorrow, or copy the prompt above to read with your own AI.",
+    "freeErrorCaptcha": "We couldn't verify you're human. Refresh and try again, or copy the prompt above instead.",
+    "freeErrorLimit": "You've used your free readings for today. Come back tomorrow, or copy the prompt above.",
+    "freeErrorGlobalLimit": "Free readings are all used up for today across the site. Come back tomorrow, or copy the prompt above.",
+    "cardCountLabel": "{count} cards",
+    "fullDeckEyebrow": "The full deck",
+    "onceADayLabel": "Once a day",
+    "comingSoonLabel": "Coming soon"
   },
-  "cards": {
+  "learning": {
     "title": "Cards",
     "backToLearning": "Cards",
     "whatIsLenormandTitle": "What Is Lenormand",

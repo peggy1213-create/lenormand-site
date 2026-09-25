@@ -1,19 +1,38 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "lenormand-site",
-  "main": ".open-next/worker.js",
-  "compatibility_date": "2025-09-01",
-  "compatibility_flags": ["nodejs_compat"],
-  "assets": {
-    "directory": ".open-next/assets"
-  },
-  "ai": {
-    "binding": "AI"
-  },
-  "kv_namespaces": [
-    {
-      "binding": "FREE_READING_USAGE",
-      "id": "b0c508fe46cd4a7089e01409565b57bd"
-    }
-  ]
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "lenormand-site",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2025-09-01",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"assets": {
+		"directory": ".open-next/assets"
+	},
+	// Workers AI, used for the free reading tier in
+	// src/app/api/reading/free/route.ts.
+	"ai": {
+		"binding": "AI"
+	},
+	// D1 holds the free-tier usage counters (per anonymous visitor, per IP, per
+	// signed-in user, and a global daily total). This is the DEV database — run
+	// `npx wrangler d1 create lenormand-free-dev`, paste the returned id below,
+	// then apply migrations/ (see README). Production uses its own database.
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "lenormand-free-dev",
+			"database_id": "f20f2ffb-77cc-46f0-bcd5-2c4f43eb266f"
+		}
+	],
+	// Non-secret tuning. TURNSTILE_SECRET_KEY and ANON_HASH_SALT are secrets —
+	// set them with `npx wrangler secret put`, never here. The Turnstile *site*
+	// key is public and read at build time from NEXT_PUBLIC_TURNSTILE_SITE_KEY.
+	"vars": {
+		"FREE_MODEL": "@cf/meta/llama-4-scout-17b-16e-instruct",
+		"FREE_USER_DAILY_CAP": "2",
+		"FREE_AUTH_DAILY_CAP": "3",
+		"FREE_IP_DAILY_CAP": "8",
+		"FREE_GLOBAL_DAILY_CAP": "200"
+	}
 }

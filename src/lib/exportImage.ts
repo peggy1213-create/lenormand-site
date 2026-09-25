@@ -75,10 +75,34 @@ function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w:
 
 const WIDTH = 900;
 const PADDING = 48;
-const CARD_W = 130;
-const CARD_H = 204;
-const CARD_GAP = 20;
-const LABEL_BLOCK_H = 40;
+// A Grand Tableau (36 cards) is drawn as a compact 4 × 9 grid so the image
+// stays a readable size; smaller spreads keep full-size cards.
+function cardLayout(count: number) {
+  if (count > 9) {
+    return {
+      columns: 9,
+      CARD_W: 80,
+      CARD_H: 126,
+      CARD_GAP: 10,
+      LABEL_BLOCK_H: 30,
+      LABEL_FONT: 8,
+      NAME_FONT: 11,
+      LABEL_Y: 12,
+      NAME_Y: 26,
+    };
+  }
+  return {
+    columns: count <= 5 ? count : 3,
+    CARD_W: 130,
+    CARD_H: 204,
+    CARD_GAP: 20,
+    LABEL_BLOCK_H: 40,
+    LABEL_FONT: 10,
+    NAME_FONT: 14,
+    LABEL_Y: 16,
+    NAME_Y: 34,
+  };
+}
 
 export async function exportReadingAsJpeg(data: ExportReadingData): Promise<string> {
   const [images] = await Promise.all([
@@ -87,7 +111,9 @@ export async function exportReadingAsJpeg(data: ExportReadingData): Promise<stri
   ]);
 
   const contentWidth = WIDTH - PADDING * 2;
-  const columns = data.cards.length <= 5 ? data.cards.length : 3;
+  const { columns, CARD_W, CARD_H, CARD_GAP, LABEL_BLOCK_H, LABEL_FONT, NAME_FONT, LABEL_Y, NAME_Y } = cardLayout(
+    data.cards.length,
+  );
   const rows = Math.ceil(data.cards.length / columns);
   const gridWidth = columns * CARD_W + (columns - 1) * CARD_GAP;
   const gridStartX = PADDING + (contentWidth - gridWidth) / 2;
@@ -193,12 +219,12 @@ export async function exportReadingAsJpeg(data: ExportReadingData): Promise<stri
 
     ctx.textAlign = "center";
     ctx.fillStyle = SUBTLE;
-    ctx.font = `10px ${SMALLCAPS_FONT}`;
-    ctx.fillText(c.positionLabel.toUpperCase(), x + CARD_W / 2, cardY + CARD_H + 16);
+    ctx.font = `${LABEL_FONT}px ${SMALLCAPS_FONT}`;
+    ctx.fillText(c.positionLabel.toUpperCase(), x + CARD_W / 2, cardY + CARD_H + LABEL_Y);
 
     ctx.fillStyle = INK;
-    ctx.font = `14px ${SERIF_FONT}`;
-    ctx.fillText(c.name, x + CARD_W / 2, cardY + CARD_H + 34);
+    ctx.font = `${NAME_FONT}px ${SERIF_FONT}`;
+    ctx.fillText(c.name, x + CARD_W / 2, cardY + CARD_H + NAME_Y);
   });
 
   y += gridHeight;

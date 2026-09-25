@@ -104,7 +104,7 @@ export default async function DeckCardPage({
   const card = getCardById(numericId);
   const t = await getTranslations("deck");
   const cardsT = await getTranslations("cards");
-  const tLearning = await getTranslations("cards");
+  const tLearning = await getTranslations("learning");
 
   const meaning = getMeanings(locale as Locale).find((m) => m.id === card.id);
 
