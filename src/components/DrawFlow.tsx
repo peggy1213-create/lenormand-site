@@ -5,14 +5,13 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import posthog from "posthog-js";
 import type { Locale } from "@/i18n/routing";
-import { SPREADS, type SpreadId } from "@/data/spreads";
+import { SPREADS, type Spread, type SpreadId } from "@/data/spreads";
 import { CARDS, CARD_BACK_IMAGE, type Card } from "@/data/cards";
 import { useAuth } from "@/components/AuthProvider";
 import { shuffle } from "@/lib/shuffle";
-import { addReading, hasDrawnDailyToday } from "@/lib/storage";
+import { useReadings } from "@/components/ReadingsProvider";
 import { buildAIPrompt } from "@/lib/prompt";
 import { hasAnyProviderConfigured } from "@/lib/apiSettings";
-import { getLocalFreeReadingCount } from "@/lib/freeReadingClient";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import ReadWithApiPanel from "./ReadWithApiPanel";
 import FreeReadingPanel from "./FreeReadingPanel";
@@ -23,6 +22,7 @@ type ScatterCard = { id: number; x: number; y: number; rot: number };
 type Phase = "question" | "shuffle" | "choose" | "locked";
 
 const FIELD_W = 820;
+const TABLEAU_MAX_W = 1080;
 const FIELD_H = 260;
 const DECK_CARD_MIN_W = 46;
 const DECK_CARD_MAX_W = 96;
@@ -92,11 +92,72 @@ const quietActionStyle: CSSProperties = {
   transition: "color var(--dur-med) var(--ease-out-soft)",
 };
 
+// Anchor card highlighted in each spread's picker glyph, if the spread reads
+// from a centre card.
+const GLYPH_ANCHOR: Partial<Record<SpreadId, number>> = { five: 2, nine: 4 };
+
+function SpreadGlyph({ spread }: { spread: Spread }) {
+  const anchor = GLYPH_ANCHOR[spread.id];
+  return (
+    <div
+      aria-hidden
+      className={styles.glyph}
+      style={{ gridTemplateColumns: `repeat(${spread.columns ?? spread.cardCount}, var(--glyph-w))` }}
+    >
+      {Array.from({ length: spread.cardCount }, (_, i) => (
+        <span key={i} className={i === anchor ? `${styles.glyphCard} ${styles.glyphAnchor}` : styles.glyphCard} />
+      ))}
+    </div>
+  );
+}
+
 const FREE_READING_SPREADS_ANON: SpreadId[] = ["daily", "three", "five"];
 const FREE_READING_SPREADS_AUTH: SpreadId[] = ["daily", "three", "five"];
 const FREE_LIMIT_ANON = 2;
-const FREE_LIMIT_AUTH = 2;
+const FREE_LIMIT_AUTH = 3;
 const UNLIMITED_EMAILS = new Set(["peichun1213@gmail.com"]);
+
+// Sign-in exists on the dev site only (NEXT_PUBLIC_ENABLE_AUTH=true there).
+// In production the flag is unset, so we treat everyone as anonymous and never
+// show the sign-in affordances.
+const AUTH_ENABLED = process.env.NEXT_PUBLIC_ENABLE_AUTH === "true";
+// Free (no-key) readings are always offered; anonymous abuse is bounded by the
+// per-cookie, per-IP, and global daily caps on the server (no bot check).
+const FREE_ENABLED = true;
+
+const FREE_STORE_KEY = "lenormand.freeReadings";
+
+function todayUtc(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Display-only mirror of free readings left today, scoped to the UTC day so it
+// resets in step with the server. The server is the real authority and
+// corrects this via the X-Free-Remaining header after each reading.
+function readFreeRemaining(defaultCap: number): number {
+  if (typeof window === "undefined") return defaultCap;
+  try {
+    const raw = window.localStorage.getItem(FREE_STORE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.day === todayUtc() && typeof parsed.remaining === "number") {
+        return parsed.remaining;
+      }
+    }
+  } catch {
+    // private mode / quota — fall through to the optimistic default
+  }
+  return defaultCap;
+}
+
+function writeFreeRemaining(remaining: number): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(FREE_STORE_KEY, JSON.stringify({ day: todayUtc(), remaining }));
+  } catch {
+    // private mode / quota — nothing to do
+  }
+}
 
 export default function DrawFlow() {
   const locale = useLocale() as Locale;
@@ -104,6 +165,7 @@ export default function DrawFlow() {
   const s = useTranslations("spread");
   const cardsT = useTranslations("cards");
   const { user } = useAuth();
+  const { addReading, hasDrawnDailyToday } = useReadings();
 
   const [sel, setSel] = useState(0);
   const [open, setOpen] = useState(false);
@@ -121,18 +183,27 @@ export default function DrawFlow() {
   const [questionHelpOpen, setQuestionHelpOpen] = useState(false);
   const [showApiPanel, setShowApiPanel] = useState(false);
   const [showFreePanel, setShowFreePanel] = useState(false);
-  const [freeReadingAvailable, setFreeReadingAvailable] = useState(false);
-  const [freeReadingsLeft, setFreeReadingsLeft] = useState<number | null>(null);
+  const [freeRemaining, setFreeRemaining] = useState<number | null>(null);
   const [apiConfigured, setApiConfigured] = useState(false);
   const [currentReadingId, setCurrentReadingId] = useState<string | null>(null);
 
+  // Sign-in only counts when auth is enabled (dev). In production the flag is
+  // off, so everyone is treated as anonymous regardless of any stale session.
+  const effectiveUser = AUTH_ENABLED ? user : null;
+  const signedIn = !!effectiveUser;
+  const isUnlimited = effectiveUser?.email ? UNLIMITED_EMAILS.has(effectiveUser.email) : false;
+  const freeCap = signedIn ? FREE_LIMIT_AUTH : FREE_LIMIT_ANON;
+
   useEffect(() => {
     setApiConfigured(hasAnyProviderConfigured());
-    const isUnlimited = user?.email ? UNLIMITED_EMAILS.has(user.email) : false;
-    const limit = user ? FREE_LIMIT_AUTH : FREE_LIMIT_ANON;
-    setFreeReadingAvailable(isUnlimited || getLocalFreeReadingCount() < limit);
-    setFreeReadingsLeft(isUnlimited ? null : Math.max(0, limit - getLocalFreeReadingCount()));
-  }, [open, user, showFreePanel]);
+    setFreeRemaining(isUnlimited ? freeCap : readFreeRemaining(freeCap));
+  }, [open, isUnlimited, freeCap]);
+
+  function handleFreeRemaining(remaining: number | null) {
+    if (remaining === null) return;
+    setFreeRemaining(remaining);
+    writeFreeRemaining(remaining);
+  }
   const questionHelpRef = useRef<HTMLDivElement | null>(null);
 
   // Read on mount only (not during SSR): the lock depends on localStorage
@@ -199,6 +270,9 @@ export default function DrawFlow() {
 
   const spread = SPREADS[sel];
   const need = spread.cardCount;
+  // A spread that uses the whole deck (the Grand Tableau) skips picking
+  // from the fan: every card is laid straight into the tableau.
+  const layAll = need >= CARDS.length;
   const asking = phase === "question";
   const choosing = phase === "choose";
   const done = choosing && chosen.length >= need;
@@ -227,6 +301,7 @@ export default function DrawFlow() {
 
   function openSpread(i: number) {
     const spreadAt = SPREADS[i];
+    if (spreadAt.comingSoon) return;
     const skip = spreadAt.id === "daily";
     const locked = skip && dailyLocked;
     posthog.capture("spread_selected", { spread: spreadAt.id, locale });
@@ -296,15 +371,20 @@ export default function DrawFlow() {
   }
 
   function lay() {
-    setDeckOrder(shuffle(CARDS));
-    setChosen([]);
+    const order = shuffle(CARDS);
+    setDeckOrder(order);
     setRevealed([]);
     setPhase("choose");
+    if (layAll) commitChosen(order.map((_, i) => i), order);
+    else setChosen([]);
   }
 
   function choose(i: number, order: Card[]) {
     if (chosen.length >= need || chosen.includes(i)) return;
-    const next = [...chosen, i];
+    commitChosen([...chosen, i], order);
+  }
+
+  function commitChosen(next: number[], order: Card[]) {
     setChosen(next);
     if (next.length >= need) {
       const reading = addReading({
@@ -390,7 +470,7 @@ export default function DrawFlow() {
     : asking
     ? ""
     : allShown
-      ? t("hint.sitWithIt")
+      ? ""
       : done
         ? t("hint.turnCards")
         : choosing
@@ -408,59 +488,57 @@ export default function DrawFlow() {
       <div className={styles.spreadGrid}>
         {SPREADS.map((sp, i) => {
           const lockedCard = sp.id === "daily" && dailyLocked;
+          const featured = sp.cardCount >= CARDS.length;
+          const unavailable = sp.comingSoon === true;
           return (
-            <div
+            <button
               key={sp.id}
-              className={styles.spreadCard}
+              type="button"
+              className={[styles.spreadCard, featured && styles.spreadCardFeatured, unavailable && styles.spreadCardUnavailable]
+                .filter(Boolean)
+                .join(" ")}
               onClick={() => openSpread(i)}
+              disabled={unavailable}
+              aria-disabled={unavailable}
               style={{ opacity: lockedCard ? 0.6 : 1 }}
             >
               <div className={styles.glowFrame} />
-              <h2
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 600,
-                  fontSize: 22,
-                  letterSpacing: "0.14em",
-                  textTransform: "uppercase",
-                  color: "var(--ink-900)",
-                  margin: "0 0 10px",
-                }}
-              >
-                {s(`${sp.id}.name`)}
-              </h2>
-              <p
-                style={{
-                  fontSize: 17,
-                  lineHeight: 1.5,
-                  color: "var(--text-muted)",
-                  margin: "0 0 20px",
-                  flex: 1,
-                }}
-              >
-                {s(`${sp.id}.description`)}
-              </p>
-              {lockedCard && (
-                <div
-                  style={{
-                    fontFamily: "var(--font-smallcaps)",
-                    textTransform: "uppercase",
-                    letterSpacing: "var(--tracking-wide)",
-                    fontSize: 11,
-                    color: "var(--gold-300)",
-                  }}
-                >
-                  {t("dailyLockedBadge")}
+              <div className={styles.glyphWrap}>
+                <SpreadGlyph spread={sp} />
+              </div>
+              <div className={styles.spreadBody}>
+                {(featured || unavailable) && (
+                  <div className={styles.spreadEyebrowRow}>
+                    {featured && <span className={styles.spreadEyebrow}>{t("fullDeckEyebrow")}</span>}
+                    {unavailable && <span className={styles.comingSoonBadge}>{t("comingSoonLabel")}</span>}
+                  </div>
+                )}
+                <h2 className={styles.spreadName}>{s(`${sp.id}.name`)}</h2>
+                <p className={styles.spreadDescription}>{s(`${sp.id}.description`)}</p>
+                <div className={styles.spreadMeta}>
+                  {lockedCard ? (
+                    <span className={styles.spreadMetaLocked}>{t("dailyLockedBadge")}</span>
+                  ) : (
+                    <>
+                      <span>{t("cardCountLabel", { count: sp.cardCount })}</span>
+                      {sp.id === "daily" && (
+                        <>
+                          <span aria-hidden className={styles.spreadMetaDot}>✦</span>
+                          <span>{t("onceADayLabel")}</span>
+                        </>
+                      )}
+                    </>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            </button>
           );
         })}
       </div>
 
       {open && (
         <div className={styles.scrim}>
-          <div style={{ textAlign: "center", width: "100%", maxWidth: 880 }}>
+          <div style={{ textAlign: "center", width: "100%", maxWidth: layAll && choosing ? TABLEAU_MAX_W : 880 }}>
             <div
               style={{
                 fontFamily: "var(--font-smallcaps)",
@@ -616,21 +694,30 @@ export default function DrawFlow() {
               // vertical space with it, so it gets a smaller reserved size;
               // once selection is done the fan disappears and there's room
               // to grow the cards for the reveal moment.
-              const chosenW = done
-                ? "clamp(80px, min(27vw, 18vh), 168px)"
-                : "clamp(70px, min(24vw, 14vh), 148px)";
-              const chosenH = done
-                ? "clamp(126px, min(42.6vw, 28.4vh), 265px)"
-                : "clamp(110px, min(37.7vw, 22vh), 232px)";
-              const isGrid = spread.id === "nine";
+              // The tableau fills the row nine cards wide, scrolling sideways
+              // rather than shrinking below a legible size on phones.
+              const chosenW = layAll
+                ? `clamp(52px, calc((min(${TABLEAU_MAX_W}px, 100vw - 112px) - 64px) / 9), 104px)`
+                : done
+                  ? "clamp(80px, min(27vw, 18vh), 168px)"
+                  : "clamp(70px, min(24vw, 14vh), 148px)";
+              const chosenH = layAll
+                ? `calc(${chosenW} * ${DECK_CARD_ASPECT})`
+                : done
+                  ? "clamp(126px, min(42.6vw, 28.4vh), 265px)"
+                  : "clamp(110px, min(37.7vw, 22vh), 232px)";
+              const columns = spread.columns;
               return (
+              <div className={layAll ? styles.tableauScroller : undefined}>
               <div
                 style={
-                  isGrid
+                  columns
                     ? {
                         display: "grid",
-                        gridTemplateColumns: `repeat(3, ${chosenW})`,
-                        gap: 18,
+                        gridTemplateColumns: `repeat(${columns}, ${chosenW})`,
+                        gap: layAll ? "12px 8px" : 18,
+                        width: layAll ? "max-content" : undefined,
+                        margin: layAll ? "0 auto" : undefined,
                         justifyContent: "center",
                         alignItems: "center",
                         marginTop: "clamp(10px, 2.5vh, 22px)",
@@ -646,7 +733,7 @@ export default function DrawFlow() {
                       }
                 }
               >
-                {chosen.map((di) => {
+                {chosen.map((di, idx) => {
                   const shown = revealed.includes(di);
                   const card = deckOrder[di];
                   return (
@@ -654,7 +741,10 @@ export default function DrawFlow() {
                       key={di}
                       onClick={() => reveal(di)}
                       className={styles.chosenCard}
-                      style={{ cursor: shown ? "default" : "pointer" }}
+                      style={{
+                        cursor: shown ? "default" : "pointer",
+                        animationDelay: layAll ? `${idx * 18}ms` : undefined,
+                      }}
                     >
                       <div
                         style={cardBackStyle({
@@ -665,12 +755,14 @@ export default function DrawFlow() {
                       />
                       <div
                         style={{
-                          marginTop: 10,
-                          minHeight: 18,
+                          marginTop: layAll ? 5 : 10,
+                          minHeight: layAll ? 12 : 18,
+                          width: layAll ? chosenW : undefined,
                           fontFamily: "var(--font-smallcaps)",
                           textTransform: "uppercase",
-                          letterSpacing: "var(--tracking-wide)",
-                          fontSize: 11,
+                          letterSpacing: layAll ? "0.04em" : "var(--tracking-wide)",
+                          fontSize: layAll ? 9 : 11,
+                          lineHeight: layAll ? 1.25 : undefined,
                           color: "var(--gold-200)",
                         }}
                       >
@@ -679,6 +771,7 @@ export default function DrawFlow() {
                     </div>
                   );
                 })}
+              </div>
               </div>
               );
             })()}
@@ -756,18 +849,22 @@ export default function DrawFlow() {
                     alignItems: "center",
                   }}
                 >
-                  {((user?.email && UNLIMITED_EMAILS.has(user.email)) || (user ? FREE_READING_SPREADS_AUTH : FREE_READING_SPREADS_ANON).includes(spread.id)) && freeReadingAvailable && !showFreePanel && !showApiPanel && (
-                    <button
-                      type="button"
-                      onClick={() => setShowFreePanel(true)}
-                      disabled={!allShown}
-                      style={{ ...pillButtonStyle(allShown, "gilt"), opacity: allShown ? 1 : 0.45 }}
-                    >
-                      {freeReadingsLeft === null
-                        ? t("freeReadingButton")
-                        : t("freeReadingButtonWithCount", { count: freeReadingsLeft })}
-                    </button>
-                  )}
+                  {(signedIn || FREE_ENABLED) &&
+                    (isUnlimited || (signedIn ? FREE_READING_SPREADS_AUTH : FREE_READING_SPREADS_ANON).includes(spread.id)) &&
+                    freeRemaining !== 0 &&
+                    !showFreePanel &&
+                    !showApiPanel && (
+                      <button
+                        type="button"
+                        onClick={() => setShowFreePanel(true)}
+                        disabled={!allShown}
+                        style={{ ...pillButtonStyle(allShown, "gilt"), opacity: allShown ? 1 : 0.45 }}
+                      >
+                        {freeRemaining === null || isUnlimited
+                          ? t("freeReadingButton")
+                          : t("freeReadingButtonCount", { count: freeRemaining })}
+                      </button>
+                    )}
                   {apiConfigured && !showApiPanel && !showFreePanel && (
                     <button
                       type="button"
@@ -781,8 +878,32 @@ export default function DrawFlow() {
                 </div>
               )}
 
+              {/* Out of free readings for the day: explain and point to the
+                  copy-prompt fallback (and, on dev, signing in for more). */}
+              {done &&
+                allShown &&
+                (signedIn || FREE_ENABLED) &&
+                freeRemaining === 0 &&
+                !showFreePanel &&
+                !showApiPanel && (
+                  <p
+                    style={{
+                      maxWidth: 560,
+                      margin: "clamp(8px, 2vh, 16px) auto 0",
+                      fontFamily: "var(--font-serif)",
+                      fontStyle: "italic",
+                      fontSize: 14,
+                      lineHeight: 1.5,
+                      color: "var(--gold-200)",
+                      textAlign: "center",
+                    }}
+                  >
+                    {t("freeExhaustedNote")}
+                  </p>
+                )}
+
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", alignItems: "flex-start" }}>
-                {done && (
+                {done && !layAll && (
                   <CopyToClipboardButton
                     text={promptText}
                     label={t("copyPromptButton")}
@@ -814,7 +935,12 @@ export default function DrawFlow() {
             </div>
 
             {done && allShown && showFreePanel && (
-              <FreeReadingPanel prompt={promptText} spread={spread.id} readingId={currentReadingId} />
+              <FreeReadingPanel
+                prompt={promptText}
+                readingId={currentReadingId}
+                signedIn={signedIn}
+                onRemaining={handleFreeRemaining}
+              />
             )}
 
             {done && allShown && showApiPanel && (

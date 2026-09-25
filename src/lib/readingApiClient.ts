@@ -8,6 +8,14 @@ export type ReadingStreamResult =
   | { ok: true; usage: { inputTokens: number; outputTokens: number } }
   | { ok: false; error: ReadingApiErrorCode };
 
+// The free (no-key) tier can additionally run out of daily uses or be blocked
+// by the bot check; those map to their own error codes so the UI can explain
+// them. `remaining` (free-tier daily uses left) rides along on success.
+export type FreeReadingErrorCode = ReadingApiErrorCode | "captcha" | "limit" | "global_limit";
+export type FreeReadingStreamResult =
+  | { ok: true; usage: { inputTokens: number; outputTokens: number }; remaining: number | null }
+  | { ok: false; error: FreeReadingErrorCode };
+
 // Generous upper bound for the trailing "\n__USAGE__{...}" / "\n__ERROR__{...}"
 // sentinel line the proxy appends after streaming text — held back from
 // `onText` so it never briefly flashes on screen as reading content.
@@ -46,15 +54,27 @@ export async function streamReading(
   if (!res.ok || !res.body) {
     let code: ReadingApiErrorCode = "network";
     try {
-      const data: Record<string, unknown> = await res.json();
-      if (data?.error === "invalid_key" || data?.error === "rate_limited") code = data.error as ReadingApiErrorCode;
+      const data = (await res.json()) as { error?: string };
+      if (data?.error === "invalid_key" || data?.error === "rate_limited")
+        code = data.error as ReadingApiErrorCode;
     } catch {
       // fall through to generic network error
     }
     return { ok: false, error: code };
   }
 
-  const reader = res.body.getReader();
+  return consumeReadingStream(res.body, onText);
+}
+
+// Reads the plain-text-plus-sentinel stream both reading routes produce,
+// forwarding prose to `onText` and parsing the trailing "\n__USAGE__{...}" /
+// "\n__ERROR__{...}" line off the end. Shared by the BYO relay and the free
+// tier, which produce identical stream bodies.
+async function consumeReadingStream(
+  body: ReadableStream<Uint8Array>,
+  onText: (chunk: string) => void,
+): Promise<ReadingStreamResult> {
+  const reader = body.getReader();
   const decoder = new TextDecoder();
   let pending = "";
 
@@ -104,6 +124,75 @@ export async function streamReading(
   // reading with unknown token usage rather than discarding the text.
   onText(pending);
   return { ok: true, usage: { inputTokens: 0, outputTokens: 0 } };
+}
+
+// Streams a free-tier reading from src/app/api/reading/free/route.ts. Same
+// shape as streamReading, but with no API key — the server uses Cloudflare
+// Workers AI and meters usage — and a Turnstile token proving a human is
+// driving it.
+//
+// The server counts the call and returns the visitor's remaining free uses in
+// the X-Free-Remaining header *before* generating, so `onRemaining` fires as
+// soon as that header is read — not after the stream finishes. This keeps the
+// displayed count in sync with the server even when the reading is slow, gets
+// aborted, or errors mid-stream (the server already counted it). It also fires
+// with 0 on a "limit"/"global_limit" rejection.
+export async function streamFreeReading(
+  params: {
+    // Required for anonymous visitors; signed-in users (dev only) skip
+    // Turnstile, so this may be omitted for them.
+    turnstileToken?: string;
+    prompt?: string;
+    messages?: ChatMessage[];
+    maxOutputTokens?: number;
+  },
+  onText: (chunk: string) => void,
+  signal?: AbortSignal,
+  onRemaining?: (remaining: number | null) => void,
+): Promise<FreeReadingStreamResult> {
+  let res: Response;
+  try {
+    res = await fetch("/api/reading/free", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+      signal,
+    });
+  } catch {
+    return { ok: false, error: "network" };
+  }
+
+  if (!res.ok || !res.body) {
+    let code: FreeReadingErrorCode = "network";
+    try {
+      const data = (await res.json()) as { error?: string };
+      const known: string[] = [
+        "invalid_key",
+        "rate_limited",
+        "network",
+        "captcha",
+        "limit",
+        "global_limit",
+      ];
+      if (data?.error && known.includes(data.error)) code = data.error as FreeReadingErrorCode;
+    } catch {
+      // fall through to generic network error
+    }
+    // A cap rejection means none left — reflect that in the UI immediately.
+    if (code === "limit" || code === "global_limit") onRemaining?.(0);
+    return { ok: false, error: code };
+  }
+
+  const remainingHeader = res.headers.get("X-Free-Remaining");
+  const remaining =
+    remainingHeader !== null && Number.isFinite(Number(remainingHeader)) ? Number(remainingHeader) : null;
+  // Fire before consuming the body: the server has already counted this call,
+  // so the displayed count must update even if the stream below fails.
+  onRemaining?.(remaining);
+
+  const result = await consumeReadingStream(res.body, onText);
+  if (!result.ok) return result;
+  return { ok: true, usage: result.usage, remaining };
 }
 
 export type ModelResolution = {
@@ -177,8 +266,8 @@ export async function fetchProviderModels(
       signal,
     });
     if (!res.ok) return [];
-    const data: Record<string, unknown> = await res.json();
-    return Array.isArray(data?.models) ? (data.models as string[]).filter((m: unknown) => typeof m === "string") : [];
+    const data = (await res.json()) as { models?: unknown };
+    return Array.isArray(data?.models) ? data.models.filter((m: unknown) => typeof m === "string") : [];
   } catch {
     return [];
   }

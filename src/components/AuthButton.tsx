@@ -69,6 +69,10 @@ export default function AuthButton() {
   const [showModal, setShowModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Sign-in is a dev-only feature — hidden entirely unless explicitly enabled
+  // for the build (NEXT_PUBLIC_ENABLE_AUTH=true on dev). Keeps it off production.
+  if (process.env.NEXT_PUBLIC_ENABLE_AUTH !== "true") return null;
+
   if (loading) return null;
 
   if (!user) {

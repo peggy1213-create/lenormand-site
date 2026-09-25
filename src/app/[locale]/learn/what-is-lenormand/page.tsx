@@ -6,7 +6,7 @@ import type { Locale } from "@/i18n/routing";
 import { WHAT_IS_LENORMAND as EN_CONTENT } from "@/content/learn/what-is-lenormand.en";
 import { WHAT_IS_LENORMAND as ZH_TW_CONTENT } from "@/content/learn/what-is-lenormand.zh-TW";
 import type { WhatIsLenormandContent } from "@/content/learn/what-is-lenormand.en";
-import { buildAlternates } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo";
 import styles from "./page.module.css";
 
 function getContent(locale: Locale): WhatIsLenormandContent {
@@ -19,11 +19,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "learn" });
-  return {
-    title: t("title"),
-    alternates: buildAlternates(locale, "/learn/what-is-lenormand"),
-  };
+  return buildPageMetadata(locale, "/learn/what-is-lenormand", "learn");
 }
 
 export default async function WhatIsLenormandPage({
@@ -40,7 +36,7 @@ export default async function WhatIsLenormandPage({
 
   return (
     <main className={styles.main} style={{ maxWidth: 720, margin: "0 auto" }}>
-      <Link href="/learning" className={styles.backToLearning}>
+      <Link href="/cards" className={styles.backToLearning}>
         ← {tLearning("backToLearning")}
       </Link>
       <div style={{ textAlign: "center", marginBottom: 40 }}>

@@ -161,7 +161,7 @@ export default async function DeckCardPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Link href="/learning" className={styles.backToLearning}>
+      <Link href="/cards" className={styles.backToLearning}>
         ← {tLearning("backToLearning")}
       </Link>
       <div style={{ textAlign: "center", marginBottom: 32 }}>
