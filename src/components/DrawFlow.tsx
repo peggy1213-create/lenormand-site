@@ -803,53 +803,48 @@ export default function DrawFlow() {
               {stageHint}
             </div>
 
-            <div style={{ display: "flex", gap: 18, justifyContent: "center", alignItems: "flex-start", marginTop: "clamp(10px, 2.2vh, 22px)", flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={layAction}
-                disabled={(choosing && !done) || questionMissing || phase === "locked"}
-                className={
-                  done ? (allShown ? styles.quietAction : `${styles.quietAction} ${styles.revealCta}`) : undefined
-                }
-                style={
-                  done
-                    ? { ...quietActionStyle, display: "inline-block" }
-                    : {
-                        ...pillButtonStyle(
-                          !questionMissing && (asking || done || allShown || (ready && !choosing)),
-                          "gilt",
-                        ),
-                        display: (choosing && !done) || phase === "locked" ? "none" : "inline-block",
-                      }
-                }
-              >
-                {layLabel}
-              </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, alignItems: "center", marginTop: "clamp(10px, 2.2vh, 22px)" }}>
+              {!done && (
+                <button
+                  type="button"
+                  onClick={layAction}
+                  disabled={(choosing && !done) || questionMissing || phase === "locked"}
+                  style={{
+                    ...pillButtonStyle(
+                      !questionMissing && (asking || done || allShown || (ready && !choosing)),
+                      "gilt",
+                    ),
+                    display: (choosing && !done) || phase === "locked" ? "none" : "inline-block",
+                  }}
+                >
+                  {layLabel}
+                </button>
+              )}
 
               {done && (
                 <div
                   style={{
                     display: "flex",
-                    gap: 18,
+                    gap: 10,
                     flexWrap: "wrap",
                     justifyContent: "center",
-                    alignItems: "flex-start",
-                    opacity: allShown ? 1 : 0.45,
-                    pointerEvents: allShown ? "auto" : "none",
+                    alignItems: "center",
                   }}
                 >
-                  {!layAll && (
-                    <CopyToClipboardButton
-                      text={promptText}
-                      label={t("copyPromptButton")}
-                      copiedLabel={t("copiedToast")}
-                      pasteIntoLabel={t("pasteIntoLabel")}
-                      fallbackTitle={t("copyFallbackTitle")}
-                      fallbackHint={t("copyFallbackHint")}
-                      selectAllLabel={t("selectAllButton")}
-                      buttonStyle={quietActionStyle}
-                      buttonClassName={styles.quietAction}
-                    />
+                  {FREE_ENABLED && !showApiPanel && freeRemaining !== 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setApiPanelMode("free");
+                        setShowApiPanel(true);
+                      }}
+                      disabled={!allShown}
+                      style={{ ...pillButtonStyle(allShown, "gilt"), opacity: allShown ? 1 : 0.45 }}
+                    >
+                      {freeRemaining === null
+                        ? t("readFreeButton")
+                        : t("readFreeButtonCount", { count: freeRemaining })}
+                    </button>
                   )}
                   {apiConfigured && !showApiPanel && (
                     <button
@@ -858,51 +853,65 @@ export default function DrawFlow() {
                         setApiPanelMode("byo");
                         setShowApiPanel(true);
                       }}
-                      style={pillButtonStyle(true, "ghost")}
+                      disabled={!allShown}
+                      style={{ ...pillButtonStyle(allShown, "ghost"), opacity: allShown ? 1 : 0.45 }}
                     >
                       {t("readWithApiButton")}
-                    </button>
-                  )}
-                  {FREE_ENABLED && !showApiPanel && freeRemaining !== 0 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setApiPanelMode("free");
-                        setShowApiPanel(true);
-                      }}
-                      style={pillButtonStyle(true, "gilt")}
-                    >
-                      {freeRemaining === null
-                        ? t("readFreeButton")
-                        : t("readFreeButtonCount", { count: freeRemaining })}
                     </button>
                   )}
                 </div>
               )}
 
-              <button type="button" onClick={back} className={styles.quietAction} style={quietActionStyle}>
-                {t("backToSpreadsButton")}
-              </button>
-            </div>
+              {/* Out of free readings for the day: explain and point to the
+                  copy-prompt fallback. */}
+              {done && allShown && FREE_ENABLED && freeRemaining === 0 && !showApiPanel && (
+                <p
+                  style={{
+                    maxWidth: 560,
+                    margin: "clamp(8px, 2vh, 16px) auto 0",
+                    fontFamily: "var(--font-serif)",
+                    fontStyle: "italic",
+                    fontSize: 14,
+                    lineHeight: 1.5,
+                    color: "var(--gold-200)",
+                    textAlign: "center",
+                  }}
+                >
+                  {t("freeExhaustedNote")}
+                </p>
+              )}
 
-            {/* Out of free readings for the day: the free button is gone, so
-                explain why and point to tomorrow or the copy-prompt fallback. */}
-            {done && allShown && FREE_ENABLED && freeRemaining === 0 && !showApiPanel && (
-              <p
-                style={{
-                  maxWidth: 560,
-                  margin: "clamp(12px, 2.5vh, 22px) auto 0",
-                  fontFamily: "var(--font-serif)",
-                  fontStyle: "italic",
-                  fontSize: 15,
-                  lineHeight: 1.5,
-                  color: "var(--gold-200)",
-                  textAlign: "center",
-                }}
-              >
-                {t("freeExhaustedNote")}
-              </p>
-            )}
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", alignItems: "flex-start" }}>
+                {done && !layAll && (
+                  <CopyToClipboardButton
+                    text={promptText}
+                    label={t("copyPromptButton")}
+                    copiedLabel={t("copiedToast")}
+                    pasteIntoLabel={t("pasteIntoLabel")}
+                    fallbackTitle={t("copyFallbackTitle")}
+                    fallbackHint={t("copyFallbackHint")}
+                    selectAllLabel={t("selectAllButton")}
+                    buttonStyle={quietActionStyle}
+                    buttonClassName={styles.quietAction}
+                  />
+                )}
+
+                {done && (
+                  <button
+                    type="button"
+                    onClick={layAction}
+                    className={allShown ? styles.quietAction : `${styles.quietAction} ${styles.revealCta}`}
+                    style={quietActionStyle}
+                  >
+                    {layLabel}
+                  </button>
+                )}
+
+                <button type="button" onClick={back} className={styles.quietAction} style={quietActionStyle}>
+                  {t("backToSpreadsButton")}
+                </button>
+              </div>
+            </div>
 
             {done && allShown && showApiPanel && (
               <ReadWithApiPanel
