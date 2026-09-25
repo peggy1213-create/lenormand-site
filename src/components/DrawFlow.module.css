@@ -188,6 +188,64 @@
   margin: 0;
 }
 
+/* Draws the eye to "Reveal all cards" while the cards are still face-down —
+   a breathing glow on the text itself, no button box. */
+@keyframes revealTextGlow {
+  0%,
+  100% {
+    color: var(--gold-200);
+    text-shadow:
+      0 0 6px rgba(242, 224, 182, 0.6),
+      0 0 12px rgba(231, 199, 137, 0.4);
+  }
+  50% {
+    color: var(--gold-50);
+    text-shadow:
+      0 0 10px rgba(250, 241, 222, 1),
+      0 0 22px rgba(242, 224, 182, 0.95),
+      0 0 34px rgba(231, 199, 137, 0.7);
+  }
+}
+.revealCta {
+  animation: revealTextGlow 1.9s var(--ease-out-soft) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .revealCta {
+    animation: none;
+    color: var(--gold-50);
+    text-shadow:
+      0 0 10px rgba(250, 241, 222, 0.95),
+      0 0 20px rgba(242, 224, 182, 0.7);
+  }
+}
+
+.quietAction {
+  color: var(--gold-300);
+  position: relative;
+}
+.quietAction::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 4px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition:
+    transform var(--dur-med) var(--ease-out-soft),
+    opacity var(--dur-med) var(--ease-out-soft);
+}
+.quietAction:hover {
+  color: var(--gold-200);
+}
+.quietAction:hover::after {
+  transform: scaleX(1);
+  opacity: 0.7;
+}
+
 .shuffleField {
   position: relative;
   width: 100%;

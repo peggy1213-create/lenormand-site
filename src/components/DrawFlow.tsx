@@ -76,9 +76,25 @@ function pillButtonStyle(on: boolean, tone: "gilt" | "ghost"): CSSProperties {
   };
 }
 
-const FREE_READING_SPREADS_ANON: SpreadId[] = ["daily"];
+// A low-emphasis text-link treatment for utility actions (copy, draw again,
+// back) so they recede behind the primary reading CTA.
+const quietActionStyle: CSSProperties = {
+  cursor: "pointer",
+  padding: "8px 12px",
+  borderRadius: 8,
+  border: "none",
+  background: "transparent",
+  fontFamily: "var(--font-smallcaps)",
+  textTransform: "uppercase",
+  letterSpacing: "var(--tracking-caps)",
+  fontSize: 11,
+  whiteSpace: "nowrap",
+  transition: "color var(--dur-med) var(--ease-out-soft)",
+};
+
+const FREE_READING_SPREADS_ANON: SpreadId[] = ["daily", "three", "five"];
 const FREE_READING_SPREADS_AUTH: SpreadId[] = ["daily", "three", "five"];
-const FREE_LIMIT_ANON = 1;
+const FREE_LIMIT_ANON = 2;
 const FREE_LIMIT_AUTH = 2;
 const UNLIMITED_EMAILS = new Set(["peichun1213@gmail.com"]);
 
@@ -106,6 +122,7 @@ export default function DrawFlow() {
   const [showApiPanel, setShowApiPanel] = useState(false);
   const [showFreePanel, setShowFreePanel] = useState(false);
   const [freeReadingAvailable, setFreeReadingAvailable] = useState(false);
+  const [freeReadingsLeft, setFreeReadingsLeft] = useState<number | null>(null);
   const [apiConfigured, setApiConfigured] = useState(false);
   const [currentReadingId, setCurrentReadingId] = useState<string | null>(null);
 
@@ -114,7 +131,8 @@ export default function DrawFlow() {
     const isUnlimited = user?.email ? UNLIMITED_EMAILS.has(user.email) : false;
     const limit = user ? FREE_LIMIT_AUTH : FREE_LIMIT_ANON;
     setFreeReadingAvailable(isUnlimited || getLocalFreeReadingCount() < limit);
-  }, [open, user]);
+    setFreeReadingsLeft(isUnlimited ? null : Math.max(0, limit - getLocalFreeReadingCount()));
+  }, [open, user, showFreePanel]);
   const questionHelpRef = useRef<HTMLDivElement | null>(null);
 
   // Read on mount only (not during SSR): the lock depends on localStorage
@@ -745,45 +763,25 @@ export default function DrawFlow() {
                       disabled={!allShown}
                       style={{ ...pillButtonStyle(allShown, "gilt"), opacity: allShown ? 1 : 0.45 }}
                     >
-                      {t("freeReadingButton")}
+                      {freeReadingsLeft === null
+                        ? t("freeReadingButton")
+                        : t("freeReadingButtonWithCount", { count: freeReadingsLeft })}
                     </button>
                   )}
-                  <button
-                    type="button"
-                    onClick={layAction}
-                    style={pillButtonStyle(true, "gilt")}
-                  >
-                    {layLabel}
-                  </button>
                   {apiConfigured && !showApiPanel && !showFreePanel && (
                     <button
                       type="button"
                       onClick={() => setShowApiPanel(true)}
                       disabled={!allShown}
-                      style={{ ...pillButtonStyle(allShown, "gilt"), opacity: allShown ? 1 : 0.45 }}
+                      style={{ ...pillButtonStyle(allShown, "ghost"), opacity: allShown ? 1 : 0.45 }}
                     >
                       {t("readWithApiButton")}
                     </button>
                   )}
-                  {!user && (spread.id === "three" || spread.id === "five") && !showApiPanel && (
-                    <span
-                      style={{
-                        fontFamily: "var(--font-serif)",
-                        fontStyle: "italic",
-                        fontSize: 12,
-                        color: "var(--gold-300)",
-                        maxWidth: 200,
-                        textAlign: "center",
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {t("freeReadingSignInHint")}
-                    </span>
-                  )}
                 </div>
               )}
 
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", alignItems: "flex-start" }}>
                 {done && (
                   <CopyToClipboardButton
                     text={promptText}
@@ -793,11 +791,23 @@ export default function DrawFlow() {
                     fallbackTitle={t("copyFallbackTitle")}
                     fallbackHint={t("copyFallbackHint")}
                     selectAllLabel={t("selectAllButton")}
-                    buttonStyle={pillButtonStyle(true, "ghost")}
+                    buttonStyle={quietActionStyle}
+                    buttonClassName={styles.quietAction}
                   />
                 )}
 
-                <button type="button" onClick={back} style={pillButtonStyle(true, "ghost")}>
+                {done && (
+                  <button
+                    type="button"
+                    onClick={layAction}
+                    className={allShown ? styles.quietAction : `${styles.quietAction} ${styles.revealCta}`}
+                    style={quietActionStyle}
+                  >
+                    {layLabel}
+                  </button>
+                )}
+
+                <button type="button" onClick={back} className={styles.quietAction} style={quietActionStyle}>
                   {t("backToSpreadsButton")}
                 </button>
               </div>
