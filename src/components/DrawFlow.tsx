@@ -643,7 +643,10 @@ export default function DrawFlow() {
               >
                 <span
                   style={{
-                    display: "block",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
                     fontFamily: "var(--font-smallcaps)",
                     textTransform: "uppercase",
                     letterSpacing: "var(--tracking-caps)",
@@ -653,6 +656,14 @@ export default function DrawFlow() {
                   }}
                 >
                   {t("yourQuestionLabel")}
+                  {currentReadingId && (
+                    <TagEditor
+                      key={currentReadingId}
+                      readingId={currentReadingId}
+                      initialTags={[]}
+                      tone="dark"
+                    />
+                  )}
                 </span>
                 <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: 20, lineHeight: 1.45, color: "var(--gold-200)" }}>
                   {question.trim()}
@@ -872,16 +883,6 @@ export default function DrawFlow() {
               <button type="button" onClick={back} className={styles.quietAction} style={quietActionStyle}>
                 {t("backToSpreadsButton")}
               </button>
-
-              {done && currentReadingId && (
-                <TagEditor
-                  key={currentReadingId}
-                  readingId={currentReadingId}
-                  initialTags={[]}
-                  tone="dark"
-                  triggerLabel={t("addTagsButton")}
-                />
-              )}
             </div>
 
             {/* Out of free readings for the day: the free button is gone, so
