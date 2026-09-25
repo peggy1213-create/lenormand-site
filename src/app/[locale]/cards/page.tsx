@@ -11,8 +11,8 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "learning" });
-  return { title: t("title"), alternates: buildAlternates(locale, "/learning") };
+  const t = await getTranslations({ locale, namespace: "cards" });
+  return { title: t("title"), alternates: buildAlternates(locale, "/cards") };
 }
 
 export default async function LearningPage({
@@ -22,7 +22,7 @@ export default async function LearningPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("learning");
+  const t = await getTranslations("cards");
 
   const sections = [
     {

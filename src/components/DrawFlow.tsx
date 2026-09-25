@@ -372,7 +372,7 @@ export default function DrawFlow() {
     : asking
     ? ""
     : allShown
-      ? t("hint.sitWithIt")
+      ? ""
       : done
         ? t("hint.turnCards")
         : choosing

@@ -104,7 +104,7 @@ export default async function DeckCardPage({
   const card = getCardById(numericId);
   const t = await getTranslations("deck");
   const cardsT = await getTranslations("cards");
-  const tLearning = await getTranslations("learning");
+  const tLearning = await getTranslations("cards");
 
   const meaning = getMeanings(locale as Locale).find((m) => m.id === card.id);
 
@@ -161,7 +161,7 @@ export default async function DeckCardPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Link href="/learning" className={styles.backToLearning}>
+      <Link href="/cards" className={styles.backToLearning}>
         ← {tLearning("backToLearning")}
       </Link>
       <div style={{ textAlign: "center", marginBottom: 32 }}>

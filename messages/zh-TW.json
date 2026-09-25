@@ -19,7 +19,7 @@
     "home": "牌陣",
     "history": "紀錄",
     "settings": "AI 解讀",
-    "learning": "牌卡",
+    "cards": "牌卡",
     "about": "關於",
     "language": "語言",
     "openMenu": "開啟選單",
@@ -129,7 +129,6 @@
       "ready": "準備好時就可以擺牌",
       "choosing": "從這排牌中選出 {need} 張 — 已選 {chosen} / {need} 張",
       "turnCards": "點擊卡牌以翻開 — 或一次全部翻開",
-      "sitWithIt": "靜心體會眼前的牌",
       "dailyLocked": "每日僅能抽一次。請於你所在時區的午夜後再回來。"
     },
     "dailyLockedBadge": "今日已抽 — 明天再來",
@@ -170,9 +169,9 @@
     "freeReadingError": "免費解讀暫時無法完成。請稍後再試，或複製上方的提示詞。",
     "freeReadingSignInHint": "登入即可在三張牌和五張牌牌陣享有免費 AI 解讀"
   },
-  "learning": {
-    "title": "學習",
-    "backToLearning": "學習",
+  "cards": {
+    "title": "牌卡",
+    "backToLearning": "牌卡",
     "whatIsLenormandTitle": "什麼是雷諾曼",
     "whatIsLenormandDescription": "認識雷諾曼卡牌與解讀方式的簡短介紹",
     "exploreDeckTitle": "探索牌卡",

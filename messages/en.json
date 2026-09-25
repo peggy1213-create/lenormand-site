@@ -19,7 +19,7 @@
     "home": "Spreads",
     "history": "History",
     "settings": "AI Reading",
-    "learning": "Cards",
+    "cards": "Cards",
     "about": "About",
     "language": "Language",
     "openMenu": "Open menu",
@@ -129,7 +129,6 @@
       "ready": "Enough. Lay the cards when you are ready.",
       "choosing": "Pick {need} cards from the line — {chosen} of {need} chosen.",
       "turnCards": "Turn a card by clicking it — or reveal them all at once.",
-      "sitWithIt": "Sit with what arrives.",
       "dailyLocked": "One daily draw per day. Come back after midnight in your time zone."
     },
     "dailyLockedBadge": "Drawn today — come back tomorrow",
@@ -170,9 +169,9 @@
     "freeReadingError": "The free reading couldn't be completed right now. Try again later, or copy the prompt above.",
     "freeReadingSignInHint": "Sign in for free AI readings on 3-card and 5-card spreads"
   },
-  "learning": {
-    "title": "Learning",
-    "backToLearning": "Learning",
+  "cards": {
+    "title": "Cards",
+    "backToLearning": "Cards",
     "whatIsLenormandTitle": "What Is Lenormand",
     "whatIsLenormandDescription": "A short introduction to the deck and how it's read.",
     "exploreDeckTitle": "Explore the Deck",
