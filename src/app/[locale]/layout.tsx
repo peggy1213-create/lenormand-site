@@ -5,7 +5,6 @@ import { setRequestLocale, getTranslations, getMessages } from "next-intl/server
 import Script from "next/script";
 import { routing } from "@/i18n/routing";
 import { BASE_URL, buildAlternates, localizedUrl } from "@/lib/seo";
-import { createClient } from "@/lib/supabase/server";
 import Header from "@/components/Header";
 import AuthProvider from "@/components/AuthProvider";
 import ReadingsProvider from "@/components/ReadingsProvider";
@@ -82,8 +81,6 @@ export default async function LocaleLayout({
   }
   setRequestLocale(locale);
   const messages = await getMessages();
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
 
   return (
     <html lang={locale}>
@@ -114,8 +111,8 @@ export default async function LocaleLayout({
       <body style={{ margin: 0 }}>
         <PostHogProvider>
           <NextIntlClientProvider messages={messages}>
-            <AuthProvider initialUser={user}>
-              <ReadingsProvider user={user}>
+            <AuthProvider>
+              <ReadingsProvider>
                 <PostHogPageView />
                 <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
                   <Header />

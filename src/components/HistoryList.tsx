@@ -9,6 +9,7 @@ import {
   type Reading,
 } from "@/lib/storage";
 import { useReadings } from "@/components/ReadingsProvider";
+import { useAuth } from "@/components/AuthProvider";
 import { getCardById } from "@/data/cards";
 import { getSpread } from "@/data/spreads";
 import { buildAIPrompt } from "@/lib/prompt";
@@ -221,6 +222,7 @@ export function makeReadingDateFormatter(locale: string): ReadingDateFormatter {
 
 export default function HistoryList() {
   const locale = useLocale();
+  const { user } = useAuth();
   const h = useTranslations("history");
   const t = useTranslations("draw");
   const s = useTranslations("spread");
@@ -295,7 +297,7 @@ export default function HistoryList() {
   const dateFormatter = makeReadingDateFormatter(locale);
 
   const allTags = getAllTags();
-  // Keep selectedIds in sync when readings change (e.g. after Supabase sync)
+  // Keep selectedIds in sync when readings change (e.g. after a cross-device sync)
   useEffect(() => {
     if (!readings) return;
     setSelectedIds((prev) => {
@@ -382,7 +384,7 @@ export default function HistoryList() {
             marginBottom: 24,
           }}
         >
-          {h("firstVisitNotice")}
+          {user ? h("firstVisitNoticeSynced") : h("firstVisitNotice")}
         </p>
       )}
       {!persistable && (

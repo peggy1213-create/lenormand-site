@@ -38,3 +38,6 @@ next-env.d.ts
 
 # Cloudflare Worker local dev secrets (wrangler .dev.vars)
 .dev.vars
+
+# Better Auth local schema-generation scratch db
+.auth-gen.sqlite
