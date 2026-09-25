@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import posthog from "posthog-js";
 import type { Locale } from "@/i18n/routing";
 import { SPREADS, type Spread, type SpreadId } from "@/data/spreads";
 import { CARDS, CARD_BACK_IMAGE, type Card } from "@/data/cards";
@@ -272,7 +271,6 @@ export default function DrawFlow() {
     if (spreadAt.comingSoon) return;
     const skip = spreadAt.id === "daily";
     const locked = skip && dailyLocked;
-    posthog.capture("spread_selected", { spread: spreadAt.id, locale });
     setSel(i);
     setOpen(true);
     setPhase(locked ? "locked" : skip ? "shuffle" : "question");

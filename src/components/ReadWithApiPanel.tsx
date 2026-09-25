@@ -12,7 +12,6 @@ import {
 } from "@/lib/readingApiClient";
 import { getActiveConfig, DEFAULT_MODELS, type ApiProvider } from "@/lib/apiSettings";
 import { updateReadingApiText, updateReadingApiFollowUps, type ApiFollowUp } from "@/lib/storage";
-import posthog from "posthog-js";
 
 type PanelState = "streaming" | "done" | "error";
 type FollowUpState = "idle" | "streaming" | "error";
@@ -122,7 +121,6 @@ export default function ReadWithApiPanel({
         const result = await streamFreeReading({ prompt }, onChunk, controller.signal, onRemaining);
         if (cancelled) return;
         if (result.ok) {
-          posthog.capture("ai_reading_completed", { provider: "workers-ai", tier: "free" });
           onDone(result);
         } else {
           setErrorCode(result.error);
@@ -151,11 +149,6 @@ export default function ReadWithApiPanel({
       ).then((result) => {
         if (cancelled) return;
         if (result.ok) {
-          posthog.capture("ai_reading_completed", {
-            provider: config.provider,
-            model,
-            tokens: result.usage.inputTokens + result.usage.outputTokens,
-          });
           onDone(result);
         } else {
           setErrorCode(result.error);
@@ -233,11 +226,6 @@ export default function ReadWithApiPanel({
       const next = [...followUpsRef.current, { question, answer }];
       followUpsRef.current = next;
       setFollowUps(next);
-      posthog.capture("ai_follow_up_completed", {
-        provider: mode === "free" ? "workers-ai" : config!.provider,
-        model: mode === "free" ? "free" : config!.model,
-        follow_up_number: next.length,
-      });
       setPendingQuestion("");
       setFollowUpText("");
       setFollowUpState("idle");

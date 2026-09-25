@@ -9,8 +9,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
-import PostHogProvider from "@/components/PostHogProvider";
-import PostHogPageView from "@/components/PostHogPageView";
 import GoogleAnalyticsPageView from "@/components/GoogleAnalyticsPageView";
 import ClarityProvider from "@/components/ClarityProvider";
 import "../globals.css";
@@ -108,19 +106,16 @@ export default async function LocaleLayout({
         )}
       </head>
       <body style={{ margin: 0 }}>
-        <PostHogProvider>
-          <NextIntlClientProvider messages={messages}>
-            <PostHogPageView />
-            <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-              <Header />
-              <div style={{ flex: 1 }}>{children}</div>
-              <Footer />
-              <LanguageSwitcher />
-            </div>
-          </NextIntlClientProvider>
-          <ServiceWorkerRegister />
-          <ClarityProvider />
-        </PostHogProvider>
+        <NextIntlClientProvider messages={messages}>
+          <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+            <Header />
+            <div style={{ flex: 1 }}>{children}</div>
+            <Footer />
+            <LanguageSwitcher />
+          </div>
+        </NextIntlClientProvider>
+        <ServiceWorkerRegister />
+        <ClarityProvider />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-0Q82SZMP7L"
           strategy="afterInteractive"
