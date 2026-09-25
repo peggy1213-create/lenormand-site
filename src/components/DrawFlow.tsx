@@ -116,6 +116,22 @@ function pillButtonStyle(on: boolean, tone: "gilt" | "ghost"): CSSProperties {
   };
 }
 
+// A low-emphasis text-link treatment for utility actions (copy, new question,
+// back) so they recede behind the primary reading CTA.
+const quietActionStyle: CSSProperties = {
+  cursor: "pointer",
+  padding: "8px 12px",
+  borderRadius: 8,
+  border: "none",
+  background: "transparent",
+  fontFamily: "var(--font-smallcaps)",
+  textTransform: "uppercase",
+  letterSpacing: "var(--tracking-caps)",
+  fontSize: 11,
+  whiteSpace: "nowrap",
+  transition: "color var(--dur-med) var(--ease-out-soft)",
+};
+
 // Anchor card highlighted in each spread's picker glyph, if the spread reads
 // from a centre card.
 const GLYPH_ANCHOR: Partial<Record<SpreadId, number>> = { five: 2, nine: 4 };
@@ -781,13 +797,20 @@ export default function DrawFlow() {
                 type="button"
                 onClick={layAction}
                 disabled={(choosing && !done) || questionMissing || phase === "locked"}
-                style={{
-                  ...pillButtonStyle(
-                    !questionMissing && (asking || done || allShown || (ready && !choosing)),
-                    "gilt",
-                  ),
-                  display: (choosing && !done) || phase === "locked" ? "none" : "inline-block",
-                }}
+                className={
+                  done ? (allShown ? styles.quietAction : `${styles.quietAction} ${styles.revealCta}`) : undefined
+                }
+                style={
+                  done
+                    ? { ...quietActionStyle, display: "inline-block" }
+                    : {
+                        ...pillButtonStyle(
+                          !questionMissing && (asking || done || allShown || (ready && !choosing)),
+                          "gilt",
+                        ),
+                        display: (choosing && !done) || phase === "locked" ? "none" : "inline-block",
+                      }
+                }
               >
                 {layLabel}
               </button>
@@ -813,6 +836,8 @@ export default function DrawFlow() {
                       fallbackTitle={t("copyFallbackTitle")}
                       fallbackHint={t("copyFallbackHint")}
                       selectAllLabel={t("selectAllButton")}
+                      buttonStyle={quietActionStyle}
+                      buttonClassName={styles.quietAction}
                     />
                   )}
                   {apiConfigured && !showApiPanel && (
@@ -822,7 +847,7 @@ export default function DrawFlow() {
                         setApiPanelMode("byo");
                         setShowApiPanel(true);
                       }}
-                      style={pillButtonStyle(true, "gilt")}
+                      style={pillButtonStyle(true, "ghost")}
                     >
                       {t("readWithApiButton")}
                     </button>
@@ -844,7 +869,7 @@ export default function DrawFlow() {
                 </div>
               )}
 
-              <button type="button" onClick={back} style={pillButtonStyle(true, "ghost")}>
+              <button type="button" onClick={back} className={styles.quietAction} style={quietActionStyle}>
                 {t("backToSpreadsButton")}
               </button>
 
