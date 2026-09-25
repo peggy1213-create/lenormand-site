@@ -38,7 +38,7 @@ export default function Header() {
     { href: "/spreads", label: t("home") },
     { href: "/history", label: t("history") },
     { href: "/aireading", label: t("settings") },
-    { href: "/learning", label: t("learning"), activePrefixes: ["/learning", "/learn", "/deck"] },
+    { href: "/cards", label: t("cards"), activePrefixes: ["/cards", "/learn", "/deck"] },
     { href: "/about", label: t("about") },
   ];
 

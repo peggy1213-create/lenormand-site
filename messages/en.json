@@ -36,7 +36,7 @@
       "title": "Your Readings",
       "description": "Revisit your saved Lenormand spreads, add reflections, and record how things unfolded — all stored privately in your own browser."
     },
-    "learning": {
+    "cards": {
       "title": "Learning Lenormand",
       "description": "Learn to read Lenormand: what the deck is, what each of the 36 cards means, and how the cards combine into a reading."
     },
@@ -53,7 +53,7 @@
     "home": "Spreads",
     "history": "History",
     "settings": "AI Reading",
-    "learning": "Cards",
+    "cards": "Cards",
     "about": "About",
     "language": "Language",
     "openMenu": "Open menu",
@@ -204,7 +204,6 @@
       "ready": "Enough. Lay the cards when you are ready.",
       "choosing": "Pick {need} cards from the line — {chosen} of {need} chosen.",
       "turnCards": "Turn a card by clicking it — or reveal them all at once.",
-      "sitWithIt": "Sit with what arrives.",
       "dailyLocked": "One daily draw per day. Come back after midnight in your time zone."
     },
     "dailyLockedBadge": "Drawn today — come back tomorrow",
@@ -255,8 +254,8 @@
     "comingSoonLabel": "Coming soon"
   },
   "learning": {
-    "title": "Learning",
-    "backToLearning": "Learning",
+    "title": "Cards",
+    "backToLearning": "Cards",
     "whatIsLenormandTitle": "What Is Lenormand",
     "whatIsLenormandDescription": "A short introduction to the deck and how it's read.",
     "exploreDeckTitle": "Explore the Deck",
