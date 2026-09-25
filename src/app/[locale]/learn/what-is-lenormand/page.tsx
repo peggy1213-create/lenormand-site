@@ -36,7 +36,7 @@ export default async function WhatIsLenormandPage({
 
   return (
     <main className={styles.main} style={{ maxWidth: 720, margin: "0 auto" }}>
-      <Link href="/learning" className={styles.backToLearning}>
+      <Link href="/cards" className={styles.backToLearning}>
         ← {tLearning("backToLearning")}
       </Link>
       <div style={{ textAlign: "center", marginBottom: 40 }}>
