@@ -37,6 +37,7 @@ export default function CopyToClipboardButton({
   fallbackHint,
   selectAllLabel,
   buttonStyle = DEFAULT_BUTTON_STYLE,
+  buttonClassName,
 }: {
   text: string;
   label: string;
@@ -46,6 +47,7 @@ export default function CopyToClipboardButton({
   fallbackHint: string;
   selectAllLabel: string;
   buttonStyle?: CSSProperties;
+  buttonClassName?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const [justCopied, setJustCopied] = useState(false);
@@ -96,7 +98,7 @@ export default function CopyToClipboardButton({
           gap: 8,
         }}
       >
-        <button type="button" onClick={handleClick} style={buttonStyle}>
+        <button type="button" onClick={handleClick} className={buttonClassName} style={buttonStyle}>
           {justCopied ? copiedLabel : label}
         </button>
         {copied && (
