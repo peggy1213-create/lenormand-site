@@ -5,6 +5,12 @@ import { localizedUrl } from "@/lib/seo";
 
 const { defaultLocale } = routing;
 
+// Stable <lastmod> for the sitemap. `new Date()` in the sitemap function runs
+// per request on the Cloudflare Worker, so it stamped every fetch with the
+// current second — Google treats an always-"now" lastmod as noise and starts
+// ignoring it. Bump this date when you make a meaningful content change.
+const LAST_MODIFIED = new Date("2026-09-27T00:00:00Z");
+
 type PageDef = {
   path: string;
   priority: number;
@@ -30,8 +36,7 @@ const pages: PageDef[] = [
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  // Single build-time timestamp; refreshes on each deploy.
-  const lastModified = new Date();
+  const lastModified = LAST_MODIFIED;
 
   return pages.flatMap((page) =>
     routing.locales.map((locale) => ({
