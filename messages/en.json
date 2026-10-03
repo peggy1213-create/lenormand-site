@@ -4,7 +4,7 @@
     "signOut": "Sign out",
     "close": "Close",
     "modalTitle": "Welcome to In-Betweens",
-    "modalSubtitle": "Sign in to unlock free AI readings for 3-card and 5-card spreads.",
+    "modalSubtitle": "Store your spreads across devices and get 3 free readings per day.",
     "signInWithGoogle": "Continue with Google",
     "termsPrefix": "By continuing, you agree to our",
     "termsOfService": "Terms of Service",
@@ -401,7 +401,9 @@
   "footer": {
     "disclaimer": "For entertainment purposes only. Not a substitute for professional, legal, financial, or medical advice.",
     "contact": "Contact me",
-    "contactClose": "Close"
+    "contactClose": "Close",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy"
   },
   "changelog": {
     "buttonLabel": "What's new",

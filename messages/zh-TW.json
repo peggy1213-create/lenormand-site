@@ -4,7 +4,7 @@
     "signOut": "登出",
     "close": "關閉",
     "modalTitle": "歡迎來到 In-Betweens",
-    "modalSubtitle": "登入以解鎖三張牌和五張牌的免費 AI 解讀功能。",
+    "modalSubtitle": "在各裝置存取你的抽牌紀錄，並享有每日 3 次免費解讀。",
     "signInWithGoogle": "使用 Google 繼續",
     "termsPrefix": "繼續即表示您同意我們的",
     "termsOfService": "服務條款",
@@ -401,7 +401,9 @@
   "footer": {
     "disclaimer": "僅供娛樂用途，不能取代專業、法律、財務或醫療建議。",
     "contact": "聯絡我",
-    "contactClose": "關閉"
+    "contactClose": "關閉",
+    "terms": "服務條款",
+    "privacy": "隱私權政策"
   },
   "changelog": {
     "buttonLabel": "更新內容",
