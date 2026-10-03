@@ -1,17 +1,24 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import { createContext, useContext } from "react";
+import { useSession } from "@/lib/authClient";
+
+// The user shape the app relies on, mapped from the Better Auth session.
+export type AuthUser = {
+  id: string;
+  email: string;
+  name?: string | null;
+  image?: string | null;
+};
 
 type AuthContextType = {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  loading: true,
+  loading: false,
 });
 
 export function useAuth() {
@@ -20,29 +27,22 @@ export function useAuth() {
 
 export default function AuthProvider({
   children,
-  initialUser,
 }: {
   children: React.ReactNode;
-  initialUser: User | null;
 }) {
-  const [user, setUser] = useState<User | null>(initialUser);
-  const [loading, setLoading] = useState(false);
+  const { data, isPending } = useSession();
 
-  useEffect(() => {
-    const supabase = createClient();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const user: AuthUser | null = data?.user
+    ? {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name,
+        image: data.user.image,
+      }
+    : null;
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading: isPending }}>
       {children}
     </AuthContext.Provider>
   );

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/components/AuthProvider";
-import { createClient } from "@/lib/supabase/client";
+import { signIn, signOut } from "@/lib/authClient";
 import { Link } from "@/i18n/navigation";
 import styles from "./AuthButton.module.css";
 
@@ -22,12 +22,9 @@ function SignInModal({ onClose }: { onClose: () => void }) {
   const t = useTranslations("auth");
 
   const handleGoogleSignIn = async () => {
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
+    await signIn.social({
       provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback`,
-      },
+      callbackURL: window.location.href,
     });
   };
 
@@ -70,10 +67,6 @@ export default function AuthButton() {
   const [showModal, setShowModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Sign-in is a dev-only feature — hidden entirely unless explicitly enabled
-  // for the build (NEXT_PUBLIC_ENABLE_AUTH=true on dev). Keeps it off production.
-  if (process.env.NEXT_PUBLIC_ENABLE_AUTH !== "true") return null;
-
   if (loading) return null;
 
   if (!user) {
@@ -88,13 +81,12 @@ export default function AuthButton() {
   }
 
   const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await signOut();
     window.location.reload();
   };
 
-  const avatar = user.user_metadata?.avatar_url;
-  const name = user.user_metadata?.full_name ?? user.email;
+  const avatar = user.image;
+  const name = user.name ?? user.email;
 
   return (
     <div className={styles.userMenu}>

@@ -8,16 +8,11 @@ import {
   useRef,
   useState,
 } from "react";
-import type { User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
-import {
-  fetchReadings,
-  upsertReading,
-  updateReadingField,
-  deleteReadingsFromDb,
-} from "@/lib/supabase/readings";
+import { useAuth } from "@/components/AuthProvider";
 import {
   getHistory,
+  getTombstones,
+  applyMergedHistory,
   addReading as addLocalReading,
   updateReadingNote as updateLocalNote,
   updateReadingApiText as updateLocalApiText,
@@ -27,6 +22,7 @@ import {
   hasDrawnDailyToday as checkLocalDailyToday,
   type Reading,
   type ApiFollowUp,
+  type Tombstone,
 } from "@/lib/storage";
 
 type ReadingsContextType = {
@@ -51,107 +47,156 @@ export function useReadings() {
   return ctx;
 }
 
-function mergeReadings(local: Reading[], remote: Reading[]): Reading[] {
-  const map = new Map<string, Reading>();
-  for (const r of remote) map.set(r.id, r);
-  for (const r of local) {
-    const existing = map.get(r.id);
-    if (!existing) {
-      map.set(r.id, r);
-    } else {
-      map.set(r.id, {
-        ...existing,
-        notes: r.notes ?? existing.notes,
-        tags: (r.tags?.length ? r.tags : existing.tags),
-        apiReadingText: r.apiReadingText ?? existing.apiReadingText,
-        apiFollowUps: (r.apiFollowUps?.length ? r.apiFollowUps : existing.apiFollowUps),
-      });
-    }
-  }
-  return Array.from(map.values()).sort(
+type ServerReading = { id: string; data: Reading; updatedAt: string };
+type ServerTombstone = { id: string; deletedAt: string };
+const SYNC_DEBOUNCE_MS = 1200;
+
+function sortDesc(list: Reading[]): Reading[] {
+  return [...list].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 }
 
+function tsOf(iso: string | undefined): number {
+  return iso ? Date.parse(iso) || 0 : 0;
+}
+
+// Merge the server's authoritative state into local storage, last-write-wins by
+// timestamp with tombstones. Persists via applyMergedHistory (localStorage).
+function mergeServerState(
+  serverReadings: ServerReading[],
+  serverTombstones: ServerTombstone[],
+): void {
+  const live = new Map<string, Reading>(getHistory().map((r) => [r.id, r]));
+  const tombs = new Map<string, Tombstone>(getTombstones().map((t) => [t.id, t]));
+
+  for (const st of serverTombstones) {
+    const stTs = tsOf(st.deletedAt);
+    const l = live.get(st.id);
+    if (l && tsOf(l.updatedAt ?? l.createdAt) > stTs) continue;
+    live.delete(st.id);
+    const ex = tombs.get(st.id);
+    if (!ex || tsOf(ex.deletedAt) < stTs) tombs.set(st.id, st);
+  }
+  for (const sr of serverReadings) {
+    const srTs = tsOf(sr.updatedAt);
+    const tomb = tombs.get(sr.id);
+    if (tomb && tsOf(tomb.deletedAt) >= srTs) continue;
+    const l = live.get(sr.id);
+    if (!l || srTs > tsOf(l.updatedAt ?? l.createdAt)) {
+      live.set(sr.id, { ...sr.data, id: sr.id, updatedAt: sr.updatedAt });
+      tombs.delete(sr.id);
+    }
+  }
+  applyMergedHistory(Array.from(live.values()), Array.from(tombs.values()));
+}
+
 export default function ReadingsProvider({
   children,
-  user,
 }: {
   children: React.ReactNode;
-  user: User | null;
 }) {
+  const { user } = useAuth();
   const [readings, setReadings] = useState<Reading[]>([]);
   const [loading, setLoading] = useState(true);
-  const userRef = useRef(user);
-  userRef.current = user;
 
-  const loadReadings = useCallback(() => {
-    const local = getHistory();
-    setReadings(
-      [...local].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      ),
-    );
-    setLoading(false);
+  const userIdRef = useRef<string | null>(user?.id ?? null);
+  userIdRef.current = user?.id ?? null;
+  const syncingRef = useRef(false);
+  const pendingRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    if (user) {
-      const supabase = createClient();
-      fetchReadings(supabase).then((remote) => {
-        const merged = mergeReadings(local, remote);
-        setReadings(merged);
+  const refreshFromLocal = useCallback(() => {
+    setReadings(sortDesc(getHistory()));
+  }, []);
 
-        // Upload any local-only readings to Supabase
-        const remoteIds = new Set(remote.map((r) => r.id));
-        const localOnly = local.filter((r) => !remoteIds.has(r.id));
-        for (const r of localOnly) {
-          upsertReading(supabase, user.id, r);
-        }
-      });
+  // Push local readings + tombstones to D1 and merge the authoritative response
+  // back. Full-state push (server de-dupes by last-write-wins); only runs for
+  // signed-in users. Offline/transient failures are ignored and retried on the
+  // next change.
+  const syncNow = useCallback(async () => {
+    if (!userIdRef.current) return;
+    if (syncingRef.current) {
+      pendingRef.current = true;
+      return;
     }
-  }, [user]);
+    syncingRef.current = true;
+    try {
+      const body = {
+        readings: getHistory().map((r) => ({
+          id: r.id,
+          data: r,
+          updatedAt: r.updatedAt ?? r.createdAt,
+        })),
+        tombstones: getTombstones(),
+      };
+      const res = await fetch("/api/history/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        readings?: ServerReading[];
+        tombstones?: ServerTombstone[];
+      };
+      mergeServerState(data.readings ?? [], data.tombstones ?? []);
+      setReadings(sortDesc(getHistory()));
+    } catch {
+      // offline / transient — a later change retries
+    } finally {
+      syncingRef.current = false;
+      if (pendingRef.current) {
+        pendingRef.current = false;
+        void syncNow();
+      }
+    }
+  }, []);
 
+  const scheduleSync = useCallback(() => {
+    if (!userIdRef.current) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => void syncNow(), SYNC_DEBOUNCE_MS);
+  }, [syncNow]);
+
+  // Load local immediately; when signed in (or on sign-in), sync with D1. This
+  // also merges any pre-login local readings into the account on first sign-in.
   useEffect(() => {
-    loadReadings();
-  }, [loadReadings]);
+    refreshFromLocal();
+    setLoading(false);
+    if (user?.id) void syncNow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const addReading = useCallback(
     (input: Omit<Reading, "id" | "createdAt">): Reading => {
       const reading = addLocalReading(input);
-      setReadings((prev) => [reading, ...prev]);
-
-      if (userRef.current) {
-        const supabase = createClient();
-        upsertReading(supabase, userRef.current.id, reading);
-      }
-
+      setReadings((prev) => sortDesc([reading, ...prev]));
+      scheduleSync();
       return reading;
     },
-    [],
+    [scheduleSync],
   );
 
-  const updateNote = useCallback((id: string, notes: string) => {
-    updateLocalNote(id, notes);
-    setReadings((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, notes } : r)),
-    );
+  const updateNote = useCallback(
+    (id: string, notes: string) => {
+      updateLocalNote(id, notes);
+      setReadings((prev) => prev.map((r) => (r.id === id ? { ...r, notes } : r)));
+      scheduleSync();
+    },
+    [scheduleSync],
+  );
 
-    if (userRef.current) {
-      const supabase = createClient();
-      updateReadingField(supabase, id, { notes: notes || null });
-    }
-  }, []);
-
-  const updateApiText = useCallback((id: string, apiReadingText: string) => {
-    updateLocalApiText(id, apiReadingText);
-    setReadings((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, apiReadingText } : r)),
-    );
-
-    if (userRef.current) {
-      const supabase = createClient();
-      updateReadingField(supabase, id, { api_reading_text: apiReadingText || null });
-    }
-  }, []);
+  const updateApiText = useCallback(
+    (id: string, apiReadingText: string) => {
+      updateLocalApiText(id, apiReadingText);
+      setReadings((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, apiReadingText } : r)),
+      );
+      scheduleSync();
+    },
+    [scheduleSync],
+  );
 
   const updateApiFollowUps = useCallback(
     (id: string, apiFollowUps: ApiFollowUp[]) => {
@@ -159,43 +204,31 @@ export default function ReadingsProvider({
       setReadings((prev) =>
         prev.map((r) => (r.id === id ? { ...r, apiFollowUps } : r)),
       );
-
-      if (userRef.current) {
-        const supabase = createClient();
-        updateReadingField(supabase, id, {
-          api_follow_ups: apiFollowUps.length ? apiFollowUps : null,
-        });
-      }
+      scheduleSync();
     },
-    [],
+    [scheduleSync],
   );
 
-  const updateTags = useCallback((id: string, tags: string[]) => {
-    updateLocalTags(id, tags);
-    setReadings((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, tags } : r)),
-    );
+  const updateTags = useCallback(
+    (id: string, tags: string[]) => {
+      updateLocalTags(id, tags);
+      setReadings((prev) => prev.map((r) => (r.id === id ? { ...r, tags } : r)));
+      scheduleSync();
+    },
+    [scheduleSync],
+  );
 
-    if (userRef.current) {
-      const supabase = createClient();
-      updateReadingField(supabase, id, { tags });
-    }
-  }, []);
+  const removeReadings = useCallback(
+    (ids: string[]) => {
+      deleteLocalReadings(ids);
+      const idSet = new Set(ids);
+      setReadings((prev) => prev.filter((r) => !idSet.has(r.id)));
+      scheduleSync();
+    },
+    [scheduleSync],
+  );
 
-  const removeReadings = useCallback((ids: string[]) => {
-    deleteLocalReadings(ids);
-    const idSet = new Set(ids);
-    setReadings((prev) => prev.filter((r) => !idSet.has(r.id)));
-
-    if (userRef.current) {
-      const supabase = createClient();
-      deleteReadingsFromDb(supabase, ids);
-    }
-  }, []);
-
-  const hasDrawnDailyToday = useCallback(() => {
-    return checkLocalDailyToday();
-  }, []);
+  const hasDrawnDailyToday = useCallback(() => checkLocalDailyToday(), []);
 
   const getAllTags = useCallback(() => {
     const set = new Set<string>();
@@ -216,7 +249,7 @@ export default function ReadingsProvider({
         removeReadings,
         hasDrawnDailyToday,
         getAllTags,
-        refresh: loadReadings,
+        refresh: refreshFromLocal,
       }}
     >
       {children}
