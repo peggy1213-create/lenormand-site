@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import Changelog from "@/components/Changelog";
 import ContactMe from "@/components/ContactMe";
+import { Link } from "@/i18n/navigation";
 import styles from "./Footer.module.css";
 
 export default async function Footer() {
@@ -41,7 +42,15 @@ export default async function Footer() {
         {t("disclaimer")}
       </span>
       <div className={styles.bottomRow}>
-        <Changelog />
+        <div className={styles.legalLinks}>
+          <Changelog />
+          <Link href="/terms" className={styles.legalLink}>
+            {t("terms")}
+          </Link>
+          <Link href="/privacy" className={styles.legalLink}>
+            {t("privacy")}
+          </Link>
+        </div>
         <ContactMe />
       </div>
     </footer>
