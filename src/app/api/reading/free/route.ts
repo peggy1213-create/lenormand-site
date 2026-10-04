@@ -188,7 +188,7 @@ export async function POST(req: Request) {
   // per-cookie, per-IP, and global daily caps below.) Signed-in usage is keyed by user id (shared across
   // that person's devices); anonymous usage by the per-visitor cookie, with an
   // IP backstop. Both tiers share one daily table and the global ceiling.
-  const cap = signedIn ? intVar(env.FREE_AUTH_DAILY_CAP, 3) : intVar(env.FREE_USER_DAILY_CAP, 2);
+  const cap = signedIn ? intVar(env.FREE_AUTH_DAILY_CAP, 5) : intVar(env.FREE_USER_DAILY_CAP, 2);
   const ipCap = intVar(env.FREE_IP_DAILY_CAP, 8);
   const globalCap = intVar(env.FREE_GLOBAL_DAILY_CAP, 200);
   const day = new Date().toISOString().slice(0, 10);

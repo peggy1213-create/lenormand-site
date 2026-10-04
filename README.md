@@ -42,7 +42,7 @@ with two tiers:
 
 - **Anonymous** — up to `FREE_USER_DAILY_CAP` (2) per day, gated by Cloudflare
   Turnstile, tracked by an anonymous cookie with an IP backstop.
-- **Signed in** — up to `FREE_AUTH_DAILY_CAP` (3) per day, keyed by user id,
+- **Signed in** — up to `FREE_AUTH_DAILY_CAP` (5) per day, keyed by user id,
   Turnstile skipped (the account is the gate).
 
 Sign-in (Google via Supabase) is **dev-only**: it appears only when
