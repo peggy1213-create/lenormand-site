@@ -114,7 +114,7 @@ function SpreadGlyph({ spread }: { spread: Spread }) {
 const FREE_READING_SPREADS_ANON: SpreadId[] = ["daily", "three", "five"];
 const FREE_READING_SPREADS_AUTH: SpreadId[] = ["daily", "three", "five"];
 const FREE_LIMIT_ANON = 2;
-const FREE_LIMIT_AUTH = 3;
+const FREE_LIMIT_AUTH = 5;
 const UNLIMITED_EMAILS = new Set(["peichun1213@gmail.com"]);
 
 // Sign-in exists on the dev site only (NEXT_PUBLIC_ENABLE_AUTH=true there).

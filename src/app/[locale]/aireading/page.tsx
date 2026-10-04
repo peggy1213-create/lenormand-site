@@ -49,6 +49,69 @@ export default async function SettingsPage({
           borderRadius: 8,
           boxShadow: "var(--shadow-sm)",
           padding: "32px 40px",
+          marginBottom: 24,
+        }}
+      >
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 600,
+            fontSize: 20,
+            letterSpacing: "0.04em",
+            color: "var(--ink-900)",
+            margin: "0 0 8px",
+          }}
+        >
+          {t("freeSectionHeading")}
+        </h2>
+        <p
+          style={{
+            fontSize: 15,
+            lineHeight: 1.55,
+            color: "var(--text-muted)",
+            margin: "0 0 16px",
+          }}
+        >
+          {t("freeSectionLead")}
+        </p>
+        <ul
+          style={{
+            listStyle: "none",
+            padding: 0,
+            margin: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          {[t("freeTierAnon"), t("freeTierAuth")].map((item) => (
+            <li
+              key={item}
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                gap: 10,
+                fontSize: 14,
+                lineHeight: 1.55,
+                color: "var(--text-muted)",
+              }}
+            >
+              <span aria-hidden style={{ color: "var(--gold-500)" }}>
+                ✦
+              </span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section
+        style={{
+          background: "var(--surface-card)",
+          border: "1px solid var(--border-hair)",
+          borderRadius: 8,
+          boxShadow: "var(--shadow-sm)",
+          padding: "32px 40px",
         }}
       >
         <h2
