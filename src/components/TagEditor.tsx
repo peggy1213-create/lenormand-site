@@ -3,12 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useTranslations } from "next-intl";
-import {
-  updateReadingTags,
-  getAllTags,
-  MAX_TAGS_PER_READING,
-  MAX_DISTINCT_TAGS,
-} from "@/lib/storage";
+import { MAX_TAGS_PER_READING, MAX_DISTINCT_TAGS } from "@/lib/storage";
+import { useReadings } from "@/components/ReadingsProvider";
 
 function TagIcon() {
   return (
@@ -85,6 +81,7 @@ export default function TagEditor({
   triggerLabel?: string;
 }) {
   const h = useTranslations("history");
+  const { updateTags, getAllTags } = useReadings();
 
   const [tags, setTags] = useState<string[]>(initialTags);
   const [tagInput, setTagInput] = useState("");
@@ -130,11 +127,11 @@ export default function TagEditor({
 
   function addTagValue(value: string) {
     if (!value || tags.length >= MAX_TAGS_PER_READING || tags.includes(value)) return;
-    const allTags = getAllTags();
-    if (!allTags.includes(value) && allTags.length >= MAX_DISTINCT_TAGS) return;
+    const allExisting = getAllTags();
+    if (!allExisting.includes(value) && allExisting.length >= MAX_DISTINCT_TAGS) return;
     const next = [...tags, value];
     setTags(next);
-    updateReadingTags(readingId, next);
+    updateTags(readingId, next);
     onChanged?.();
   }
 
@@ -152,15 +149,15 @@ export default function TagEditor({
   function handleRemoveTag(tag: string) {
     const next = tags.filter((existing) => existing !== tag);
     setTags(next);
-    updateReadingTags(readingId, next);
+    updateTags(readingId, next);
     onChanged?.();
   }
 
-  const allTags = getAllTags();
-  const unusedTags = allTags.filter((tag) => !tags.includes(tag));
+  const allExistingTags = getAllTags();
+  const unusedTags = allExistingTags.filter((tag) => !tags.includes(tag));
   const canAddMoreTags =
     tags.length < MAX_TAGS_PER_READING &&
-    (allTags.length < MAX_DISTINCT_TAGS || unusedTags.length > 0);
+    (allExistingTags.length < MAX_DISTINCT_TAGS || unusedTags.length > 0);
 
   const dark = tone === "dark";
   const emptyColor = dark ? "var(--gold-200)" : "var(--text-subtle)";

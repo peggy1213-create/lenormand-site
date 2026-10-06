@@ -11,7 +11,9 @@ import {
   type FreeReadingErrorCode,
 } from "@/lib/readingApiClient";
 import { getActiveConfig, DEFAULT_MODELS, type ApiProvider } from "@/lib/apiSettings";
-import { updateReadingApiText, updateReadingApiFollowUps, type ApiFollowUp } from "@/lib/storage";
+import type { ApiFollowUp } from "@/lib/storage";
+import { useReadings } from "@/components/ReadingsProvider";
+import posthog from "posthog-js";
 
 type PanelState = "streaming" | "done" | "error";
 type FollowUpState = "idle" | "streaming" | "error";
@@ -66,6 +68,7 @@ export default function ReadWithApiPanel({
 }) {
   const t = useTranslations("draw");
   const locale = useLocale();
+  const { updateApiText, updateApiFollowUps } = useReadings();
   const [text, setText] = useState("");
   const [state, setState] = useState<PanelState>("streaming");
   const [tokenCount, setTokenCount] = useState<number | null>(null);
@@ -106,30 +109,18 @@ export default function ReadWithApiPanel({
 
     const onChunk = (chunk: string) => {
       if (cancelled) return;
-      fullText += chunk;
-      setText((prev) => prev + chunk);
-    };
-    const onDone = (result: { ok: true; usage: { inputTokens: number; outputTokens: number } }) => {
-      setTokenCount(result.usage.inputTokens + result.usage.outputTokens);
-      setState("done");
-      readingTextRef.current = fullText;
-      if (readingId) updateReadingApiText(readingId, fullText);
-    };
-
-    if (mode === "free") {
-      (async () => {
-        const result = await streamFreeReading({ prompt }, onChunk, controller.signal, onRemaining);
-        if (cancelled) return;
-        if (result.ok) {
-          onDone(result);
-        } else {
-          setErrorCode(result.error);
-          setState("error");
-        }
-      })();
-    } else {
-      const config = getActiveConfig();
-      if (!config) {
+      if (result.ok) {
+        setTokenCount(result.usage.inputTokens + result.usage.outputTokens);
+        posthog.capture("ai_reading_completed", {
+          provider: config.provider,
+          model,
+          tokens: result.usage.inputTokens + result.usage.outputTokens,
+        });
+        setState("done");
+        readingTextRef.current = fullText;
+        if (readingId) updateApiText(readingId, fullText);
+      } else {
+        setErrorCode(result.error);
         setState("error");
         setErrorCode("network");
         return;
@@ -229,7 +220,7 @@ export default function ReadWithApiPanel({
       setPendingQuestion("");
       setFollowUpText("");
       setFollowUpState("idle");
-      if (readingId) updateReadingApiFollowUps(readingId, next);
+      if (readingId) updateApiFollowUps(readingId, next);
     } else {
       setFollowUpErrorCode(result.ok ? "network" : result.error);
       setFollowUpText("");

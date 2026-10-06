@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Coffee } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
+import AuthButton from "@/components/AuthButton";
 import btn from "./ds/Button.module.css";
 import styles from "./Header.module.css";
 
@@ -37,7 +38,7 @@ export default function Header() {
     { href: "/spreads", label: t("home") },
     { href: "/history", label: t("history") },
     { href: "/aireading", label: t("settings") },
-    { href: "/cards", label: t("learning"), activePrefixes: ["/cards", "/learn", "/deck"] },
+    { href: "/cards", label: t("cards"), activePrefixes: ["/cards", "/learn", "/deck"] },
     { href: "/about", label: t("about") },
   ];
 
@@ -126,6 +127,7 @@ export default function Header() {
           >
             <Coffee size={16} strokeWidth={1.75} aria-hidden="true" />
           </a>
+          <AuthButton />
         </nav>
 
         <button
@@ -163,6 +165,9 @@ export default function Header() {
             <Coffee size={14} strokeWidth={1.75} aria-hidden="true" />
             {t("coffee")}
           </a>
+          <div className={styles.mobileAuth}>
+            <AuthButton />
+          </div>
         </div>
       )}
     </header>

@@ -6,6 +6,8 @@ import Script from "next/script";
 import { routing } from "@/i18n/routing";
 import { BASE_URL, buildAlternates, localizedUrl } from "@/lib/seo";
 import Header from "@/components/Header";
+import AuthProvider from "@/components/AuthProvider";
+import ReadingsProvider from "@/components/ReadingsProvider";
 import Footer from "@/components/Footer";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
@@ -106,16 +108,23 @@ export default async function LocaleLayout({
         )}
       </head>
       <body style={{ margin: 0 }}>
-        <NextIntlClientProvider messages={messages}>
-          <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-            <Header />
-            <div style={{ flex: 1 }}>{children}</div>
-            <Footer />
-            <LanguageSwitcher />
-          </div>
-        </NextIntlClientProvider>
-        <ServiceWorkerRegister />
-        <ClarityProvider />
+        <PostHogProvider>
+          <NextIntlClientProvider messages={messages}>
+            <AuthProvider>
+              <ReadingsProvider>
+                <PostHogPageView />
+                <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+                  <Header />
+                  <div style={{ flex: 1 }}>{children}</div>
+                  <Footer />
+                  <LanguageSwitcher />
+                </div>
+              </ReadingsProvider>
+            </AuthProvider>
+          </NextIntlClientProvider>
+          <ServiceWorkerRegister />
+          <ClarityProvider />
+        </PostHogProvider>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-0Q82SZMP7L"
           strategy="afterInteractive"

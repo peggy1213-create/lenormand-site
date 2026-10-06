@@ -3,6 +3,13 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
+if (process.env.NODE_ENV === "development") {
+  const { initOpenNextCloudflareForDev } = await import(
+    "@opennextjs/cloudflare"
+  );
+  initOpenNextCloudflareForDev();
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async redirects() {
@@ -16,10 +23,5 @@ const nextConfig = {
     ];
   },
 };
-
-// Makes the Cloudflare bindings (AI, D1, vars, secrets) available to
-// getCloudflareContext() during `next dev`. Note: free-tier readings run in
-// dev hit the real Workers AI service and consume real quota.
-initOpenNextCloudflareForDev();
 
 export default withNextIntl(nextConfig);

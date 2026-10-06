@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import OrnamentRule from "@/components/ds/OrnamentRule";
 import HistoryView from "@/components/HistoryView";
+import HistorySavedNotice from "@/components/HistorySavedNotice";
 import { buildPageMetadata } from "@/lib/seo";
 import styles from "./page.module.css";
 
@@ -53,7 +54,7 @@ export default async function HistoryPage({
         >
           {t("lead")}
         </p>
-        <p
+        <HistorySavedNotice
           style={{
             fontFamily: "var(--font-smallcaps)",
             textTransform: "uppercase",
@@ -62,9 +63,7 @@ export default async function HistoryPage({
             color: "var(--text-subtle)",
             margin: "14px 0 0",
           }}
-        >
-          {t("savedNotice")}
-        </p>
+        />
       </div>
 
       <HistoryView />

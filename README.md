@@ -35,45 +35,64 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## Free reading tier (Cloudflare Workers AI)
+## Free AI reading tier
 
-Visitors without their own API key get a small number of free AI readings per
-day, served by Cloudflare Workers AI and metered in D1. Defaults: **2 per
-visitor/day**, 8 per IP/day, 200 site-wide/day (tune the `vars` in
-`wrangler.jsonc`). A Cloudflare Turnstile check gates each free reading.
+Visitors get free AI readings (served by Cloudflare Workers AI, metered in D1),
+with two tiers:
 
-One-time setup:
+- **Anonymous** — up to `FREE_USER_DAILY_CAP` (2) per day, gated by Cloudflare
+  Turnstile, tracked by an anonymous cookie with an IP backstop.
+- **Signed in** — up to `FREE_AUTH_DAILY_CAP` (5) per day, keyed by user id,
+  Turnstile skipped (the account is the gate).
 
-1. **Create the D1 database** and paste the returned id into `wrangler.jsonc`
+Sign-in (Google via Supabase) is **dev-only**: it appears only when
+`NEXT_PUBLIC_ENABLE_AUTH=true` at build time. Production leaves it unset, so
+`www.in-betweens.cc` shows the anonymous tier only. `dev.in-betweens.cc`
+(built from `master`) sets it to `true`.
+
+### Environments
+
+| | Production (`production` branch → www) | Dev (`master` branch → dev) |
+|---|---|---|
+| Sign-in | off | on (`NEXT_PUBLIC_ENABLE_AUTH=true`) |
+| D1 database | `lenormand-free` | `lenormand-free-dev` |
+| Turnstile | real widget | same widget (add the dev hostname) |
+
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY` is public and committed in `.env.production`.
+The secret key and hash salt are Worker secrets, per environment.
+
+### One-time setup (per environment)
+
+1. Create the D1 database and paste its id into `wrangler.jsonc`
    (`d1_databases[0].database_id`):
 
    ```bash
-   npx wrangler d1 create lenormand-free
+   npx wrangler d1 create lenormand-free-dev   # or lenormand-free for prod
    ```
 
-2. **Apply the schema** (local for `next dev`, remote for production):
+2. Apply the schema (local for `next dev`, remote for the deployed Worker):
 
    ```bash
-   npx wrangler d1 migrations apply lenormand-free --local
-   npx wrangler d1 migrations apply lenormand-free --remote
+   npx wrangler d1 migrations apply <db-name> --local
+   npx wrangler d1 migrations apply <db-name> --remote
    ```
 
-3. **Create a Turnstile widget** in the Cloudflare dashboard (Turnstile → Add
-   site). Put the **site key** in the build environment as
-   `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (e.g. in `.env.local` for dev and in the
-   deploy build env), and set the **secret key** and a random hash salt as
-   Worker secrets:
+3. Set the Worker secrets:
 
    ```bash
    npx wrangler secret put TURNSTILE_SECRET_KEY
    npx wrangler secret put ANON_HASH_SALT
    ```
 
-   For local dev, add the same two to a `.dev.vars` file so
-   `getCloudflareContext()` can read them.
+   For local dev, put the same two in a `.dev.vars` file (gitignored).
 
-Privacy: the free tier stores only opaque counters — an anonymous visitor
-UUID (HttpOnly cookie), a salted hash of the IP, and daily counts. Prompts,
-replies, and raw IPs are never persisted, matching the bring-your-own-key
-relay. Note: free readings run during `next dev` hit the real Workers AI
-service and consume real quota.
+4. Add the environment's hostname to the Turnstile widget's allowed hostnames
+   in the Cloudflare dashboard.
+
+### Privacy
+
+The free tier stores only opaque counters — an anonymous visitor UUID
+(HttpOnly cookie), a salted hash of the IP, per-user counts (signed in), and
+daily totals. Prompts, replies, and raw IPs are never persisted. Note: free
+readings run during `next dev` hit the real Workers AI service and use real
+quota.
