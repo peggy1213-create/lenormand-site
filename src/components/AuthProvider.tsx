@@ -1,9 +1,9 @@
 "use client";
 
-import { createContext, useContext } from "react";
-import { useSession } from "@/lib/authClient";
+import { createContext, useContext, useEffect, useState } from "react";
+import { fetchSession } from "@/lib/authClient";
 
-// The user shape the app relies on, mapped from the Better Auth session.
+// The user shape the app relies on.
 export type AuthUser = {
   id: string;
   email: string;
@@ -30,19 +30,23 @@ export default function AuthProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { data, isPending } = useSession();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const user: AuthUser | null = data?.user
-    ? {
-        id: data.user.id,
-        email: data.user.email,
-        name: data.user.name,
-        image: data.user.image,
-      }
-    : null;
+  useEffect(() => {
+    let active = true;
+    fetchSession().then((u) => {
+      if (!active) return;
+      setUser(u);
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading: isPending }}>
+    <AuthContext.Provider value={{ user, loading }}>
       {children}
     </AuthContext.Provider>
   );

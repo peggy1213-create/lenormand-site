@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/components/AuthProvider";
-import { signIn, signOut } from "@/lib/authClient";
+import { signInWithGoogle, signOut } from "@/lib/authClient";
 import { Link } from "@/i18n/navigation";
 import styles from "./AuthButton.module.css";
 
@@ -21,11 +21,8 @@ function GoogleIcon() {
 function SignInModal({ onClose }: { onClose: () => void }) {
   const t = useTranslations("auth");
 
-  const handleGoogleSignIn = async () => {
-    await signIn.social({
-      provider: "google",
-      callbackURL: window.location.href,
-    });
+  const handleGoogleSignIn = () => {
+    signInWithGoogle(window.location.href);
   };
 
   return (
