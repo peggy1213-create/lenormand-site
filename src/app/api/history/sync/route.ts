@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { getAuth } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -23,9 +23,8 @@ export async function POST(req: Request) {
   // Require a signed-in user.
   let userId: string | null = null;
   try {
-    const auth = await getAuth(new URL(req.url).origin);
-    const session = await auth.api.getSession({ headers: req.headers });
-    userId = session?.user?.id ?? null;
+    const user = await getSessionUser(req);
+    userId = user?.id ?? null;
   } catch {
     return jsonError("auth_unavailable", 503);
   }

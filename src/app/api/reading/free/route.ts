@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { getAuth } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth";
 
 // The free (no-account, no-key) reading tier. Unlike the bring-your-own-key
 // relay in ../route.ts, this path calls Cloudflare Workers AI with the site's
@@ -174,10 +174,9 @@ export async function POST(req: Request) {
   let userId: string | null = null;
   let userEmail: string | null = null;
   try {
-    const auth = await getAuth(new URL(req.url).origin);
-    const session = await auth.api.getSession({ headers: req.headers });
-    userId = session?.user?.id ?? null;
-    userEmail = session?.user?.email ?? null;
+    const user = await getSessionUser(req);
+    userId = user?.id ?? null;
+    userEmail = user?.email ?? null;
   } catch {
     userId = null;
   }
