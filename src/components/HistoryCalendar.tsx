@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { getHistory, type Reading } from "@/lib/storage";
+import { useReadings } from "@/components/ReadingsProvider";
 import { groupReadingsByLocalDay, localDayKey } from "@/lib/readingCalendar";
 import { Row, pillStyle, makeReadingDateFormatter } from "./HistoryList";
 import styles from "./HistoryCalendar.module.css";
@@ -54,24 +54,18 @@ export default function HistoryCalendar() {
   const locale = useLocale();
   const h = useTranslations("history");
 
-  const [readings, setReadings] = useState<Reading[] | null>(null);
+  const { readings: allReadings, loading: readingsLoading, refresh } = useReadings();
+  const readings = readingsLoading ? null : allReadings;
+
   const [mode, setMode] = useState<"month" | "year">("month");
   const [viewDate, setViewDate] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const detailRef = useRef<HTMLDivElement>(null);
 
-  function refresh() {
-    setReadings([...getHistory()]);
-  }
-
   function selectDay(key: string) {
     setSelectedDay(key);
     detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
-
-  useEffect(() => {
-    refresh();
-  }, []);
 
   const today = useMemo(() => new Date(), []);
   const grouped = useMemo(() => groupReadingsByLocalDay(readings ?? []), [readings]);

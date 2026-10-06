@@ -1,4 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getAuth } from "@/lib/auth";
 
 // The free (no-account, no-key) reading tier. Unlike the bring-your-own-key
 // relay in ../route.ts, this path calls Cloudflare Workers AI with the site's
@@ -20,6 +21,11 @@ type ChatMessage = { role: "user" | "assistant"; content: string };
 const MAX_OUTPUT_TOKENS = 4096;
 const ANON_COOKIE = "lenormand_anon";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
+
+// Accounts that bypass the daily cap entirely (e.g. the site owner, for
+// testing on dev). Sign-in only exists on the dev site, so this never applies
+// in production.
+const UNLIMITED_EMAILS = new Set(["peichun1213@gmail.com"]);
 
 // Same normalization contract as the BYO relay: accept either a single
 // `prompt` string or a `messages` array, dropping anything that isn't a
@@ -140,6 +146,7 @@ interface FreeEnv {
   DB: D1DB;
   FREE_MODEL?: string;
   FREE_USER_DAILY_CAP?: string;
+  FREE_AUTH_DAILY_CAP?: string;
   FREE_IP_DAILY_CAP?: string;
   FREE_GLOBAL_DAILY_CAP?: string;
   ANON_HASH_SALT?: string;
@@ -161,9 +168,27 @@ export async function POST(req: Request) {
 
   const ip = req.headers.get("cf-connecting-ip") ?? "";
 
-  // Identity + limits. (No bot check — anonymous abuse is bounded by the
-  // per-cookie, per-IP, and global daily caps below.)
-  const userCap = intVar(env.FREE_USER_DAILY_CAP, 2);
+  // 1. Who is this? Sign-in exists on dev only. Signed-in users get a higher
+  // daily cap; anonymous users get the lower cap. In production there is no
+  // sign-in, so everyone is anonymous here.
+  let userId: string | null = null;
+  let userEmail: string | null = null;
+  try {
+    const auth = await getAuth(new URL(req.url).origin);
+    const session = await auth.api.getSession({ headers: req.headers });
+    userId = session?.user?.id ?? null;
+    userEmail = session?.user?.email ?? null;
+  } catch {
+    userId = null;
+  }
+  const signedIn = !!userId;
+  const isUnlimited = userEmail ? UNLIMITED_EMAILS.has(userEmail) : false;
+
+  // 2. Identity + limits. (No bot check — anonymous abuse is bounded by the
+  // per-cookie, per-IP, and global daily caps below.) Signed-in usage is keyed by user id (shared across
+  // that person's devices); anonymous usage by the per-visitor cookie, with an
+  // IP backstop. Both tiers share one daily table and the global ceiling.
+  const cap = signedIn ? intVar(env.FREE_AUTH_DAILY_CAP, 5) : intVar(env.FREE_USER_DAILY_CAP, 2);
   const ipCap = intVar(env.FREE_IP_DAILY_CAP, 8);
   const globalCap = intVar(env.FREE_GLOBAL_DAILY_CAP, 200);
   const day = new Date().toISOString().slice(0, 10);
@@ -172,57 +197,73 @@ export async function POST(req: Request) {
   // Regenerate a missing or implausibly long cookie value, and persist it so
   // the per-visitor counter can accumulate on the next request.
   const anonId = existingAnon && existingAnon.length <= 64 ? existingAnon : crypto.randomUUID();
-  const isNewAnon = anonId !== existingAnon;
+  const isNewAnon = !signedIn && anonId !== existingAnon;
+  const usageId = signedIn ? `user:${userId}` : anonId;
   const ipHash = ip ? await sha256Hex(`${env.ANON_HASH_SALT ?? ""}:${ip}`) : "noip";
 
   const db = env.DB;
-  let anonCount = 0;
+  let usageCount = 0;
   let ipCount = 0;
   let globalCount = 0;
   try {
-    const [anonRow, ipRow, globalRow] = await db.batch<{ count: number }>([
-      db.prepare("SELECT count FROM anon_usage WHERE anon_id = ? AND day = ?").bind(anonId, day),
+    const [usageRow, ipRow, globalRow] = await db.batch<{ count: number }>([
+      db.prepare("SELECT count FROM anon_usage WHERE anon_id = ? AND day = ?").bind(usageId, day),
       db.prepare("SELECT count FROM ip_usage WHERE ip_hash = ? AND day = ?").bind(ipHash, day),
       db.prepare("SELECT count FROM global_usage WHERE day = ?").bind(day),
     ]);
-    anonCount = anonRow.results[0]?.count ?? 0;
+    usageCount = usageRow.results[0]?.count ?? 0;
     ipCount = ipRow.results[0]?.count ?? 0;
     globalCount = globalRow.results[0]?.count ?? 0;
   } catch {
     return jsonError("network", 500);
   }
 
-  if (globalCount >= globalCap) return jsonError("global_limit", 429);
-  if (anonCount >= userCap || ipCount >= ipCap) return jsonError("limit", 429);
+  if (!isUnlimited) {
+    if (globalCount >= globalCap) return jsonError("global_limit", 429);
+    // The IP backstop applies to anonymous visitors only — signed-in users are
+    // already gated by their account, and a shared IP shouldn't block them.
+    if (usageCount >= cap || (!signedIn && ipCount >= ipCap)) return jsonError("limit", 429);
+  }
 
-  // 3. Meter the call. Increment before generating so an aborted stream still
+  // 4. Meter the call. Increment before generating so an aborted stream still
   // counts — "every AI call counts". A rare race (two requests both passing
   // the SELECT above) can let a count reach cap+1; acceptable for a free tier.
+  // Unlimited accounts still bump the global counter (cost visibility) but not
+  // the per-identity cap.
   try {
-    await db.batch([
-      db
-        .prepare(
-          "INSERT INTO anon_usage (anon_id, day, count) VALUES (?, ?, 1) " +
-            "ON CONFLICT(anon_id, day) DO UPDATE SET count = count + 1",
-        )
-        .bind(anonId, day),
-      db
-        .prepare(
-          "INSERT INTO ip_usage (ip_hash, day, count) VALUES (?, ?, 1) " +
-            "ON CONFLICT(ip_hash, day) DO UPDATE SET count = count + 1",
-        )
-        .bind(ipHash, day),
+    const writes: D1Prepared[] = [
       db
         .prepare(
           "INSERT INTO global_usage (day, count) VALUES (?, 1) " +
             "ON CONFLICT(day) DO UPDATE SET count = count + 1",
         )
         .bind(day),
-    ]);
+    ];
+    if (!isUnlimited) {
+      writes.push(
+        db
+          .prepare(
+            "INSERT INTO anon_usage (anon_id, day, count) VALUES (?, ?, 1) " +
+              "ON CONFLICT(anon_id, day) DO UPDATE SET count = count + 1",
+          )
+          .bind(usageId, day),
+      );
+      if (!signedIn) {
+        writes.push(
+          db
+            .prepare(
+              "INSERT INTO ip_usage (ip_hash, day, count) VALUES (?, ?, 1) " +
+                "ON CONFLICT(ip_hash, day) DO UPDATE SET count = count + 1",
+            )
+            .bind(ipHash, day),
+        );
+      }
+    }
+    await db.batch(writes);
   } catch {
     return jsonError("network", 500);
   }
-  const remaining = Math.max(0, userCap - (anonCount + 1));
+  const remaining = isUnlimited ? cap : Math.max(0, cap - (usageCount + 1));
 
   // 4. Generate.
   const maxTokens =

@@ -9,14 +9,16 @@
 	"assets": {
 		"directory": ".open-next/assets"
 	},
-	// Workers AI, used for the free (no-key) reading tier in
+	// Workers AI, used for the free reading tier in
 	// src/app/api/reading/free/route.ts.
 	"ai": {
 		"binding": "AI"
 	},
-	// D1 holds the free-tier usage counters (per anonymous visitor, per IP, and
-	// a global daily total). Run `npx wrangler d1 create lenormand-free`, paste
-	// the returned database_id below, then apply migrations/ (see README).
+	// D1 holds the free-tier usage counters (per anonymous visitor, per IP, per
+	// signed-in user, and a global daily total) plus the Better Auth tables
+	// (user/session/account/verification) and the reading history sync table.
+	// This is the PRODUCTION database (lenormand-free). Dev uses its own
+	// lenormand-free-dev database on the master branch.
 	"d1_databases": [
 		{
 			"binding": "DB",
@@ -24,13 +26,13 @@
 			"database_id": "75c06dc2-805c-4ab3-aa53-2527b63e160e"
 		}
 	],
-	// Non-secret tuning for the free tier. TURNSTILE_SECRET_KEY and
-	// ANON_HASH_SALT are secrets — set them with `npx wrangler secret put`,
-	// never here. The Turnstile *site* key is public and is read at build time
-	// from NEXT_PUBLIC_TURNSTILE_SITE_KEY.
+	// Non-secret tuning. TURNSTILE_SECRET_KEY and ANON_HASH_SALT are secrets —
+	// set them with `npx wrangler secret put`, never here. The Turnstile *site*
+	// key is public and read at build time from NEXT_PUBLIC_TURNSTILE_SITE_KEY.
 	"vars": {
 		"FREE_MODEL": "@cf/meta/llama-4-scout-17b-16e-instruct",
 		"FREE_USER_DAILY_CAP": "2",
+		"FREE_AUTH_DAILY_CAP": "5",
 		"FREE_IP_DAILY_CAP": "8",
 		"FREE_GLOBAL_DAILY_CAP": "200"
 	}

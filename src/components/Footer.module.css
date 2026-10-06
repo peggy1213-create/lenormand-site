@@ -9,6 +9,28 @@
   margin-top: 4px;
 }
 
+/* "What's new" and the legal links sit together on the left of the bottom row. */
+.legalLinks {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.legalLink {
+  font-family: var(--font-smallcaps);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  font-size: var(--footer-caps-size);
+  color: var(--text-subtle);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.legalLink:hover {
+  color: var(--gold-500);
+}
+
 /* Below this width the floating language switcher (position: fixed, bottom
    right) would sit on top of the Contact-me icon — inset the row so the icon
    stays clear and clickable. */

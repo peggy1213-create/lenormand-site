@@ -54,8 +54,9 @@ export async function streamReading(
   if (!res.ok || !res.body) {
     let code: ReadingApiErrorCode = "network";
     try {
-      const data = await res.json();
-      if (data?.error === "invalid_key" || data?.error === "rate_limited") code = data.error;
+      const data = (await res.json()) as { error?: string };
+      if (data?.error === "invalid_key" || data?.error === "rate_limited")
+        code = data.error as ReadingApiErrorCode;
     } catch {
       // fall through to generic network error
     }
@@ -127,7 +128,8 @@ async function consumeReadingStream(
 
 // Streams a free-tier reading from src/app/api/reading/free/route.ts. Same
 // shape as streamReading, but with no API key — the server uses Cloudflare
-// Workers AI and meters usage against the daily caps.
+// Workers AI and meters usage — and a Turnstile token proving a human is
+// driving it.
 //
 // The server counts the call and returns the visitor's remaining free uses in
 // the X-Free-Remaining header *before* generating, so `onRemaining` fires as
@@ -137,6 +139,9 @@ async function consumeReadingStream(
 // with 0 on a "limit"/"global_limit" rejection.
 export async function streamFreeReading(
   params: {
+    // Required for anonymous visitors; signed-in users (dev only) skip
+    // Turnstile, so this may be omitted for them.
+    turnstileToken?: string;
     prompt?: string;
     messages?: ChatMessage[];
     maxOutputTokens?: number;
@@ -160,8 +165,8 @@ export async function streamFreeReading(
   if (!res.ok || !res.body) {
     let code: FreeReadingErrorCode = "network";
     try {
-      const data = await res.json();
-      const known: FreeReadingErrorCode[] = [
+      const data = (await res.json()) as { error?: string };
+      const known: string[] = [
         "invalid_key",
         "rate_limited",
         "network",
@@ -169,7 +174,7 @@ export async function streamFreeReading(
         "limit",
         "global_limit",
       ];
-      if (known.includes(data?.error)) code = data.error;
+      if (data?.error && known.includes(data.error)) code = data.error as FreeReadingErrorCode;
     } catch {
       // fall through to generic network error
     }
@@ -261,7 +266,7 @@ export async function fetchProviderModels(
       signal,
     });
     if (!res.ok) return [];
-    const data = await res.json();
+    const data = (await res.json()) as { models?: unknown };
     return Array.isArray(data?.models) ? data.models.filter((m: unknown) => typeof m === "string") : [];
   } catch {
     return [];

@@ -3,15 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import MarkdownReading from "./MarkdownReading";
-import {
-  streamReading,
-  streamFreeReading,
-  type ChatMessage,
-  type ReadingApiErrorCode,
-  type FreeReadingErrorCode,
-} from "@/lib/readingApiClient";
+import { streamReading, type ChatMessage, type ReadingApiErrorCode } from "@/lib/readingApiClient";
 import { getActiveConfig, DEFAULT_MODELS, type ApiProvider } from "@/lib/apiSettings";
-import { updateReadingApiText, updateReadingApiFollowUps, type ApiFollowUp } from "@/lib/storage";
+import type { ApiFollowUp } from "@/lib/storage";
+import { useReadings } from "@/components/ReadingsProvider";
 
 type PanelState = "streaming" | "done" | "error";
 type FollowUpState = "idle" | "streaming" | "error";
@@ -22,20 +17,14 @@ type FollowUpState = "idle" | "streaming" | "error";
 const MAX_FOLLOW_UPS = 3;
 const FOLLOW_UP_MAX_CHARS = 250;
 
-function errorMessageKey(code: FreeReadingErrorCode | null): string {
+function errorMessageKey(code: ReadingApiErrorCode | null): string {
   return code === "invalid_key"
     ? "apiErrorInvalidKey"
     : code === "rate_limited"
       ? "apiErrorRateLimited"
       : code === "refusal"
         ? "apiErrorRefusal"
-        : code === "captcha"
-          ? "freeErrorCaptcha"
-          : code === "limit"
-            ? "freeErrorLimit"
-            : code === "global_limit"
-              ? "freeErrorGlobalLimit"
-              : "apiErrorNetwork";
+        : "apiErrorNetwork";
 }
 
 // Streams a reading through the caller's own provider key (via
@@ -53,30 +42,24 @@ function errorMessageKey(code: FreeReadingErrorCode | null): string {
 export default function ReadWithApiPanel({
   prompt,
   readingId,
-  mode = "byo",
-  onRemaining,
 }: {
   prompt: string;
   readingId: string | null;
-  // "byo" streams through the querent's own key; "free" runs the no-key
-  // Workers AI tier and reports remaining daily uses back to the parent
-  // (onRemaining).
-  mode?: "byo" | "free";
-  onRemaining?: (remaining: number | null) => void;
 }) {
   const t = useTranslations("draw");
   const locale = useLocale();
+  const { updateApiText, updateApiFollowUps } = useReadings();
   const [text, setText] = useState("");
   const [state, setState] = useState<PanelState>("streaming");
   const [tokenCount, setTokenCount] = useState<number | null>(null);
-  const [errorCode, setErrorCode] = useState<FreeReadingErrorCode | null>(null);
+  const [errorCode, setErrorCode] = useState<ReadingApiErrorCode | null>(null);
 
   const [followUps, setFollowUps] = useState<ApiFollowUp[]>([]);
   const [followUpInput, setFollowUpInput] = useState("");
   const [pendingQuestion, setPendingQuestion] = useState("");
   const [followUpText, setFollowUpText] = useState("");
   const [followUpState, setFollowUpState] = useState<FollowUpState>("idle");
-  const [followUpErrorCode, setFollowUpErrorCode] = useState<FreeReadingErrorCode | null>(null);
+  const [followUpErrorCode, setFollowUpErrorCode] = useState<ReadingApiErrorCode | null>(null);
 
   // Provider/model/key snapshot taken when the reading starts, reused for
   // every follow-up so the whole thread runs against one configuration.
@@ -104,58 +87,40 @@ export default function ReadWithApiPanel({
     setState("streaming");
     setErrorCode(null);
 
-    const onChunk = (chunk: string) => {
-      if (cancelled) return;
-      fullText += chunk;
-      setText((prev) => prev + chunk);
-    };
-    const onDone = (result: { ok: true; usage: { inputTokens: number; outputTokens: number } }) => {
-      setTokenCount(result.usage.inputTokens + result.usage.outputTokens);
-      setState("done");
-      readingTextRef.current = fullText;
-      if (readingId) updateReadingApiText(readingId, fullText);
-    };
-
-    if (mode === "free") {
-      (async () => {
-        const result = await streamFreeReading({ prompt }, onChunk, controller.signal, onRemaining);
-        if (cancelled) return;
-        if (result.ok) {
-          onDone(result);
-        } else {
-          setErrorCode(result.error);
-          setState("error");
-        }
-      })();
-    } else {
-      const config = getActiveConfig();
-      if (!config) {
-        setState("error");
-        setErrorCode("network");
-        return;
-      }
-      // The settings form resolves the model asynchronously after a key is
-      // entered; if the user got here before that settled, fall back to the
-      // provider's default rather than sending an empty model.
-      const model = config.model.trim() || DEFAULT_MODELS[config.provider];
-      // Snapshot the resolved config so every follow-up runs the same thread
-      // against one provider/model/key.
-      configRef.current = { provider: config.provider, model, apiKey: config.apiKey };
-
-      streamReading(
-        { provider: config.provider, model, apiKey: config.apiKey, prompt },
-        onChunk,
-        controller.signal,
-      ).then((result) => {
-        if (cancelled) return;
-        if (result.ok) {
-          onDone(result);
-        } else {
-          setErrorCode(result.error);
-          setState("error");
-        }
-      });
+    const config = getActiveConfig();
+    if (!config) {
+      setState("error");
+      setErrorCode("network");
+      return;
     }
+    // The settings form resolves the model asynchronously after a key is
+    // entered; if the user got here before that settled, fall back to the
+    // provider's default rather than sending an empty model.
+    const model = config.model.trim() || DEFAULT_MODELS[config.provider];
+    // Snapshot the resolved config so every follow-up runs the same thread
+    // against one provider/model/key.
+    configRef.current = { provider: config.provider, model, apiKey: config.apiKey };
+
+    streamReading(
+      { provider: config.provider, model, apiKey: config.apiKey, prompt },
+      (chunk) => {
+        if (cancelled) return;
+        fullText += chunk;
+        setText((prev) => prev + chunk);
+      },
+      controller.signal,
+    ).then((result) => {
+      if (cancelled) return;
+      if (result.ok) {
+        setTokenCount(result.usage.inputTokens + result.usage.outputTokens);
+        setState("done");
+        readingTextRef.current = fullText;
+        if (readingId) updateApiText(readingId, fullText);
+      } else {
+        setErrorCode(result.error);
+        setState("error");
+      }
+    });
 
     return () => {
       cancelled = true;
@@ -172,7 +137,7 @@ export default function ReadWithApiPanel({
     const config = configRef.current;
     if (
       !question ||
-      (mode === "byo" && !config) ||
+      !config ||
       state !== "done" ||
       followUpState === "streaming" ||
       followUps.length >= MAX_FOLLOW_UPS
@@ -199,26 +164,15 @@ export default function ReadWithApiPanel({
     ];
 
     let answer = "";
-    const onChunk = (chunk: string) => {
-      if (controller.signal.aborted) return;
-      answer += chunk;
-      setFollowUpText((prev) => prev + chunk);
-    };
-
-    // Follow-ups count against the free daily cap too; the BYO path just
-    // replays the thread on the key.
-    let result: { ok: true } | { ok: false; error: FreeReadingErrorCode };
-    if (mode === "free") {
-      const r = await streamFreeReading({ messages }, onChunk, controller.signal, onRemaining);
-      result = r.ok ? { ok: true } : { ok: false, error: r.error };
-    } else {
-      const r = await streamReading(
-        { provider: config!.provider, model: config!.model, apiKey: config!.apiKey, messages },
-        onChunk,
-        controller.signal,
-      );
-      result = r.ok ? { ok: true } : { ok: false, error: r.error };
-    }
+    const result = await streamReading(
+      { provider: config.provider, model: config.model, apiKey: config.apiKey, messages },
+      (chunk) => {
+        if (controller.signal.aborted) return;
+        answer += chunk;
+        setFollowUpText((prev) => prev + chunk);
+      },
+      controller.signal,
+    );
 
     if (controller.signal.aborted || controller !== followUpControllerRef.current) return;
 
@@ -229,7 +183,7 @@ export default function ReadWithApiPanel({
       setPendingQuestion("");
       setFollowUpText("");
       setFollowUpState("idle");
-      if (readingId) updateReadingApiFollowUps(readingId, next);
+      if (readingId) updateApiFollowUps(readingId, next);
     } else {
       setFollowUpErrorCode(result.ok ? "network" : result.error);
       setFollowUpText("");

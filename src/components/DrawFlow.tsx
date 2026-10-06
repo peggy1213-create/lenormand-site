@@ -6,56 +6,16 @@ import { useLocale, useTranslations } from "next-intl";
 import type { Locale } from "@/i18n/routing";
 import { SPREADS, type Spread, type SpreadId } from "@/data/spreads";
 import { CARDS, CARD_BACK_IMAGE, type Card } from "@/data/cards";
+import { useAuth } from "@/components/AuthProvider";
 import { shuffle } from "@/lib/shuffle";
-import { addReading, hasDrawnDailyToday } from "@/lib/storage";
+import { useReadings } from "@/components/ReadingsProvider";
 import { buildAIPrompt } from "@/lib/prompt";
 import { hasAnyProviderConfigured } from "@/lib/apiSettings";
 import CopyToClipboardButton from "./CopyToClipboardButton";
 import ReadWithApiPanel from "./ReadWithApiPanel";
+import FreeReadingPanel from "./FreeReadingPanel";
 import TagEditor from "./TagEditor";
 import styles from "./DrawFlow.module.css";
-
-// Free (no-key) Workers AI readings are always offered; anonymous abuse is
-// bounded by the per-cookie, per-IP, and global daily caps on the server.
-const FREE_ENABLED = true;
-// Mirrors FREE_USER_DAILY_CAP in wrangler.jsonc — used only for the initial
-// "N left" hint; the server is the real authority and reports the true
-// remaining count back after each free reading.
-const FREE_DAILY_CAP = 2;
-const FREE_STORE_KEY = "lenormand.freeReadings";
-
-function todayUtc(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-// Best-effort, display-only mirror of the free-readings-left count, scoped to
-// the current UTC day so it resets in step with the server counters. Never
-// trusted for enforcement — clearing it just shows the optimistic cap until
-// the next server response corrects it.
-function readFreeRemaining(): number {
-  if (typeof window === "undefined") return FREE_DAILY_CAP;
-  try {
-    const raw = window.localStorage.getItem(FREE_STORE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.day === todayUtc() && typeof parsed.remaining === "number") {
-        return parsed.remaining;
-      }
-    }
-  } catch {
-    // private mode / quota — fall through to the optimistic default
-  }
-  return FREE_DAILY_CAP;
-}
-
-function writeFreeRemaining(remaining: number): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(FREE_STORE_KEY, JSON.stringify({ day: todayUtc(), remaining }));
-  } catch {
-    // private mode / quota — nothing to do
-  }
-}
 
 type ScatterCard = { id: number; x: number; y: number; rot: number };
 type Phase = "question" | "shuffle" | "choose" | "locked";
@@ -115,7 +75,7 @@ function pillButtonStyle(on: boolean, tone: "gilt" | "ghost"): CSSProperties {
   };
 }
 
-// A low-emphasis text-link treatment for utility actions (copy, new question,
+// A low-emphasis text-link treatment for utility actions (copy, draw again,
 // back) so they recede behind the primary reading CTA.
 const quietActionStyle: CSSProperties = {
   cursor: "pointer",
@@ -150,12 +110,61 @@ function SpreadGlyph({ spread }: { spread: Spread }) {
   );
 }
 
+const FREE_READING_SPREADS_ANON: SpreadId[] = ["daily", "three", "five"];
+const FREE_READING_SPREADS_AUTH: SpreadId[] = ["daily", "three", "five"];
+const FREE_LIMIT_ANON = 2;
+const FREE_LIMIT_AUTH = 5;
+const UNLIMITED_EMAILS = new Set(["peichun1213@gmail.com"]);
+
+// Sign-in exists on the dev site only (NEXT_PUBLIC_ENABLE_AUTH=true there).
+// In production the flag is unset, so we treat everyone as anonymous and never
+// show the sign-in affordances.
+const AUTH_ENABLED = process.env.NEXT_PUBLIC_ENABLE_AUTH === "true";
+// Free (no-key) readings are always offered; anonymous abuse is bounded by the
+// per-cookie, per-IP, and global daily caps on the server (no bot check).
+const FREE_ENABLED = true;
+
+const FREE_STORE_KEY = "lenormand.freeReadings";
+
+function todayUtc(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// Display-only mirror of free readings left today, scoped to the UTC day so it
+// resets in step with the server. The server is the real authority and
+// corrects this via the X-Free-Remaining header after each reading.
+function readFreeRemaining(defaultCap: number): number {
+  if (typeof window === "undefined") return defaultCap;
+  try {
+    const raw = window.localStorage.getItem(FREE_STORE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.day === todayUtc() && typeof parsed.remaining === "number") {
+        return parsed.remaining;
+      }
+    }
+  } catch {
+    // private mode / quota — fall through to the optimistic default
+  }
+  return defaultCap;
+}
+
+function writeFreeRemaining(remaining: number): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(FREE_STORE_KEY, JSON.stringify({ day: todayUtc(), remaining }));
+  } catch {
+    // private mode / quota — nothing to do
+  }
+}
 
 export default function DrawFlow() {
   const locale = useLocale() as Locale;
   const t = useTranslations("draw");
   const s = useTranslations("spread");
   const cardsT = useTranslations("cards");
+  const { user } = useAuth();
+  const { addReading, hasDrawnDailyToday } = useReadings();
 
   const [sel, setSel] = useState(0);
   const [open, setOpen] = useState(false);
@@ -172,15 +181,22 @@ export default function DrawFlow() {
   const [deckScrollable, setDeckScrollable] = useState(false);
   const [questionHelpOpen, setQuestionHelpOpen] = useState(false);
   const [showApiPanel, setShowApiPanel] = useState(false);
-  const [apiPanelMode, setApiPanelMode] = useState<"byo" | "free">("byo");
-  const [apiConfigured, setApiConfigured] = useState(false);
+  const [showFreePanel, setShowFreePanel] = useState(false);
   const [freeRemaining, setFreeRemaining] = useState<number | null>(null);
+  const [apiConfigured, setApiConfigured] = useState(false);
   const [currentReadingId, setCurrentReadingId] = useState<string | null>(null);
+
+  // Sign-in only counts when auth is enabled (dev). In production the flag is
+  // off, so everyone is treated as anonymous regardless of any stale session.
+  const effectiveUser = AUTH_ENABLED ? user : null;
+  const signedIn = !!effectiveUser;
+  const isUnlimited = effectiveUser?.email ? UNLIMITED_EMAILS.has(effectiveUser.email) : false;
+  const freeCap = signedIn ? FREE_LIMIT_AUTH : FREE_LIMIT_ANON;
 
   useEffect(() => {
     setApiConfigured(hasAnyProviderConfigured());
-    setFreeRemaining(readFreeRemaining());
-  }, [open]);
+    setFreeRemaining(isUnlimited ? freeCap : readFreeRemaining(freeCap));
+  }, [open, isUnlimited, freeCap]);
 
   function handleFreeRemaining(remaining: number | null) {
     if (remaining === null) return;
@@ -297,6 +313,7 @@ export default function DrawFlow() {
     setChosen([]);
     setRevealed([]);
     setShowApiPanel(false);
+    setShowFreePanel(false);
     setCurrentReadingId(null);
   }
 
@@ -393,6 +410,7 @@ export default function DrawFlow() {
     setRevealed([]);
     setQuestion("");
     setShowApiPanel(false);
+    setShowFreePanel(false);
     setCurrentReadingId(null);
   }
 
@@ -450,7 +468,7 @@ export default function DrawFlow() {
     : asking
     ? ""
     : allShown
-      ? t("hint.sitWithIt")
+      ? ""
       : done
         ? t("hint.turnCards")
         : choosing
@@ -829,28 +847,26 @@ export default function DrawFlow() {
                     alignItems: "center",
                   }}
                 >
-                  {FREE_ENABLED && !showApiPanel && freeRemaining !== 0 && (
+                  {(signedIn || FREE_ENABLED) &&
+                    (isUnlimited || (signedIn ? FREE_READING_SPREADS_AUTH : FREE_READING_SPREADS_ANON).includes(spread.id)) &&
+                    freeRemaining !== 0 &&
+                    !showFreePanel &&
+                    !showApiPanel && (
+                      <button
+                        type="button"
+                        onClick={() => setShowFreePanel(true)}
+                        disabled={!allShown}
+                        style={{ ...pillButtonStyle(allShown, "gilt"), opacity: allShown ? 1 : 0.45 }}
+                      >
+                        {freeRemaining === null || isUnlimited
+                          ? t("freeReadingButton")
+                          : t("freeReadingButtonCount", { count: freeRemaining })}
+                      </button>
+                    )}
+                  {apiConfigured && !showApiPanel && !showFreePanel && (
                     <button
                       type="button"
-                      onClick={() => {
-                        setApiPanelMode("free");
-                        setShowApiPanel(true);
-                      }}
-                      disabled={!allShown}
-                      style={{ ...pillButtonStyle(allShown, "gilt"), opacity: allShown ? 1 : 0.45 }}
-                    >
-                      {freeRemaining === null
-                        ? t("readFreeButton")
-                        : t("readFreeButtonCount", { count: freeRemaining })}
-                    </button>
-                  )}
-                  {apiConfigured && !showApiPanel && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setApiPanelMode("byo");
-                        setShowApiPanel(true);
-                      }}
+                      onClick={() => setShowApiPanel(true)}
                       disabled={!allShown}
                       style={{ ...pillButtonStyle(allShown, "ghost"), opacity: allShown ? 1 : 0.45 }}
                     >
@@ -861,23 +877,28 @@ export default function DrawFlow() {
               )}
 
               {/* Out of free readings for the day: explain and point to the
-                  copy-prompt fallback. */}
-              {done && allShown && FREE_ENABLED && freeRemaining === 0 && !showApiPanel && (
-                <p
-                  style={{
-                    maxWidth: 560,
-                    margin: "clamp(8px, 2vh, 16px) auto 0",
-                    fontFamily: "var(--font-serif)",
-                    fontStyle: "italic",
-                    fontSize: 14,
-                    lineHeight: 1.5,
-                    color: "var(--gold-200)",
-                    textAlign: "center",
-                  }}
-                >
-                  {t("freeExhaustedNote")}
-                </p>
-              )}
+                  copy-prompt fallback (and, on dev, signing in for more). */}
+              {done &&
+                allShown &&
+                (signedIn || FREE_ENABLED) &&
+                freeRemaining === 0 &&
+                !showFreePanel &&
+                !showApiPanel && (
+                  <p
+                    style={{
+                      maxWidth: 560,
+                      margin: "clamp(8px, 2vh, 16px) auto 0",
+                      fontFamily: "var(--font-serif)",
+                      fontStyle: "italic",
+                      fontSize: 14,
+                      lineHeight: 1.5,
+                      color: "var(--gold-200)",
+                      textAlign: "center",
+                    }}
+                  >
+                    {t("freeExhaustedNote")}
+                  </p>
+                )}
 
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", alignItems: "flex-start" }}>
                 {done && !layAll && (
@@ -911,13 +932,17 @@ export default function DrawFlow() {
               </div>
             </div>
 
-            {done && allShown && showApiPanel && (
-              <ReadWithApiPanel
+            {done && allShown && showFreePanel && (
+              <FreeReadingPanel
                 prompt={promptText}
                 readingId={currentReadingId}
-                mode={apiPanelMode}
-                onRemaining={apiPanelMode === "free" ? handleFreeRemaining : undefined}
+                signedIn={signedIn}
+                onRemaining={handleFreeRemaining}
               />
+            )}
+
+            {done && allShown && showApiPanel && (
+              <ReadWithApiPanel prompt={promptText} readingId={currentReadingId} />
             )}
           </div>
         </div>

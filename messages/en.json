@@ -1,4 +1,16 @@
 {
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "close": "Close",
+    "modalTitle": "Welcome to In-Betweens",
+    "modalSubtitle": "Sign in for 5 free AI readings a day and keep your reading history synced across devices.",
+    "signInWithGoogle": "Continue with Google",
+    "termsPrefix": "By continuing, you agree to our",
+    "termsOfService": "Terms of Service",
+    "termsAnd": "and",
+    "privacyPolicy": "Privacy Policy"
+  },
   "site": {
     "title": "In-Betweens",
     "tagline": "Draw Lenormand cards and keep a personal reading history — no account needed."
@@ -24,7 +36,7 @@
       "title": "Your Readings",
       "description": "Revisit your saved Lenormand spreads, add reflections, and record how things unfolded — all stored privately in your own browser."
     },
-    "learning": {
+    "cards": {
       "title": "Learning Lenormand",
       "description": "Learn to read Lenormand: what the deck is, what each of the 36 cards means, and how the cards combine into a reading."
     },
@@ -41,7 +53,7 @@
     "home": "Spreads",
     "history": "History",
     "settings": "AI Reading",
-    "learning": "Cards",
+    "cards": "Cards",
     "about": "About",
     "language": "Language",
     "openMenu": "Open menu",
@@ -192,7 +204,6 @@
       "ready": "Enough. Lay the cards when you are ready.",
       "choosing": "Pick {need} cards from the line — {chosen} of {need} chosen.",
       "turnCards": "Turn a card by clicking it — or reveal them all at once.",
-      "sitWithIt": "Sit with what arrives.",
       "dailyLocked": "One daily draw per day. Come back after midnight in your time zone."
     },
     "dailyLockedBadge": "Drawn today — come back tomorrow",
@@ -233,6 +244,16 @@
     "followUpQuestionLabel": "You asked",
     "followUpRemaining": "{count} of 3 follow-ups left",
     "followUpLimitReached": "You've asked all three follow-ups for this reading.",
+    "freeReadingButton": "Free AI Reading",
+    "freeReadingButtonCount": "Free AI Reading ({count} left today)",
+    "freeReadingLimitReached": "You've used your free reading for today. Come back tomorrow, or use your own API key.",
+    "freeReadingSpreadLocked": "Free AI reading is only available for the Daily Draw.",
+    "freeReadingError": "The free reading couldn't be completed right now. Try again later, or copy the prompt above.",
+    "freeReadingSignInHint": "Sign in for free AI readings on 3-card and 5-card spreads",
+    "freeExhaustedNote": "You've used today's free readings. Come back tomorrow, or copy the prompt above to read with your own AI.",
+    "freeErrorCaptcha": "We couldn't verify you're human. Refresh and try again, or copy the prompt above instead.",
+    "freeErrorLimit": "You've used your free readings for today. Come back tomorrow, or copy the prompt above.",
+    "freeErrorGlobalLimit": "Free readings are all used up for today across the site. Come back tomorrow, or copy the prompt above.",
     "cardCountLabel": "{count} cards",
     "fullDeckEyebrow": "The full deck",
     "onceADayLabel": "Once a day",
@@ -295,6 +316,7 @@
     "exportTitle": "Your Spreads",
     "lead": "You can add reflections, record how things unfolded in each spread.",
     "savedNotice": "All draws are saved automatically in your browser",
+    "savedNoticeSynced": "Signed in — your readings sync across your devices",
     "beginReading": "Begin a reading",
     "empty": "No readings yet. Draw your first spread to start your history.",
     "questionPreviewNone": "(no question)",
@@ -323,6 +345,7 @@
     "deleteSelectedButton": "Delete selected readings",
     "confirmDeleteSelected": "Delete {count} readings? This cannot be undone.",
     "firstVisitNotice": "Readings are saved only on this device and browser.",
+    "firstVisitNoticeSynced": "Your readings are synced to your account across devices.",
     "incognitoWarning": "Your browser appears to be in private/incognito mode. History will not be saved after this session ends.",
     "tagsLabel": "Tags",
     "addTagPlaceholder": "Add a tag…",
@@ -362,6 +385,10 @@
   },
   "settings": {
     "title": "AI Reading",
+    "freeSectionHeading": "Free readings — no key needed",
+    "freeSectionLead": "Prefer not to set anything up? Get AI readings on us, powered by Cloudflare Workers AI.",
+    "freeTierAnon": "2 readings per day — no account required.",
+    "freeTierAuth": "5 readings per day — when you sign in.",
     "apiSectionHeading": "Read with your own API key",
     "apiSectionLead": "Bring your own Anthropic, OpenAI, or Gemini key to run readings directly, instead of copying the prompt elsewhere.",
     "providerAnthropic": "Anthropic",
@@ -386,7 +413,9 @@
   "footer": {
     "disclaimer": "For entertainment purposes only. Not a substitute for professional, legal, financial, or medical advice.",
     "contact": "Contact me",
-    "contactClose": "Close"
+    "contactClose": "Close",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy"
   },
   "changelog": {
     "buttonLabel": "What's new",
