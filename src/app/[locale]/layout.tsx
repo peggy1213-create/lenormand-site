@@ -108,23 +108,20 @@ export default async function LocaleLayout({
         )}
       </head>
       <body style={{ margin: 0 }}>
-        <PostHogProvider>
-          <NextIntlClientProvider messages={messages}>
-            <AuthProvider>
-              <ReadingsProvider>
-                <PostHogPageView />
-                <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-                  <Header />
-                  <div style={{ flex: 1 }}>{children}</div>
-                  <Footer />
-                  <LanguageSwitcher />
-                </div>
-              </ReadingsProvider>
-            </AuthProvider>
-          </NextIntlClientProvider>
-          <ServiceWorkerRegister />
-          <ClarityProvider />
-        </PostHogProvider>
+        <NextIntlClientProvider messages={messages}>
+          <AuthProvider>
+            <ReadingsProvider>
+              <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+                <Header />
+                <div style={{ flex: 1 }}>{children}</div>
+                <Footer />
+                <LanguageSwitcher />
+              </div>
+            </ReadingsProvider>
+          </AuthProvider>
+        </NextIntlClientProvider>
+        <ServiceWorkerRegister />
+        <ClarityProvider />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-0Q82SZMP7L"
           strategy="afterInteractive"

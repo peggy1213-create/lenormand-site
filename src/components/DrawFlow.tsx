@@ -17,48 +17,6 @@ import FreeReadingPanel from "./FreeReadingPanel";
 import TagEditor from "./TagEditor";
 import styles from "./DrawFlow.module.css";
 
-// Free (no-key) Workers AI readings are always offered; anonymous abuse is
-// bounded by the per-cookie, per-IP, and global daily caps on the server.
-const FREE_ENABLED = true;
-// Mirrors FREE_USER_DAILY_CAP in wrangler.jsonc — used only for the initial
-// "N left" hint; the server is the real authority and reports the true
-// remaining count back after each free reading.
-const FREE_DAILY_CAP = 2;
-const FREE_STORE_KEY = "lenormand.freeReadings";
-
-function todayUtc(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-// Best-effort, display-only mirror of the free-readings-left count, scoped to
-// the current UTC day so it resets in step with the server counters. Never
-// trusted for enforcement — clearing it just shows the optimistic cap until
-// the next server response corrects it.
-function readFreeRemaining(): number {
-  if (typeof window === "undefined") return FREE_DAILY_CAP;
-  try {
-    const raw = window.localStorage.getItem(FREE_STORE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.day === todayUtc() && typeof parsed.remaining === "number") {
-        return parsed.remaining;
-      }
-    }
-  } catch {
-    // private mode / quota — fall through to the optimistic default
-  }
-  return FREE_DAILY_CAP;
-}
-
-function writeFreeRemaining(remaining: number): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(FREE_STORE_KEY, JSON.stringify({ day: todayUtc(), remaining }));
-  } catch {
-    // private mode / quota — nothing to do
-  }
-}
-
 type ScatterCard = { id: number; x: number; y: number; rot: number };
 type Phase = "question" | "shuffle" | "choose" | "locked";
 
@@ -226,7 +184,6 @@ export default function DrawFlow() {
   const [showFreePanel, setShowFreePanel] = useState(false);
   const [freeRemaining, setFreeRemaining] = useState<number | null>(null);
   const [apiConfigured, setApiConfigured] = useState(false);
-  const [freeRemaining, setFreeRemaining] = useState<number | null>(null);
   const [currentReadingId, setCurrentReadingId] = useState<string | null>(null);
 
   // Sign-in only counts when auth is enabled (dev). In production the flag is
@@ -985,12 +942,7 @@ export default function DrawFlow() {
             )}
 
             {done && allShown && showApiPanel && (
-              <ReadWithApiPanel
-                prompt={promptText}
-                readingId={currentReadingId}
-                mode={apiPanelMode}
-                onRemaining={apiPanelMode === "free" ? handleFreeRemaining : undefined}
-              />
+              <ReadWithApiPanel prompt={promptText} readingId={currentReadingId} />
             )}
           </div>
         </div>

@@ -15,14 +15,15 @@
 		"binding": "AI"
 	},
 	// D1 holds the free-tier usage counters (per anonymous visitor, per IP, per
-	// signed-in user, and a global daily total). This is the DEV database — run
-	// `npx wrangler d1 create lenormand-free-dev`, paste the returned id below,
-	// then apply migrations/ (see README). Production uses its own database.
+	// signed-in user, and a global daily total) plus the Better Auth tables
+	// (user/session/account/verification) and the reading history sync table.
+	// This is the PRODUCTION database (lenormand-free). Dev uses its own
+	// lenormand-free-dev database on the master branch.
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "lenormand-free-dev",
-			"database_id": "f20f2ffb-77cc-46f0-bcd5-2c4f43eb266f"
+			"database_name": "lenormand-free",
+			"database_id": "75c06dc2-805c-4ab3-aa53-2527b63e160e"
 		}
 	],
 	// Non-secret tuning. TURNSTILE_SECRET_KEY and ANON_HASH_SALT are secrets —
