@@ -417,6 +417,10 @@
     "close": "Close",
     "entries": [
       {
+        "date": "2026-10-06",
+        "text": "Free AI readings, no API key needed — everyone gets 2 a day, and signing in with Google raises it to 5 a day. Sign in and your reading history also syncs across your devices."
+      },
+      {
         "date": "2026-09-12",
         "text": "Learn the deck a new way — the Deck Reference page has a Shuffle & Draw mode. Shuffle the cards, turn one at a time, and a running counter tracks which of the 36 you've already studied. Switch back to Spread any time to see your progress marked across the whole deck."
       },
