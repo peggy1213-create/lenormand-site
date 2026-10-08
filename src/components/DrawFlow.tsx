@@ -133,14 +133,24 @@ function todayUtc(): string {
 // Display-only mirror of free readings left today, scoped to the UTC day so it
 // resets in step with the server. The server is the real authority and
 // corrects this via the X-Free-Remaining header after each reading.
-function readFreeRemaining(defaultCap: number): number {
+function readFreeRemaining(defaultCap: number, signedIn: boolean): number {
   if (typeof window === "undefined") return defaultCap;
   try {
     const raw = window.localStorage.getItem(FREE_STORE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && parsed.day === todayUtc() && typeof parsed.remaining === "number") {
-        return parsed.remaining;
+      if (
+        parsed &&
+        parsed.day === todayUtc() &&
+        typeof parsed.remaining === "number" &&
+        // Anonymous (cap 2) and signed-in (cap 5) have different caps and
+        // separate server-side counters, so only trust a cached value from the
+        // same auth state — otherwise a leftover signed-in count would show to
+        // an anonymous visitor (and vice versa).
+        !!parsed.signedIn === signedIn
+      ) {
+        // Clamp to the current cap so a stale value can never exceed it.
+        return Math.max(0, Math.min(parsed.remaining, defaultCap));
       }
     }
   } catch {
@@ -149,10 +159,13 @@ function readFreeRemaining(defaultCap: number): number {
   return defaultCap;
 }
 
-function writeFreeRemaining(remaining: number): void {
+function writeFreeRemaining(remaining: number, signedIn: boolean): void {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(FREE_STORE_KEY, JSON.stringify({ day: todayUtc(), remaining }));
+    window.localStorage.setItem(
+      FREE_STORE_KEY,
+      JSON.stringify({ day: todayUtc(), remaining, signedIn }),
+    );
   } catch {
     // private mode / quota — nothing to do
   }
@@ -195,13 +208,13 @@ export default function DrawFlow() {
 
   useEffect(() => {
     setApiConfigured(hasAnyProviderConfigured());
-    setFreeRemaining(isUnlimited ? freeCap : readFreeRemaining(freeCap));
-  }, [open, isUnlimited, freeCap]);
+    setFreeRemaining(isUnlimited ? freeCap : readFreeRemaining(freeCap, signedIn));
+  }, [open, isUnlimited, freeCap, signedIn]);
 
   function handleFreeRemaining(remaining: number | null) {
     if (remaining === null) return;
     setFreeRemaining(remaining);
-    writeFreeRemaining(remaining);
+    writeFreeRemaining(remaining, signedIn);
   }
   const questionHelpRef = useRef<HTMLDivElement | null>(null);
 

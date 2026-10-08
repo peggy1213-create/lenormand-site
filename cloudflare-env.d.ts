@@ -9,8 +9,7 @@ declare global {
     FREE_READING_USAGE: KVNamespace;
     DB: D1Database;
 
-    // Better Auth secrets (wrangler secret put / .dev.vars)
-    BETTER_AUTH_SECRET: string;
+    // Google OAuth credentials (wrangler secret put / .dev.vars)
     GOOGLE_CLIENT_ID: string;
     GOOGLE_CLIENT_SECRET: string;
 

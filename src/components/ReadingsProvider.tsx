@@ -159,6 +159,17 @@ export default function ReadingsProvider({
     timerRef.current = setTimeout(() => void syncNow(), SYNC_DEBOUNCE_MS);
   }, [syncNow]);
 
+  // Push immediately, cancelling any pending debounce. Used for important,
+  // infrequent writes (a finished AI reading) and when the page is hidden, so a
+  // short debounce window can't drop the write if the user navigates away.
+  const flushSync = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    void syncNow();
+  }, [syncNow]);
+
   // Load local immediately; when signed in (or on sign-in), sync with D1. This
   // also merges any pre-login local readings into the account on first sign-in.
   useEffect(() => {
@@ -167,6 +178,21 @@ export default function ReadingsProvider({
     if (user?.id) void syncNow();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  // Flush a pending sync when the tab is backgrounded or the page is unloaded,
+  // so a just-finished reading isn't lost if the user leaves before the
+  // debounce fires.
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flushSync();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", flushSync);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", flushSync);
+    };
+  }, [flushSync]);
 
   const addReading = useCallback(
     (input: Omit<Reading, "id" | "createdAt">): Reading => {
@@ -193,9 +219,9 @@ export default function ReadingsProvider({
       setReadings((prev) =>
         prev.map((r) => (r.id === id ? { ...r, apiReadingText } : r)),
       );
-      scheduleSync();
+      flushSync();
     },
-    [scheduleSync],
+    [flushSync],
   );
 
   const updateApiFollowUps = useCallback(
@@ -204,9 +230,9 @@ export default function ReadingsProvider({
       setReadings((prev) =>
         prev.map((r) => (r.id === id ? { ...r, apiFollowUps } : r)),
       );
-      scheduleSync();
+      flushSync();
     },
-    [scheduleSync],
+    [flushSync],
   );
 
   const updateTags = useCallback(
