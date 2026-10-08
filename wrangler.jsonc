@@ -1,7 +1,11 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "lenormand-site",
-	"main": ".open-next/worker.js",
+	// Custom entry (worker-entry.ts): serves /api/auth/* from a framework-free
+	// handler and lazily delegates everything else to the generated OpenNext
+	// worker, so the sign-in callback's cold start no longer boots Next.js
+	// (fixes intermittent Error 1102 on sign-in).
+	"main": "worker-entry.ts",
 	"compatibility_date": "2025-09-01",
 	"compatibility_flags": [
 		"nodejs_compat"

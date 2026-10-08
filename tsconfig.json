@@ -37,6 +37,11 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    // The wrangler worker entry; it imports the generated .open-next/worker.js
+    // (which doesn't exist during `next build`) and is bundled/compiled by
+    // wrangler's esbuild, not by Next's TypeScript pass. Typecheck it with the
+    // dedicated `tsconfig.worker.json` instead.
+    "worker-entry.ts"
   ]
 }

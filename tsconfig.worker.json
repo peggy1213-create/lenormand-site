@@ -1,0 +1,9 @@
+{
+  // Typecheck the wrangler worker entry + framework-free auth handler.
+  // Requires `.open-next/worker.js` to exist (run an OpenNext build first), as
+  // worker-entry.ts imports it. The main tsconfig.json excludes worker-entry.ts
+  // because that generated file is absent during `next build`.
+  "extends": "./tsconfig.json",
+  "include": ["worker-entry.ts", "src/worker/**/*.ts", "cloudflare-env.d.ts"],
+  "exclude": ["node_modules"]
+}
