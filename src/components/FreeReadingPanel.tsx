@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import MarkdownReading from "./MarkdownReading";
 import { streamFreeReading, type FreeReadingErrorCode } from "@/lib/readingApiClient";
 import { useReadings } from "@/components/ReadingsProvider";
-import posthog from "posthog-js";
 
 type PanelState = "streaming" | "done" | "error";
 
@@ -59,7 +58,6 @@ export default function FreeReadingPanel({
       );
       if (cancelled) return;
       if (result.ok) {
-        posthog.capture("free_ai_reading_completed", { tier: signedIn ? "auth" : "anon" });
         setState("done");
         if (readingId) updateApiText(readingId, fullText);
       } else {

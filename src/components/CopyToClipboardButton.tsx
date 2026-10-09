@@ -38,6 +38,7 @@ export default function CopyToClipboardButton({
   selectAllLabel,
   buttonStyle = DEFAULT_BUTTON_STYLE,
   buttonClassName,
+  disabled = false,
 }: {
   text: string;
   label: string;
@@ -48,6 +49,7 @@ export default function CopyToClipboardButton({
   selectAllLabel: string;
   buttonStyle?: CSSProperties;
   buttonClassName?: string;
+  disabled?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
   const [justCopied, setJustCopied] = useState(false);
@@ -98,7 +100,13 @@ export default function CopyToClipboardButton({
           gap: 8,
         }}
       >
-        <button type="button" onClick={handleClick} className={buttonClassName} style={buttonStyle}>
+        <button
+          type="button"
+          onClick={handleClick}
+          disabled={disabled}
+          className={buttonClassName}
+          style={disabled ? { ...buttonStyle, cursor: "not-allowed", opacity: 0.45 } : buttonStyle}
+        >
           {justCopied ? copiedLabel : label}
         </button>
         {copied && (

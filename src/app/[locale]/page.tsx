@@ -79,6 +79,20 @@ export default async function HomePage({
           <Link href="/spreads" style={{ display: "inline-block", marginTop: 8, textDecoration: "none" }}>
             <Button size="lg">{t("chooseSpreadCta")}</Button>
           </Link>
+
+          <p
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontStyle: "italic",
+              fontSize: 14,
+              lineHeight: 1.5,
+              color: "var(--text-muted)",
+              margin: "14px 0 0",
+              maxWidth: 420,
+            }}
+          >
+            {t("freeNote")}
+          </p>
         </div>
 
         <HomeDeckTeaser />

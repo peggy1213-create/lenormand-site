@@ -7,7 +7,6 @@ import { streamReading, type ChatMessage, type ReadingApiErrorCode } from "@/lib
 import { getActiveConfig, DEFAULT_MODELS, type ApiProvider } from "@/lib/apiSettings";
 import type { ApiFollowUp } from "@/lib/storage";
 import { useReadings } from "@/components/ReadingsProvider";
-import posthog from "posthog-js";
 
 type PanelState = "streaming" | "done" | "error";
 type FollowUpState = "idle" | "streaming" | "error";
@@ -114,11 +113,6 @@ export default function ReadWithApiPanel({
       if (cancelled) return;
       if (result.ok) {
         setTokenCount(result.usage.inputTokens + result.usage.outputTokens);
-        posthog.capture("ai_reading_completed", {
-          provider: config.provider,
-          model,
-          tokens: result.usage.inputTokens + result.usage.outputTokens,
-        });
         setState("done");
         readingTextRef.current = fullText;
         if (readingId) updateApiText(readingId, fullText);
@@ -186,11 +180,6 @@ export default function ReadWithApiPanel({
       const next = [...followUpsRef.current, { question, answer }];
       followUpsRef.current = next;
       setFollowUps(next);
-      posthog.capture("ai_follow_up_completed", {
-        provider: config.provider,
-        model: config.model,
-        follow_up_number: next.length,
-      });
       setPendingQuestion("");
       setFollowUpText("");
       setFollowUpState("idle");

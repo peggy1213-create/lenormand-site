@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import posthog from "posthog-js";
 import type { Locale } from "@/i18n/routing";
 import { SPREADS, type Spread, type SpreadId } from "@/data/spreads";
 import { CARDS, CARD_BACK_IMAGE, type Card } from "@/data/cards";
 import { useAuth } from "@/components/AuthProvider";
+import { signInWithGoogle } from "@/lib/authClient";
 import { shuffle } from "@/lib/shuffle";
 import { useReadings } from "@/components/ReadingsProvider";
 import { buildAIPrompt } from "@/lib/prompt";
@@ -117,9 +117,9 @@ const FREE_LIMIT_ANON = 2;
 const FREE_LIMIT_AUTH = 5;
 const UNLIMITED_EMAILS = new Set(["peichun1213@gmail.com"]);
 
-// Sign-in exists on the dev site only (NEXT_PUBLIC_ENABLE_AUTH=true there).
-// In production the flag is unset, so we treat everyone as anonymous and never
-// show the sign-in affordances.
+// Google sign-in is live in production (NEXT_PUBLIC_ENABLE_AUTH=true). When the
+// flag is unset (e.g. a build with auth disabled) we treat everyone as
+// anonymous and never show the sign-in affordances.
 const AUTH_ENABLED = process.env.NEXT_PUBLIC_ENABLE_AUTH === "true";
 // Free (no-key) readings are always offered; anonymous abuse is bounded by the
 // per-cookie, per-IP, and global daily caps on the server (no bot check).
@@ -140,18 +140,23 @@ function readFreeRemaining(defaultCap: number, signedIn: boolean): number {
     const raw = window.localStorage.getItem(FREE_STORE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (
-        parsed &&
-        parsed.day === todayUtc() &&
-        typeof parsed.remaining === "number" &&
-        // Anonymous (cap 2) and signed-in (cap 5) have different caps and
-        // separate server-side counters, so only trust a cached value from the
-        // same auth state — otherwise a leftover signed-in count would show to
-        // an anonymous visitor (and vice versa).
-        !!parsed.signedIn === signedIn
-      ) {
-        // Clamp to the current cap so a stale value can never exceed it.
-        return Math.max(0, Math.min(parsed.remaining, defaultCap));
+      if (parsed && parsed.day === todayUtc() && typeof parsed.remaining === "number") {
+        // Anonymous (cap 2) and signed-in (cap 5) have different caps, so only
+        // trust a cached value from the same auth state directly.
+        if (!!parsed.signedIn === signedIn) {
+          // Clamp to the current cap so a stale value can never exceed it.
+          return Math.max(0, Math.min(parsed.remaining, defaultCap));
+        }
+        // Just signed in this session: the only cached value is still the
+        // anonymous count from before. Guest readings taken today carry over to
+        // the signed-in cap (the server enforces the same), so estimate what's
+        // left instead of flashing a full fresh allowance. The server corrects
+        // this via X-Free-Remaining after the next reading.
+        if (signedIn && parsed.signedIn === false) {
+          const anonRemaining = Math.max(0, Math.min(parsed.remaining, FREE_LIMIT_ANON));
+          const anonUsed = FREE_LIMIT_ANON - anonRemaining;
+          return Math.max(0, defaultCap - anonUsed);
+        }
       }
     }
   } catch {
@@ -317,7 +322,6 @@ export default function DrawFlow() {
     if (spreadAt.comingSoon) return;
     const skip = spreadAt.id === "daily";
     const locked = skip && dailyLocked;
-    posthog.capture("spread_selected", { spread: spreadAt.id, locale });
     setSel(i);
     setOpen(true);
     setPhase(locked ? "locked" : skip ? "shuffle" : "question");
@@ -575,6 +579,47 @@ export default function DrawFlow() {
             >
               {stageTitle}
             </div>
+
+            {/* Out of free readings, and signing in would grant more: prompt it
+                BEFORE any cards are drawn. Sign-in is a full OAuth redirect that
+                reloads the page, so offering it after the reveal would throw
+                away the spread the visitor is looking at. */}
+            {AUTH_ENABLED &&
+              !signedIn &&
+              freeRemaining === 0 &&
+              (asking || phase === "shuffle") && (
+                <div
+                  style={{
+                    maxWidth: 520,
+                    margin: "clamp(12px, 2.5vh, 20px) auto 0",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <p
+                    style={{
+                      margin: 0,
+                      fontFamily: "var(--font-serif)",
+                      fontStyle: "italic",
+                      fontSize: 14,
+                      lineHeight: 1.5,
+                      color: "var(--gold-200)",
+                      textAlign: "center",
+                    }}
+                  >
+                    {t("freeSignInPromptNote", { count: FREE_LIMIT_AUTH - FREE_LIMIT_ANON })}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => signInWithGoogle(window.location.href)}
+                    style={pillButtonStyle(true, "gilt")}
+                  >
+                    {t("freeSignInMoreButton", { count: FREE_LIMIT_AUTH - FREE_LIMIT_ANON })}
+                  </button>
+                </div>
+              )}
 
             {asking && (
               <div style={{ marginTop: 28, textAlign: "left" }}>
@@ -891,11 +936,12 @@ export default function DrawFlow() {
                 </div>
               )}
 
-              {/* Out of free readings for the day: explain and point to the
-                  copy-prompt fallback (and, on dev, signing in for more). */}
+              {/* Out of free readings after the reveal. No sign-in button here:
+                  signing in reloads the page and would discard this spread, so
+                  anonymous visitors are nudged to sign in before their NEXT
+                  draw (the actionable prompt lives pre-draw, above). */}
               {done &&
                 allShown &&
-                (signedIn || FREE_ENABLED) &&
                 freeRemaining === 0 &&
                 !showFreePanel &&
                 !showApiPanel && (
@@ -911,7 +957,9 @@ export default function DrawFlow() {
                       textAlign: "center",
                     }}
                   >
-                    {t("freeExhaustedNote")}
+                    {AUTH_ENABLED && !signedIn
+                      ? t("freeExhaustedAnonNote", { count: FREE_LIMIT_AUTH - FREE_LIMIT_ANON })
+                      : t("freeExhaustedNote")}
                   </p>
                 )}
 
@@ -927,6 +975,7 @@ export default function DrawFlow() {
                     selectAllLabel={t("selectAllButton")}
                     buttonStyle={quietActionStyle}
                     buttonClassName={styles.quietAction}
+                    disabled={!allShown}
                   />
                 )}
 
