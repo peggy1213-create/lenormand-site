@@ -63,7 +63,8 @@
   "home": {
     "heading": "The Cards Are Waiting",
     "chooseSpreadCta": "選擇牌陣",
-    "deckCta": "每日免費 AI 解讀"
+    "deckCta": "每日免費 AI 解讀",
+    "freeNote": "每天最多 5 次免費 AI 解讀，免註冊即可先享 2 次，用 Google 登入再加 3 次。"
   },
   "present": {
     "dateFormat": "{year}年{month}月{day}日 {weekday}",
@@ -251,6 +252,9 @@
     "freeReadingError": "免費解讀暫時無法完成。請稍後再試，或複製上方的提示詞。",
     "freeReadingSignInHint": "登入即可在三張牌和五張牌牌陣享有免費 AI 解讀",
     "freeExhaustedNote": "你今天的免費解讀次數已用完。請明天再來，或複製上方的提示詞，用你自己的 AI 解讀。",
+    "freeExhaustedAnonNote": "你今天的 2 次免費解讀已用完。下次抽牌前登入可再加 {count} 次，或複製上方的提示詞，用你自己的 AI 解讀。",
+    "freeSignInPromptNote": "你今天的 2 次免費解讀已用完。抽牌前用 Google 登入可再加 {count} 次。",
+    "freeSignInMoreButton": "登入再加 {count} 次",
     "freeErrorCaptcha": "無法確認你是真人。請重新整理再試一次，或改為複製上方的提示詞。",
     "freeErrorLimit": "你今天的免費解讀次數已用完。請明天再來，或複製上方的提示詞。",
     "freeErrorGlobalLimit": "今天全站的免費解讀次數已用完。請明天再來，或複製上方的提示詞。",

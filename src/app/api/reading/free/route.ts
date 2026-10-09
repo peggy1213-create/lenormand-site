@@ -23,8 +23,7 @@ const ANON_COOKIE = "lenormand_anon";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
 // Accounts that bypass the daily cap entirely (e.g. the site owner, for
-// testing on dev). Sign-in only exists on the dev site, so this never applies
-// in production.
+// testing).
 const UNLIMITED_EMAILS = new Set(["peichun1213@gmail.com"]);
 
 // Same normalization contract as the BYO relay: accept either a single
@@ -168,9 +167,8 @@ export async function POST(req: Request) {
 
   const ip = req.headers.get("cf-connecting-ip") ?? "";
 
-  // 1. Who is this? Sign-in exists on dev only. Signed-in users get a higher
-  // daily cap; anonymous users get the lower cap. In production there is no
-  // sign-in, so everyone is anonymous here.
+  // 1. Who is this? Signed-in users (Google sign-in) get a higher daily cap;
+  // anonymous visitors get the lower cap.
   let userId: string | null = null;
   let userEmail: string | null = null;
   try {
@@ -200,28 +198,47 @@ export async function POST(req: Request) {
   const usageId = signedIn ? `user:${userId}` : anonId;
   const ipHash = ip ? await sha256Hex(`${env.ANON_HASH_SALT ?? ""}:${ip}`) : "noip";
 
+  // Carry-over: a signed-in visitor who read as a guest earlier *today* still
+  // carries the anonymous cookie. Those guest readings count against the
+  // signed-in cap, so using 2 as a guest then signing in leaves 3 — not a
+  // fresh 5. Only today carries over (counters are per-day), and only when the
+  // cookie is actually present (no cookie ⇒ nothing to carry).
+  const carryAnonId =
+    signedIn && existingAnon && existingAnon.length <= 64 ? existingAnon : null;
+
   const db = env.DB;
   let usageCount = 0;
   let ipCount = 0;
   let globalCount = 0;
+  let carryCount = 0;
   try {
-    const [usageRow, ipRow, globalRow] = await db.batch<{ count: number }>([
+    const statements: D1Prepared[] = [
       db.prepare("SELECT count FROM anon_usage WHERE anon_id = ? AND day = ?").bind(usageId, day),
       db.prepare("SELECT count FROM ip_usage WHERE ip_hash = ? AND day = ?").bind(ipHash, day),
       db.prepare("SELECT count FROM global_usage WHERE day = ?").bind(day),
-    ]);
-    usageCount = usageRow.results[0]?.count ?? 0;
-    ipCount = ipRow.results[0]?.count ?? 0;
-    globalCount = globalRow.results[0]?.count ?? 0;
+    ];
+    if (carryAnonId) {
+      statements.push(
+        db.prepare("SELECT count FROM anon_usage WHERE anon_id = ? AND day = ?").bind(carryAnonId, day),
+      );
+    }
+    const rows = await db.batch<{ count: number }>(statements);
+    usageCount = rows[0].results[0]?.count ?? 0;
+    ipCount = rows[1].results[0]?.count ?? 0;
+    globalCount = rows[2].results[0]?.count ?? 0;
+    carryCount = carryAnonId ? rows[3].results[0]?.count ?? 0 : 0;
   } catch {
     return jsonError("network", 500);
   }
+
+  // Guest readings taken earlier today count toward the signed-in cap.
+  const usedBeforeThis = usageCount + carryCount;
 
   if (!isUnlimited) {
     if (globalCount >= globalCap) return jsonError("global_limit", 429);
     // The IP backstop applies to anonymous visitors only — signed-in users are
     // already gated by their account, and a shared IP shouldn't block them.
-    if (usageCount >= cap || (!signedIn && ipCount >= ipCap)) return jsonError("limit", 429);
+    if (usedBeforeThis >= cap || (!signedIn && ipCount >= ipCap)) return jsonError("limit", 429);
   }
 
   // 4. Meter the call. Increment before generating so an aborted stream still
@@ -262,7 +279,7 @@ export async function POST(req: Request) {
   } catch {
     return jsonError("network", 500);
   }
-  const remaining = isUnlimited ? cap : Math.max(0, cap - (usageCount + 1));
+  const remaining = isUnlimited ? cap : Math.max(0, cap - (usedBeforeThis + 1));
 
   // 4. Generate.
   const maxTokens =

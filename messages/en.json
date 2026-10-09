@@ -63,7 +63,8 @@
   "home": {
     "heading": "The Cards Are Waiting",
     "chooseSpreadCta": "Choose a spread",
-    "deckCta": "Daily Free AI Reading"
+    "deckCta": "Daily Free AI Reading",
+    "freeNote": "Up to 5 free AI readings a day. Start with 2, no account needed, and sign in with Google for 3 more."
   },
   "present": {
     "dateFormat": "{weekday}, {month} {day}, {year}",
@@ -251,6 +252,9 @@
     "freeReadingError": "The free reading couldn't be completed right now. Try again later, or copy the prompt above.",
     "freeReadingSignInHint": "Sign in for free AI readings on 3-card and 5-card spreads",
     "freeExhaustedNote": "You've used today's free readings. Come back tomorrow, or copy the prompt above to read with your own AI.",
+    "freeExhaustedAnonNote": "You've used today's 2 free readings. Sign in before your next draw for {count} more, or copy the prompt above to read with your own AI.",
+    "freeSignInPromptNote": "You've used today's 2 free readings. Sign in with Google for {count} more before you draw.",
+    "freeSignInMoreButton": "Sign in for {count} more",
     "freeErrorCaptcha": "We couldn't verify you're human. Refresh and try again, or copy the prompt above instead.",
     "freeErrorLimit": "You've used your free readings for today. Come back tomorrow, or copy the prompt above.",
     "freeErrorGlobalLimit": "Free readings are all used up for today across the site. Come back tomorrow, or copy the prompt above.",
